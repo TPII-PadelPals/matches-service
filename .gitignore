@@ -10,3 +10,4 @@ app.egg-info
 .env
 .git
 .pytest_cache
+.idea
