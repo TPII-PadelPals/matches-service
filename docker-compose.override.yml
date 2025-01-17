@@ -1,0 +1,27 @@
+services:
+  db:
+    restart: "no"
+    ports:
+      - "${POSTGRES_PORT_EXT?Variable not set}:${POSTGRES_PORT?Variable not set}"
+
+  service-template:
+    restart: "no"
+    ports:
+      - "${SERVICE_PORT_EXT?Variable not set}:8000"
+    build: .
+    command:
+      - fastapi
+      - run
+      - --reload
+      - "app/main.py"
+    develop:
+      watch:
+        - path: .
+          action: sync
+          target: /app
+          ignore:
+            - .venv
+        - path: ./pyproject.toml
+          action: rebuild
+    volumes:
+      - ./htmlcov:/app/htmlcov
