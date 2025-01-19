@@ -7,16 +7,34 @@ from app.models.provisional_match import (
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
 )
+# from app.tests.utils.exceptions import NotUniqueException
 
 
 class ProvisionalMatchRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
+    # async def _check_unique_provisional_match(self, provisional_match_in: ProvisionalMatchCreate):
+    #     values = provisional_match_in.get_values()
+    #     query = select(ProvisionalMatch).where(
+    #         and_(
+    #             ProvisionalMatch.player_id_1 == values["player_id_1"],
+    #             ProvisionalMatch.player_id_2 == values["player_id_2"],
+    #             ProvisionalMatch.court_id == values["court_id"],
+    #             ProvisionalMatch.date == values["date"],
+    #             ProvisionalMatch.time == values["time"],
+    #         )
+    #     )
+    #     results = (await self.session.exec(query)).mappings().all()
+    #     if len(results) > 0:
+    #         print("ASDASDDASD", len(results))
+    #         raise NotUniqueException(str(values))
+
     async def create_provisional_match(
         self, provisional_match_in: ProvisionalMatchCreate
     ) -> ProvisionalMatch:
         provisional_match = ProvisionalMatch.model_validate(provisional_match_in)
+        # await self._check_unique_provisional_match(provisional_match_in)
         self.session.add(provisional_match)
         await self.session.commit()
         await self.session.refresh(provisional_match)
@@ -28,6 +46,9 @@ class ProvisionalMatchRepository:
         provisional_matches = [
             ProvisionalMatch.model_validate(match) for match in provisional_matches_in
         ]
+        # for match in provisional_matches_in:
+        #     ProvisionalMatch.model_validate(match)
+        #     await self._check_unique_provisional_match(match)
         self.session.add_all(provisional_matches)
         await self.session.commit()
         for match in provisional_matches:

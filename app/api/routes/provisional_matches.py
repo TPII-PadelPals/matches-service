@@ -1,14 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from app.models.provisional_match import (
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
     ProvisionalMatchPublic,
 )
-from app.repository.provisional_match_repository import ProvisionalMatchRepository
+from app.services.provisional_match_service import ProvisionalMatchService
 from app.utilities.dependencies import SessionDep
 
 router = APIRouter()
+
+provisional_match_service = ProvisionalMatchService()
 
 
 @router.post(
@@ -22,14 +24,7 @@ async def create_provisional_match(
     """
     Create new provisional match.
     """
-    try:
-        repo = ProvisionalMatchRepository(session)
-        provisional_match = await repo.create_provisional_match(provisional_match_in)
-        return provisional_match
-    except Exception:
-        raise HTTPException(
-            status_code=500, detail="No se ha podido ingresar la partida"
-        )
+    return await provisional_match_service.create_match(session, provisional_match_in)
 
 
 @router.post(
@@ -39,28 +34,21 @@ async def create_provisional_match(
 )
 async def create_provisional_matches(
     *, session: SessionDep, provisional_matches_in: list[ProvisionalMatchCreate]
-) -> any:
+) -> list:
     """
     Create new provisional matches.
     """
-    try:
-        repo = ProvisionalMatchRepository(session)
-        provisional_match = await repo.create_provisional_matches(
-            provisional_matches_in
-        )
-        return provisional_match
-    except Exception:
-        raise HTTPException(
-            status_code=500, detail="No se han podido ingresar las partidas"
-        )
+    return await provisional_match_service.create_matches(session, provisional_matches_in)
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
 async def get_provisional_match(
     session: SessionDep, prov_match_opt: ProvisionalMatchFilters = Depends()
-):
-    repo_provisional_match = ProvisionalMatchRepository(session)
-    alternative_prov_match_opt = prov_match_opt.rotate_players_ids()
-    info_to_filter = [prov_match_opt, alternative_prov_match_opt]
-    matches = await repo_provisional_match.get_provisional_matches(info_to_filter)
-    return matches
+) -> list[ProvisionalMatchPublic]:
+    """
+    Get provisional matches, that match the filters.
+    :param session: database.
+    :param prov_match_opt: filters (optional None for no filter).
+    :return: list of matches that match the given filter.
+    """
+    return await provisional_match_service.get_filter_match(session, prov_match_opt)
