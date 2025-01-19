@@ -2,10 +2,12 @@ from httpx import AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import settings
+from app.services.provisional_match_service import ProvisionalMatchService
 from app.tests.utils.items import create_random_item
 import datetime
 
-from app.models.provisional_match import ProvisionalMatch
+from app.models.provisional_match import ProvisionalMatch, ProvisionalMatchCreate
+
 
 async def test_create_provisional_match(
         async_client: AsyncClient, x_api_key_header: dict[str, str]
@@ -78,19 +80,22 @@ async def test_create_provisional_matches(
 async def test_read_item(
         async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
-    provisional_match_in = {
+    provisional_match_in_info = {
         "player_id_1": "player_1",
         "player_id_2": "player_2",
         "court_id": 0,
         "time": 8,
-        # "date": datetime.date(2024, 11, 25),
         "date": "2024-11-25",
     }
-    await async_client.post(
-        f"{settings.API_V1_STR}/provisional-matches/",
-        headers=x_api_key_header,
-        json=provisional_match_in,
+    provisional_match_in = ProvisionalMatchCreate(
+        player_id_1=provisional_match_in_info["player_id_1"],
+        player_id_2=provisional_match_in_info["player_id_2"],
+        court_id=provisional_match_in_info["court_id"],
+        time=provisional_match_in_info["time"],
+        date=datetime.date.fromisoformat(provisional_match_in_info["date"]),
     )
+    service = ProvisionalMatchService()
+    _ = await service.create_match(session, provisional_match_in)
     response = await async_client.get(
         f"{settings.API_V1_STR}/provisional-matches/",
         headers=x_api_key_header,
@@ -100,11 +105,11 @@ async def test_read_item(
     content = response.json()
     assert len(content) == 1
     content = content[0]
-    assert content["player_id_1"] == provisional_match_in["player_id_1"]
-    assert content["player_id_2"] == provisional_match_in["player_id_2"]
-    assert content["court_id"] == provisional_match_in["court_id"]
-    assert content["time"] == provisional_match_in["time"]
-    assert content["date"] == provisional_match_in["date"]
+    assert content["player_id_1"] == provisional_match_in_info["player_id_1"]
+    assert content["player_id_2"] == provisional_match_in_info["player_id_2"]
+    assert content["court_id"] == provisional_match_in_info["court_id"]
+    assert content["time"] == provisional_match_in_info["time"]
+    assert content["date"] == provisional_match_in_info["date"]
 
 
 async def test_read_item_not_found(
