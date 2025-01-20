@@ -1,4 +1,5 @@
 from sqlalchemy import and_, or_
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -7,37 +8,29 @@ from app.models.provisional_match import (
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
 )
-
-# from app.tests.utils.exceptions import NotUniqueException
+from app.utilities.exceptions import NotUniqueException
 
 
 class ProvisionalMatchRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    # async def _check_unique_provisional_match(self, provisional_match_in: ProvisionalMatchCreate):
-    #     values = provisional_match_in.get_values()
-    #     query = select(ProvisionalMatch).where(
-    #         and_(
-    #             ProvisionalMatch.player_id_1 == values["player_id_1"],
-    #             ProvisionalMatch.player_id_2 == values["player_id_2"],
-    #             ProvisionalMatch.court_id == values["court_id"],
-    #             ProvisionalMatch.date == values["date"],
-    #             ProvisionalMatch.time == values["time"],
-    #         )
-    #     )
-    #     results = (await self.session.exec(query)).mappings().all()
-    #     if len(results) > 0:
-    #         print("ASDASDDASD", len(results))
-    #         raise NotUniqueException(str(values))
+    async def _commit_with_exception_handling(self):
+        try:
+            await self.session.commit()
+        except IntegrityError as e:
+            await self.session.rollback()
+            if "uq_match_constraints" in str(e.orig):
+                raise NotUniqueException("provisional match")
+            else:
+                raise
 
     async def create_provisional_match(
         self, provisional_match_in: ProvisionalMatchCreate
     ) -> ProvisionalMatch:
         provisional_match = ProvisionalMatch.model_validate(provisional_match_in)
-        # await self._check_unique_provisional_match(provisional_match_in)
         self.session.add(provisional_match)
-        await self.session.commit()
+        await self._commit_with_exception_handling()
         await self.session.refresh(provisional_match)
         return provisional_match
 
@@ -47,11 +40,8 @@ class ProvisionalMatchRepository:
         provisional_matches = [
             ProvisionalMatch.model_validate(match) for match in provisional_matches_in
         ]
-        # for match in provisional_matches_in:
-        #     ProvisionalMatch.model_validate(match)
-        #     await self._check_unique_provisional_match(match)
         self.session.add_all(provisional_matches)
-        await self.session.commit()
+        await self._commit_with_exception_handling()
         for match in provisional_matches:
             await self.session.refresh(match)
         return provisional_matches
