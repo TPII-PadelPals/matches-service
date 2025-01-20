@@ -23,7 +23,7 @@ class ProvisionalMatchCreate(ProvisionalMatchBase):
             "player_id_2": self.player_id_2,
             "court_id": self.court_id,
             "time": self.time,
-            "date": self.date
+            "date": self.date,
         }
 
 

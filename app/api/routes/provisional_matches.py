@@ -38,7 +38,9 @@ async def create_provisional_matches(
     """
     Create new provisional matches.
     """
-    return await provisional_match_service.create_matches(session, provisional_matches_in)
+    return await provisional_match_service.create_matches(
+        session, provisional_matches_in
+    )
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
