@@ -8,55 +8,41 @@ from app.models.provisional_match import ProvisionalMatchCreate
 from app.services.provisional_match_service import ProvisionalMatchService
 
 
-async def test_create_provisional_match(
-    async_client: AsyncClient, x_api_key_header: dict[str, str]
-) -> None:
-    data = {
-        "player_id_1": "player_1",
-        "player_id_2": "player_4",
-        "court_id": 0,
-        "time": 8,
-        "date": "2024-11-25",
+def set_provisional_match_data(player_id_1, player_id_2, court_id, time, date):
+    return {
+        "player_id_1": player_id_1,
+        "player_id_2": player_id_2,
+        "court_id": court_id,
+        "time": time,
+        "date": date,
     }
-    response = await async_client.post(
+
+
+async def create_provisional_match(async_client, x_api_key_header, data):
+    return await async_client.post(
         f"{settings.API_V1_STR}/provisional-matches/",
         headers=x_api_key_header,
         json=data,
     )
+
+
+async def test_create_provisional_match(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    data = set_provisional_match_data("player_1", "player_4", 0, 8, "2024-11-25")
+    response = await create_provisional_match(async_client, x_api_key_header, data)
     assert response.status_code == 201
     content = response.json()
-    assert content["player_id_1"] == data["player_id_1"]
-    assert content["player_id_2"] == data["player_id_2"]
-    assert content["court_id"] == data["court_id"]
-    assert content["time"] == data["time"]
-    assert content["date"] == data["date"]
+    assert content == data
 
 
 async def test_create_provisional_matches(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     data = [
-        {
-            "player_id_1": "player_1",
-            "player_id_2": "player_2",
-            "court_id": 0,
-            "time": 8,
-            "date": "2024-11-25",
-        },
-        {
-            "player_id_1": "player_1",
-            "player_id_2": "player_3",
-            "court_id": 1,
-            "time": 8,
-            "date": "2024-11-25",
-        },
-        {
-            "player_id_1": "player_1",
-            "player_id_2": "player_2",
-            "court_id": 1,
-            "time": 8,
-            "date": "2024-11-25",
-        },
+        set_provisional_match_data("player_1", "player_2", 0, 8, "2024-11-25"),
+        set_provisional_match_data("player_1", "player_3", 1, 8, "2024-11-25"),
+        set_provisional_match_data("player_1", "player_2", 1, 8, "2024-11-25"),
     ]
     response = await async_client.post(
         f"{settings.API_V1_STR}/provisional-matches/bulk",
@@ -66,45 +52,25 @@ async def test_create_provisional_matches(
     assert response.status_code == 201
     content = response.json()
     assert len(content) == 3
-    assert data[0] in content
-    assert data[1] in content
-    assert data[2] in content
+    assert all(item in content for item in data)
 
 
-# async def test_create_repeat_provisional_match(
-#         async_client: AsyncClient, x_api_key_header: dict[str, str]
-# ) -> None:
-#     data = {
-#         "player_id_1": "player_1",
-#         "player_id_2": "player_4",
-#         "court_id": 0,
-#         "time": 8,
-#         "date": "2024-11-25",
-#     }
-#     response = await async_client.post(
-#         f"{settings.API_V1_STR}/provisional-matches/",
-#         headers=x_api_key_header,
-#         json=data,
-#     )
-#     assert response.status_code == 201
-#     response = await async_client.post(
-#         f"{settings.API_V1_STR}/provisional-matches/",
-#         headers=x_api_key_header,
-#         json=data,
-#     )
-#     assert response.status_code == 409
+async def test_create_repeat_provisional_match(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    data = set_provisional_match_data("player_1", "player_4", 0, 8, "2024-11-25")
+    response = await create_provisional_match(async_client, x_api_key_header, data)
+    assert response.status_code == 201
+    response = await create_provisional_match(async_client, x_api_key_header, data)
+    assert response.status_code == 409
 
 
 async def test_read_item(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
-    provisional_match_in_info = {
-        "player_id_1": "player_1",
-        "player_id_2": "player_2",
-        "court_id": 0,
-        "time": 8,
-        "date": "2024-11-25",
-    }
+    provisional_match_in_info = set_provisional_match_data(
+        "player_1", "player_2", 0, 8, "2024-11-25"
+    )
     provisional_match_in = ProvisionalMatchCreate(
         player_id_1=provisional_match_in_info["player_id_1"],
         player_id_2=provisional_match_in_info["player_id_2"],
@@ -123,11 +89,7 @@ async def test_read_item(
     content = response.json()
     assert len(content) == 1
     content = content[0]
-    assert content["player_id_1"] == provisional_match_in_info["player_id_1"]
-    assert content["player_id_2"] == provisional_match_in_info["player_id_2"]
-    assert content["court_id"] == provisional_match_in_info["court_id"]
-    assert content["time"] == provisional_match_in_info["time"]
-    assert content["date"] == provisional_match_in_info["date"]
+    assert content == provisional_match_in_info
 
 
 async def test_read_item_not_found(
