@@ -1,29 +1,12 @@
 import datetime
 
+from app.tests.utils.provisional_matches import create_provisional_match, set_provisional_match_data
 from httpx import AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import settings
 from app.models.provisional_match import ProvisionalMatchCreate
 from app.services.provisional_match_service import ProvisionalMatchService
-
-
-def set_provisional_match_data(player_id_1, player_id_2, court_id, time, date):
-    return {
-        "player_id_1": player_id_1,
-        "player_id_2": player_id_2,
-        "court_id": court_id,
-        "time": time,
-        "date": date,
-    }
-
-
-async def create_provisional_match(async_client, x_api_key_header, data):
-    return await async_client.post(
-        f"{settings.API_V1_STR}/provisional-matches/",
-        headers=x_api_key_header,
-        json=data,
-    )
 
 
 async def test_create_provisional_match(
