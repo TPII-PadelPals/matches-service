@@ -18,7 +18,7 @@ async def test_create_provisional_match(
     assert content == data
 
 
-async def test_create_provisional_matches(
+async def test_create_multiple_provisional_matches_returns_all(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     data = [
@@ -37,7 +37,7 @@ async def test_create_provisional_matches(
     assert all(item in content for item in data)
 
 
-async def test_create_repeat_provisional_match(
+async def test_create_provisional_matches_on_multiple_raises_not_unique_exception(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     data = set_provisional_match_data(0, 8, "2024-11-25")
@@ -49,7 +49,7 @@ async def test_create_repeat_provisional_match(
     assert response.json().detail == NotUniqueException("provisional matches").detail
 
 
-async def test_read_provisional_matches(
+async def test_read_provisional_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     provisional_match_in = set_provisional_match_data(
@@ -68,7 +68,7 @@ async def test_read_provisional_matches(
     assert content == provisional_match_in
 
 
-async def test_read_provisional_matches_not_found(
+async def test_read_provisional_matches_returns_empty_list_when_player_has_zero_provisional_matches(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     response = await async_client.get(
