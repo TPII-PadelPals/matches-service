@@ -51,7 +51,7 @@ async def test_create_repeat_provisional_match(
     assert response.json().detail == NotUniqueException("provisional matches").detail
 
 
-async def test_read_item(
+async def test_read_provisional_matches(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     provisional_match_in_info = set_provisional_match_data(
@@ -78,7 +78,7 @@ async def test_read_item(
     assert content == provisional_match_in_info
 
 
-async def test_read_item_not_found(
+async def test_read_provisional_matches_not_found(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     response = await async_client.get(
