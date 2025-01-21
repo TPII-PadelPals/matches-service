@@ -1,6 +1,7 @@
 import datetime
 
 from app.tests.utils.provisional_matches import create_provisional_match, set_provisional_match_data
+from app.utilities.exceptions import NotUniqueException
 from httpx import AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -44,8 +45,10 @@ async def test_create_repeat_provisional_match(
     data = set_provisional_match_data("player_1", "player_4", 0, 8, "2024-11-25")
     response = await create_provisional_match(async_client, x_api_key_header, data)
     assert response.status_code == 201
+    assert data == response.json()
     response = await create_provisional_match(async_client, x_api_key_header, data)
     assert response.status_code == 409
+    assert response.json().detail == NotUniqueException("provisional matches").detail
 
 
 async def test_read_item(
