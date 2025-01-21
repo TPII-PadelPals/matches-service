@@ -11,7 +11,7 @@ class ProvisionalMatchBase(SQLModel):
     user_public_id_2: uuid.UUID = Field()
     court_id: int = Field()
     time: int = Field()
-    date: datetime.date = Field(default_factory=lambda: datetime.date.today())
+    date: datetime.date = Field()
 
 
 # Properties to receive on Provisional Match creation
