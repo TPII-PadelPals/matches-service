@@ -26,8 +26,8 @@ class ProvisionalMatch(ProvisionalMatchBase, table=True):
     __tablename__ = "provisional_matches"
     __table_args__ = (
         UniqueConstraint(
-            "player_id_1",
-            "player_id_2",
+            "user_public_id_1",
+            "user_public_id_2",
             "court_id",
             "time",
             "date",
@@ -48,8 +48,8 @@ class ProvisionalMatchesPublic(SQLModel):
 
 class ProvisionalMatchFilters(ProvisionalMatchBase):
     id: int | None = None
-    player_id_1: str | None = None
-    player_id_2: str | None = None
+    user_public_id_1: uuid.UUID | None = None
+    user_public_id_2: uuid.UUID | None = None
     court_id: int | None = None
     court_name: str | None = None
     time: int | None = None
@@ -58,8 +58,8 @@ class ProvisionalMatchFilters(ProvisionalMatchBase):
     def rotate_players_ids(self):
         result = ProvisionalMatchFilters(
             id=self.id,
-            player_id_1=self.player_id_2,
-            player_id_2=self.player_id_1,
+            user_public_id_1=self.user_public_id_2,
+            user_public_id_2=self.user_public_id_1,
             court_id=self.court_id,
             court_name=self.court_name,
             time=self.time,

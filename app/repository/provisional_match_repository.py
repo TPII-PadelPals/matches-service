@@ -56,13 +56,13 @@ class ProvisionalMatchRepository:
             match_conditions = []
             if match.id is not None:
                 match_conditions.append(ProvisionalMatch.id == match.id)
-            if match.player_id_1 is not None:
+            if match.user_public_id_1 is not None:
                 match_conditions.append(
-                    ProvisionalMatch.player_id_1 == match.player_id_1
+                    ProvisionalMatch.user_public_id_1 == match.user_public_id_1
                 )
-            if match.player_id_2 is not None:
+            if match.user_public_id_2 is not None:
                 match_conditions.append(
-                    ProvisionalMatch.player_id_2 == match.player_id_2
+                    ProvisionalMatch.user_public_id_2 == match.user_public_id_2
                 )
             if match.court_id is not None:
                 match_conditions.append(ProvisionalMatch.court_id == match.court_id)
