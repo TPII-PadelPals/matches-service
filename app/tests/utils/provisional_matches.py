@@ -1,10 +1,14 @@
+import datetime
+import uuid
 from app.core.config import Settings
+from app.models.provisional_match import ProvisionalMatchCreate
+from app.services.provisional_match_service import ProvisionalMatchService
 
 
-def set_provisional_match_data(player_id_1, player_id_2, court_id, time, date):
+def set_provisional_match_data(court_id, time, date):
     return {
-        "player_id_1": player_id_1,
-        "player_id_2": player_id_2,
+        "user_public_id_1": uuid.uuid4(),
+        "user_public_id_2": uuid.uuid4(),
         "court_id": court_id,
         "time": time,
         "date": date,
@@ -17,3 +21,14 @@ async def create_provisional_match(async_client, x_api_key_header, data):
         headers=x_api_key_header,
         json=data,
     )
+
+async def generate_provisional_match(session, provisional_match_in):
+    provisional_match_generated = ProvisionalMatchCreate(
+        user_public_id_1=provisional_match_in["user_public_id_1"],
+        user_public_id_2=provisional_match_in["user_public_id_2"],
+        court_id=provisional_match_in["court_id"],
+        time=provisional_match_in["time"],
+        date=datetime.date.fromisoformat(provisional_match_in["date"]),
+    )
+    service = ProvisionalMatchService()
+    _ = await service.create_match(session, provisional_match_generated)
