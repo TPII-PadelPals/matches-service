@@ -45,12 +45,12 @@ async def create_provisional_matches(
 
 @router.get("/", status_code=status.HTTP_200_OK)
 async def get_provisional_match(
-    session: SessionDep, prov_match_opt: ProvisionalMatchFilters = Depends()
+    session: SessionDep, prov_match_filters: ProvisionalMatchFilters = Depends()
 ) -> list[ProvisionalMatchPublic]:
     """
     Get provisional matches, that match the filters.
     :param session: database.
-    :param prov_match_opt: filters (optional None for no filter).
+    :param prov_match_filters: filters (optional None for no filter).
     :return: list of matches that match the given filter.
     """
-    return await provisional_match_service.get_filter_match(session, prov_match_opt)
+    return await provisional_match_service.get_filter_match(session, prov_match_filters)
