@@ -23,7 +23,7 @@ class ProvisionalMatchCreate(ProvisionalMatchBase):
 class ProvisionalMatch(ProvisionalMatchBase, table=True):
     id: int = Field(default=None, primary_key=True)
 
-    __tablename__ = "provisionalMatches"
+    __tablename__ = "provisional_matches"
     __table_args__ = (
         UniqueConstraint(
             "player_id_1",
