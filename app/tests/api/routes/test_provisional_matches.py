@@ -90,3 +90,28 @@ async def test_read_provisional_matches_returns_empty_list_when_player_has_zero_
     assert response.status_code == 200
     content = response.json()
     assert len(content) == 0
+
+
+async def test_read_multiple_provisional_match(
+        async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
+) -> None:
+    provisional_matches_in = [
+        set_provisional_match_data(0, 8, "2024-11-25"),
+        set_provisional_match_data(1, 8, "2024-11-25"),
+        set_provisional_match_data(5, 9, "2024-11-25"),
+        set_provisional_match_data(0, 12, "2024-11-25"),
+        set_provisional_match_data(4, 8, "2024-01-05"),
+    ]
+    for provisional_match_in in provisional_matches_in:
+        await generate_provisional_match(session, provisional_match_in)
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/provisional-matches/",
+        headers=x_api_key_header,
+        params={"time": provisional_matches_in[0].get("time")},
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert len(content) == 3
+    assert provisional_matches_in[0] in content
+    assert provisional_matches_in[1] in content
+    assert provisional_matches_in[4] in content

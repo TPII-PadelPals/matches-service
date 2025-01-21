@@ -47,29 +47,16 @@ class ProvisionalMatchRepository:
         return provisional_matches
 
     async def get_provisional_matches(
-        self, prov_matches_opts: list[ProvisionalMatchFilters]
+        self, prov_match_filter: list[ProvisionalMatchFilters]
     ) -> list:
         conditions = []
 
         # Player filter conditions
-        for match in prov_matches_opts:
+        for match in prov_match_filter:
             match_conditions = []
-            if match.id is not None:
-                match_conditions.append(ProvisionalMatch.id == match.id)
-            if match.user_public_id_1 is not None:
-                match_conditions.append(
-                    ProvisionalMatch.user_public_id_1 == match.user_public_id_1
-                )
-            if match.user_public_id_2 is not None:
-                match_conditions.append(
-                    ProvisionalMatch.user_public_id_2 == match.user_public_id_2
-                )
-            if match.court_id is not None:
-                match_conditions.append(ProvisionalMatch.court_id == match.court_id)
-            if match.date is not None:
-                match_conditions.append(ProvisionalMatch.date == match.date)
-            if match.time is not None:
-                match_conditions.append(ProvisionalMatch.time == match.time)
+            for attr, value in vars(match).items():  # Iterate through attributes and their values
+                if value is not None:
+                    match_conditions.append(getattr(ProvisionalMatch, attr) == value)
             conditions.append(and_(*match_conditions))
 
         # Combine conditions with AND
