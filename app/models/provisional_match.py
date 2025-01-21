@@ -1,17 +1,19 @@
 import datetime
-import uuid
+from uuid import UUID
 
+from pydantic import ConfigDict
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
 # Shared properties
 class ProvisionalMatchBase(SQLModel):
-    user_public_id_1: uuid.UUID = Field()
-    user_public_id_2: uuid.UUID = Field()
+    user_public_id_1: UUID = Field()
+    user_public_id_2: UUID = Field()
     court_id: int = Field()
     time: int = Field()
     date: datetime.date = Field()
+
 
 
 # Properties to receive on Provisional Match creation
@@ -48,8 +50,8 @@ class ProvisionalMatchesPublic(SQLModel):
 
 class ProvisionalMatchFilters(ProvisionalMatchBase):
     id: int | None = None
-    user_public_id_1: uuid.UUID | None = None
-    user_public_id_2: uuid.UUID | None = None
+    user_public_id_1: UUID | None = None
+    user_public_id_2: UUID | None = None
     court_id: int | None = None
     court_name: str | None = None
     time: int | None = None
