@@ -21,9 +21,7 @@ class ProvisionalMatchService:
         self, session: SessionDep, provisional_matches_in: list[ProvisionalMatchCreate]
     ) -> list[ProvisionalMatch]:
         repo = ProvisionalMatchRepository(session)
-        return await repo.create_provisional_matches(
-            provisional_matches_in
-        )
+        return await repo.create_provisional_matches(provisional_matches_in)
 
     async def get_filter_match(
         self, session: SessionDep, prov_match_opt: ProvisionalMatchFilters = Depends()

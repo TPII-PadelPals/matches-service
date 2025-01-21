@@ -1,7 +1,6 @@
 import datetime
 from uuid import UUID
 
-from pydantic import ConfigDict
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
@@ -13,7 +12,6 @@ class ProvisionalMatchBase(SQLModel):
     court_id: int = Field()
     time: int = Field()
     date: datetime.date = Field()
-
 
 
 # Properties to receive on Provisional Match creation
