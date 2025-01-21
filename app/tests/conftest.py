@@ -12,6 +12,7 @@ from app.core.config import test_settings
 from app.core.db import get_async_engine, init_db
 from app.main import app
 from app.models.item import Item
+from app.models.provisional_match import ProvisionalMatch
 from app.tests.utils.utils import get_x_api_key_header
 from app.utilities.dependencies import get_db
 
@@ -22,8 +23,8 @@ async def db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSession(get_async_engine(db_url)) as session:
         await init_db(db_url)
         yield session
-        statement = delete(Item)
-        await session.exec(statement)  # type: ignore[call-overload]
+        await session.exec(delete(Item))  # type: ignore[call-overload]
+        await session.exec(delete(ProvisionalMatch))  # type: ignore[call-overload]
         await session.commit()
 
 
