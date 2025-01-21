@@ -1,4 +1,5 @@
 import datetime
+import uuid
 
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
@@ -6,8 +7,8 @@ from sqlmodel import Field, SQLModel
 
 # Shared properties
 class ProvisionalMatchBase(SQLModel):
-    player_id_1: str = Field()
-    player_id_2: str = Field()
+    user_public_id_1: uuid.UUID = Field()
+    user_public_id_2: uuid.UUID = Field()
     court_id: int = Field()
     time: int = Field()
     date: datetime.date = Field(default_factory=lambda: datetime.date.today())
