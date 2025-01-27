@@ -1,5 +1,5 @@
 import datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
@@ -14,13 +14,19 @@ class ProvisionalMatchBase(SQLModel):
     date: datetime.date | None = Field()
 
 
+class ProvisionalMatchInmutable(SQLModel):
+    public_id: UUID = Field(default_factory=uuid4, unique=True)
+
+
 # Properties to receive on Provisional Match creation
+
+
 class ProvisionalMatchCreate(ProvisionalMatchBase):
     pass
 
 
 # Database model, database table inferred from class name
-class ProvisionalMatch(ProvisionalMatchBase, table=True):
+class ProvisionalMatch(ProvisionalMatchBase, ProvisionalMatchInmutable, table=True):
     id: int = Field(default=None, primary_key=True)
 
     __tablename__ = "provisional_matches"
@@ -37,7 +43,7 @@ class ProvisionalMatch(ProvisionalMatchBase, table=True):
 
 
 # Properties to return via API, id is always required
-class ProvisionalMatchPublic(ProvisionalMatchBase):
+class ProvisionalMatchPublic(ProvisionalMatchBase, ProvisionalMatchInmutable):
     pass
 
 
@@ -51,7 +57,7 @@ class ProvisionalMatchFilters(ProvisionalMatchBase):
     user_public_id_1: UUID | None = None
     user_public_id_2: UUID | None = None
     court_id: int | None = None
-    court_name: str | None = None
+    court_name: str | None = None  # TODO: Remove
     time: int | None = None
     date: datetime.date | None = None
 
