@@ -7,11 +7,11 @@ from sqlmodel import Field, SQLModel
 
 # Shared properties
 class ProvisionalMatchBase(SQLModel):
-    user_public_id_1: UUID = Field()
-    user_public_id_2: UUID = Field()
-    court_id: int = Field()
-    time: int = Field()
-    date: datetime.date = Field()
+    user_public_id_1: UUID | None = Field()
+    user_public_id_2: UUID | None = Field()
+    court_id: int | None = Field()
+    time: int | None = Field()
+    date: datetime.date | None = Field()
 
 
 # Properties to receive on Provisional Match creation
@@ -55,7 +55,7 @@ class ProvisionalMatchFilters(ProvisionalMatchBase):
     time: int | None = None
     date: datetime.date | None = None
 
-    def rotate_players_ids(self):
+    def rotate_players_ids(self) -> "ProvisionalMatchFilters":
         result = ProvisionalMatchFilters(
             id=self.id,
             user_public_id_1=self.user_public_id_2,
