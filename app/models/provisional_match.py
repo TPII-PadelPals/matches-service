@@ -15,7 +15,7 @@ class ProvisionalMatchBase(SQLModel):
 
 
 class ProvisionalMatchInmutable(SQLModel):
-    public_id: UUID = Field(default_factory=uuid4, unique=True)
+    public_id: UUID | None = Field(default_factory=uuid4, unique=True)
 
 
 # Properties to receive on Provisional Match creation
@@ -52,8 +52,9 @@ class ProvisionalMatchesPublic(SQLModel):
     count: int
 
 
-class ProvisionalMatchFilters(ProvisionalMatchBase):
+class ProvisionalMatchFilters(ProvisionalMatchBase, ProvisionalMatchInmutable):
     id: int | None = None
+    public_id: UUID | None = None
     user_public_id_1: UUID | None = None
     user_public_id_2: UUID | None = None
     court_id: int | None = None
@@ -64,6 +65,7 @@ class ProvisionalMatchFilters(ProvisionalMatchBase):
     def rotate_players_ids(self) -> "ProvisionalMatchFilters":
         result = ProvisionalMatchFilters(
             id=self.id,
+            public_id=self.public_id,
             user_public_id_1=self.user_public_id_2,
             user_public_id_2=self.user_public_id_1,
             court_id=self.court_id,
