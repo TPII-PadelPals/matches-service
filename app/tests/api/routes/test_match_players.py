@@ -9,7 +9,7 @@ from app.tests.utils.provisional_matches import (
 )
 
 
-async def test_add_player_to_match(
+async def test_add_one_player_to_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
@@ -29,3 +29,28 @@ async def test_add_player_to_match(
     data["match_public_id"] = match_public_id
     data["reserve"] = "provisional"
     assert content == data
+
+
+async def test_add_many_players_to_match(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    # Create match
+    _data = set_provisional_match_data(0, 8, "2024-11-25")
+    _response = await create_provisional_match(async_client, x_api_key_header, _data)
+    _content = _response.json()
+    match_public_id = _content["public_id"]
+
+    # Add players to match
+    n_players = 4
+    data = [{"user_public_id": str(uuid.uuid4())} for _ in range(n_players)]
+    response = await async_client.post(
+        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/bulk",
+        headers=x_api_key_header,
+        json=data,
+    )
+    assert response.status_code == 201
+    content = response.json()
+    for value in data:
+        value["match_public_id"] = match_public_id
+        value["reserve"] = "provisional"
+    all(match_player in data for match_player in content)

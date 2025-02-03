@@ -18,3 +18,16 @@ class MatchPlayerRepository:
         await self.session.commit()
         await self.session.refresh(match_player)
         return match_player
+
+    async def create_match_players(
+        self, match_players_in: list[MatchPlayerCreate]
+    ) -> list[MatchPlayer]:
+        match_players = [
+            MatchPlayer.model_validate(match_player)
+            for match_player in match_players_in
+        ]
+        self.session.add_all(match_players)
+        await self.session.commit()
+        for match_player in match_players:
+            await self.session.refresh(match_player)
+        return match_players

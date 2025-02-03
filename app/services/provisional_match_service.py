@@ -38,3 +38,9 @@ class ProvisionalMatchService:
     ) -> MatchPlayer:
         repo = MatchPlayerRepository(session)
         return await repo.create_match_player(match_player_in)
+
+    async def create_match_players(
+        self, session: SessionDep, match_players_in: list[MatchPlayerCreate]
+    ) -> list[MatchPlayer]:
+        repo = MatchPlayerRepository(session)
+        return await repo.create_match_players(match_players_in)

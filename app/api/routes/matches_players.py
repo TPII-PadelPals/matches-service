@@ -34,3 +34,30 @@ async def create_match_player(
         match_public_id, match_player_in
     )
     return await matches_service.create_match_player(session, match_player_create)
+
+
+@router.post(
+    "/bulk",
+    response_model=list[MatchPlayerPublic],
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_provisional_matches(
+    *,
+    session: SessionDep,
+    match_public_id: UUID,
+    match_players_in: list[MatchPlayerCreatePublic],
+) -> list[MatchPlayerPublic]:
+    """
+    Create new provisional matches.
+    """
+    match_players_create = [
+        MatchPlayerCreate.from_public(match_public_id, match_player_in)
+        for match_player_in in match_players_in
+    ]
+    match_players = await matches_service.create_match_players(
+        session, match_players_create
+    )
+    match_players_public = [
+        MatchPlayerPublic.from_private(match_player) for match_player in match_players
+    ]
+    return match_players_public

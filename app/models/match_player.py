@@ -41,4 +41,7 @@ class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
 
 
 class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutable):
-    pass
+    @classmethod
+    def from_private(cls, match_player: MatchPlayer) -> Self:
+        data = match_player.model_dump()
+        return cls(**data)
