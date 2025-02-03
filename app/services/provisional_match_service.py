@@ -1,11 +1,13 @@
 from fastapi import Depends
 
+from app.models.match_player import MatchPlayer, MatchPlayerCreate
 from app.models.provisional_match import (
     ProvisionalMatch,
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
     ProvisionalMatchPublic,
 )
+from app.repository.match_player_repository import MatchPlayerRepository
 from app.repository.provisional_match_repository import ProvisionalMatchRepository
 from app.utilities.dependencies import SessionDep
 
@@ -30,3 +32,9 @@ class ProvisionalMatchService:
         alternative_prov_match_opt = prov_match_opt.rotate_players_ids()
         info_to_filter = [prov_match_opt, alternative_prov_match_opt]
         return await repo_provisional_match.get_provisional_matches(info_to_filter)
+
+    async def create_match_player(
+        self, session: SessionDep, match_player_in: MatchPlayerCreate
+    ) -> MatchPlayer:
+        repo = MatchPlayerRepository(session)
+        return await repo.create_match_player(match_player_in)
