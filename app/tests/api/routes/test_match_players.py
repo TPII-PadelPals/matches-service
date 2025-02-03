@@ -18,7 +18,7 @@ async def test_add_player_to_match(
     content = response.json()
     match_public_id = content["public_id"]
     # Add player to match
-    data = {"match_public_id": match_public_id, "user_public_id": str(uuid.uuid4())}
+    data = {"user_public_id": str(uuid.uuid4())}
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players",
         headers=x_api_key_header,
@@ -26,6 +26,6 @@ async def test_add_player_to_match(
     )
     assert response.status_code == 201
     content = response.json()
-    reserve = content.pop("reserve")
-    assert reserve == "provisional"
+    data["match_public_id"] = match_public_id
+    data["reserve"] = "provisional"
     assert content == data
