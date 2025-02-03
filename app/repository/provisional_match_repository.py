@@ -64,5 +64,6 @@ class ProvisionalMatchRepository:
         query = select(*ProvisionalMatch.__table__.columns).where(or_(*conditions))
 
         # Execute query
+        # type: ignore
         matches = (await self.session.exec(query)).mappings().all()
         return [ProvisionalMatchFilters(**match) for match in matches]

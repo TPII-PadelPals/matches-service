@@ -4,7 +4,6 @@ from app.models.provisional_match import (
     ProvisionalMatch,
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
-    ProvisionalMatchPublic,
 )
 from app.repository.provisional_match_repository import ProvisionalMatchRepository
 from app.utilities.dependencies import SessionDep
@@ -25,7 +24,7 @@ class ProvisionalMatchService:
 
     async def get_filter_match(
         self, session: SessionDep, prov_match_opt: ProvisionalMatchFilters = Depends()
-    ) -> list[ProvisionalMatchPublic]:
+    ) -> list[ProvisionalMatchFilters]:
         repo_provisional_match = ProvisionalMatchRepository(session)
         alternative_prov_match_opt = prov_match_opt.rotate_players_ids()
         info_to_filter = [prov_match_opt, alternative_prov_match_opt]

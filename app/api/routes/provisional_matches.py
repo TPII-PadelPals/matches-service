@@ -1,6 +1,9 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends, status
 
 from app.models.provisional_match import (
+    ProvisionalMatch,
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
     ProvisionalMatchPublic,
@@ -20,7 +23,7 @@ provisional_match_service = ProvisionalMatchService()
 )
 async def create_provisional_match(
     *, session: SessionDep, provisional_match_in: ProvisionalMatchCreate
-) -> any:
+) -> Any:
     """
     Create new provisional match.
     """
@@ -34,7 +37,7 @@ async def create_provisional_match(
 )
 async def create_provisional_matches(
     *, session: SessionDep, provisional_matches_in: list[ProvisionalMatchCreate]
-) -> list:
+) -> list[ProvisionalMatch]:
     """
     Create new provisional matches.
     """
@@ -46,7 +49,7 @@ async def create_provisional_matches(
 @router.get("/", status_code=status.HTTP_200_OK)
 async def get_provisional_match(
     session: SessionDep, prov_match_filters: ProvisionalMatchFilters = Depends()
-) -> list[ProvisionalMatchPublic]:
+) -> list[ProvisionalMatchFilters]:
     """
     Get provisional matches, that match the filters.
     :param session: database.
