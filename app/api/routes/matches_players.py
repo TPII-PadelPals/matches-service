@@ -17,7 +17,7 @@ matches_service = ProvisionalMatchService()
 
 
 @router.post(
-    "/{match_public_id}/players",
+    "/",
     response_model=MatchPlayerPublic,
     status_code=status.HTTP_201_CREATED,
 )

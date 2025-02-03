@@ -20,7 +20,7 @@ async def test_add_player_to_match(
     # Add player to match
     data = {"user_public_id": str(uuid.uuid4())}
     response = await async_client.post(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players",
+        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/",
         headers=x_api_key_header,
         json=data,
     )

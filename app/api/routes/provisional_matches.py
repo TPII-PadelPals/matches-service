@@ -2,7 +2,6 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, status
 
-from app.api.routes import matches_players
 from app.models.provisional_match import (
     ProvisionalMatch,
     ProvisionalMatchCreate,
@@ -13,8 +12,6 @@ from app.services.provisional_match_service import ProvisionalMatchService
 from app.utilities.dependencies import SessionDep
 
 router = APIRouter()
-
-router.include_router(matches_players.router, prefix="", tags=["matches_players"])
 
 provisional_match_service = ProvisionalMatchService()
 
