@@ -1,6 +1,7 @@
 from typing import Self
 from uuid import UUID
 
+from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
@@ -38,6 +39,13 @@ class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
     id: int = Field(default=None, primary_key=True)
 
     __tablename__ = "matches_players"
+    __table_args__ = (
+        UniqueConstraint(
+            "match_public_id",
+            "user_public_id",
+            name="uq_match_player",
+        ),
+    )
 
 
 class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutable):
