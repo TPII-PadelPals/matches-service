@@ -15,7 +15,7 @@ class ProvisionalMatchRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def _commit_with_exception_handling(self):
+    async def _commit_with_exception_handling(self) -> None:
         try:
             await self.session.commit()
         except IntegrityError as e:
@@ -23,7 +23,7 @@ class ProvisionalMatchRepository:
             if "uq_match_constraints" in str(e.orig):
                 raise NotUniqueException("provisional match")
             else:
-                raise
+                raise e
 
     async def create_provisional_match(
         self, provisional_match_in: ProvisionalMatchCreate
@@ -48,13 +48,14 @@ class ProvisionalMatchRepository:
 
     async def get_provisional_matches(
         self, prov_match_filter: list[ProvisionalMatchFilters]
-    ) -> list:
+    ) -> list[ProvisionalMatchFilters]:
         conditions = []
 
         # Player filter conditions
         for match in prov_match_filter:
             match_conditions = []
-            for attr, value in vars(match).items():  # Iterate through attributes and their values
+            # Iterate through attributes and their values
+            for attr, value in vars(match).items():
                 if value is not None:
                     match_conditions.append(getattr(ProvisionalMatch, attr) == value)
             conditions.append(and_(*match_conditions))
