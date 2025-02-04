@@ -46,7 +46,7 @@ class MatchRepository(BaseRepository):
         result = await self.read_matches(filters)
         match = result[0] if result else None
         if match is None:
-            raise NotFoundException(str(match))
+            raise NotFoundException("match")
         return match
 
     async def update_match(

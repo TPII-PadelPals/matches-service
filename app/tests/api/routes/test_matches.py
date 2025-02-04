@@ -69,7 +69,33 @@ async def test_create_matches_on_multiple_raises_not_unique_exception(
     ), f"Expected '{expected_detail}' but got '{response_detail}'"
 
 
-async def test_read_match_by_match_public_id(
+async def test_read_match(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    data = set_match_data(0, 8, "2024-11-25")
+    response = await create_match(async_client, x_api_key_header, data)
+    prov_match_created = response.json()
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/matches/{prov_match_created['public_id']}",
+        headers=x_api_key_header,
+    )
+    assert response.status_code == 200
+    prov_match_read = response.json()
+    assert prov_match_read == prov_match_created
+
+
+async def test_read_match_raises_exception_when_match_not_exists(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/matches/{str(uuid.uuid4())}", headers=x_api_key_header
+    )
+    assert response.status_code == 404
+    content = response.json()
+    assert content["detail"] == "Match not found"
+
+
+async def test_read_matches_by_match_public_id(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     data = set_match_data(0, 8, "2024-11-25")
@@ -87,7 +113,7 @@ async def test_read_match_by_match_public_id(
     assert prov_match_read == prov_match_created
 
 
-async def test_read_match_by_unique_attributes(
+async def test_read_matches_by_unique_attributes(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     data = set_match_data(0, 8, "2024-11-25")

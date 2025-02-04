@@ -38,8 +38,10 @@ class Match(MatchBase, MatchInmutable, table=True):
         ),
     )
 
+    def __str__(self) -> str:
+        return f"Match(public_id={self.public_id})"
 
-# Properties to return via API, id is always required
+
 class MatchPublic(MatchBase, MatchInmutable):
     @classmethod
     def from_private(cls, match: Match) -> Self:
