@@ -1,5 +1,6 @@
 from typing import TypeVar
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
 from sqlalchemy.sql.expression import and_, or_
 from sqlmodel import SQLModel
@@ -12,6 +13,16 @@ F = TypeVar("F", bound=SQLModel)
 class BaseRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
+
+    def _handle_commit_exceptions(self, err: IntegrityError) -> None:
+        raise err
+
+    async def _commit_with_exception_handling(self) -> None:
+        try:
+            await self.session.commit()
+        except IntegrityError as e:
+            await self.session.rollback()
+            self._handle_commit_exceptions(e)
 
     async def filter_records(self, model: type[M], filters: list[F]) -> list[M]:
         or_conditions = []

@@ -55,7 +55,7 @@ async def test_read_item_not_found(
     )
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "Item not found"
+    assert content["detail"] == "Item not found."
 
 
 async def test_read_item_not_authorized(
@@ -70,7 +70,7 @@ async def test_read_item_not_authorized(
     )
     assert response.status_code == 401
     content = response.json()
-    assert content["detail"] == "Not Authorized"
+    assert content["detail"] == "Not Authorized."
 
 
 async def test_read_item_not_enough_permissions(
@@ -85,7 +85,7 @@ async def test_read_item_not_enough_permissions(
     )
     assert response.status_code == 403
     content = response.json()
-    assert content["detail"] == "Not enough permissions"
+    assert content["detail"] == "Not enough permissions."
 
 
 async def test_read_item_not_owner(
@@ -101,7 +101,7 @@ async def test_read_item_not_owner(
     )
     assert response.status_code == 403
     content = response.json()
-    assert content["detail"] == "Not enough permissions"
+    assert content["detail"] == "Not enough permissions."
 
 
 async def test_read_items(
@@ -154,7 +154,7 @@ async def test_update_item_not_found(
     )
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "Item not found"
+    assert content["detail"] == "Item not found."
 
 
 async def test_update_item_not_enough_permissions(
@@ -171,7 +171,7 @@ async def test_update_item_not_enough_permissions(
     )
     assert response.status_code == 403
     content = response.json()
-    assert content["detail"] == "Not enough permissions"
+    assert content["detail"] == "Not enough permissions."
 
 
 async def test_update_item_not_owner(
@@ -189,7 +189,7 @@ async def test_update_item_not_owner(
     )
     assert response.status_code == 403
     content = response.json()
-    assert content["detail"] == "Not enough permissions"
+    assert content["detail"] == "Not enough permissions."
 
 
 async def test_delete_item(
@@ -218,7 +218,7 @@ async def test_delete_item_not_found(
     )
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "Item not found"
+    assert content["detail"] == "Item not found."
 
 
 async def test_delete_item_not_enough_permissions(
@@ -233,7 +233,7 @@ async def test_delete_item_not_enough_permissions(
     )
     assert response.status_code == 403
     content = response.json()
-    assert content["detail"] == "Not enough permissions"
+    assert content["detail"] == "Not enough permissions."
 
 
 async def test_delete_item_not_owner(
@@ -249,4 +249,4 @@ async def test_delete_item_not_owner(
     )
     assert response.status_code == 403
     content = response.json()
-    assert content["detail"] == "Not enough permissions"
+    assert content["detail"] == "Not enough permissions."

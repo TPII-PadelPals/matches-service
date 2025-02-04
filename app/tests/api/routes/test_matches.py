@@ -62,7 +62,7 @@ async def test_create_matches_on_multiple_raises_not_unique_exception(
     assert second_response.status_code == 409
     second_content = second_response.json()
     response_detail = second_content.get("detail")
-    expected_detail = NotUniqueException("match").detail
+    expected_detail = NotUniqueException("Match").detail
 
     assert (
         response_detail == expected_detail
@@ -92,7 +92,7 @@ async def test_read_match_raises_exception_when_match_not_exists(
     )
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "Match not found"
+    assert content["detail"] == "Match not found."
 
 
 async def test_read_matches_by_match_public_id(

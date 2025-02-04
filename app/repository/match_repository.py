@@ -13,15 +13,11 @@ from app.utilities.exceptions import NotFoundException, NotUniqueException
 
 
 class MatchRepository(BaseRepository):
-    async def _commit_with_exception_handling(self) -> None:
-        try:
-            await self.session.commit()
-        except IntegrityError as e:
-            await self.session.rollback()
-            if "uq_match_constraints" in str(e.orig):
-                raise NotUniqueException("match")
-            else:
-                raise e
+    def _handle_commit_exceptions(self, err: IntegrityError) -> None:
+        if "uq_match_constraints" in str(err.orig):
+            raise NotUniqueException("Match")
+        else:
+            raise err
 
     async def create_match(self, match_in: MatchCreate) -> Match:
         match = Match.model_validate(match_in)
@@ -46,7 +42,7 @@ class MatchRepository(BaseRepository):
         result = await self.read_matches(filters)
         match = result[0] if result else None
         if match is None:
-            raise NotFoundException("match")
+            raise NotFoundException("Match")
         return match
 
     async def update_match(

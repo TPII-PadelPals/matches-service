@@ -49,7 +49,7 @@ async def test_add_same_player_to_match_raises_exception(
         )
     assert response.status_code == 409
     content = response.json()
-    assert content["detail"] == "Couple (match, player) already exists."
+    assert content["detail"] == "MatchPlayer already exists."
 
 
 async def test_add_many_players_to_match(
@@ -210,4 +210,4 @@ async def test_update_one_player_raises_exception_when_match_player_not_exists(
     )
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "Couple (match, player) not found"
+    assert content["detail"] == "MatchPlayer not found."

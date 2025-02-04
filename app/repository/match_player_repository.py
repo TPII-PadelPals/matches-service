@@ -13,15 +13,11 @@ from app.utilities.exceptions import NotFoundException, NotUniqueException
 
 
 class MatchPlayerRepository(BaseRepository):
-    async def _commit_with_exception_handling(self) -> None:
-        try:
-            await self.session.commit()
-        except IntegrityError as e:
-            await self.session.rollback()
-            if "uq_match_player" in str(e.orig):
-                raise NotUniqueException("Couple (match, player)")
-            else:
-                raise e
+    def _handle_commit_exceptions(self, err: IntegrityError) -> None:
+        if "uq_match_player" in str(err.orig):
+            raise NotUniqueException("MatchPlayer")
+        else:
+            raise err
 
     async def create_match_player(
         self, match_player_in: MatchPlayerCreate
@@ -61,7 +57,7 @@ class MatchPlayerRepository(BaseRepository):
         result = await self.read_matches_players(filters)
         match_player = result[0] if result else None
         if match_player is None:
-            raise NotFoundException("Couple (match, player)")
+            raise NotFoundException("MatchPlayer")
         return match_player
 
     async def update_match_player(
