@@ -1,4 +1,3 @@
-from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, status
@@ -27,14 +26,18 @@ async def create_match_player(
     session: SessionDep,
     match_public_id: UUID,
     match_player_in: MatchPlayerCreatePublic,
-) -> Any:
+) -> MatchPlayerPublic:
     """
     Create new match player.
     """
     match_player_create = MatchPlayerCreate.from_public(
         match_public_id, match_player_in
     )
-    return await matches_service.create_match_player(session, match_player_create)
+    match_player = await matches_service.create_match_player(
+        session, match_player_create
+    )
+    match_player_public = MatchPlayerPublic.from_private(match_player)
+    return match_player_public
 
 
 @router.post(
@@ -93,10 +96,12 @@ async def update_match_player(
     match_public_id: UUID,
     user_public_id: UUID,
     match_player_in: MatchPlayerUpdate,
-) -> Any:
+) -> MatchPlayerPublic:
     """
     Update match player.
     """
-    return await matches_service.update_match_player(
+    match_player = await matches_service.update_match_player(
         session, match_public_id, user_public_id, match_player_in
     )
+    match_player_public = MatchPlayerPublic.from_private(match_player)
+    return match_player_public
