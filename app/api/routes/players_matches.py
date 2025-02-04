@@ -3,12 +3,12 @@ from uuid import UUID
 from fastapi import APIRouter, status
 
 from app.models.match_player import MatchPlayerListPublic, MatchPlayerPublic
-from app.services.match_service import MatchService
+from app.services.match_player_service import MatchPlayerService
 from app.utilities.dependencies import SessionDep
 
 router = APIRouter()
 
-matches_service = MatchService()
+mp_service = MatchPlayerService()
 
 
 @router.get(
@@ -22,7 +22,7 @@ async def read_player_matches(
     """
     Read player matches.
     """
-    match_players = await matches_service.read_player_matches(session, user_public_id)
+    match_players = await mp_service.read_player_matches(session, user_public_id)
     match_players_public = MatchPlayerListPublic(
         data=[
             MatchPlayerPublic.from_private(match_player)
