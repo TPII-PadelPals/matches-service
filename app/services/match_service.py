@@ -2,50 +2,48 @@ from uuid import UUID
 
 from fastapi import Depends
 
+from app.models.match import (
+    Match,
+    MatchCreate,
+    MatchFilters,
+    MatchUpdate,
+)
 from app.models.match_player import (
     MatchPlayer,
     MatchPlayerCreate,
     MatchPlayerFilter,
     MatchPlayerUpdate,
 )
-from app.models.provisional_match import (
-    ProvisionalMatch,
-    ProvisionalMatchCreate,
-    ProvisionalMatchFilters,
-    ProvisionalMatchUpdate,
-)
 from app.repository.match_player_repository import MatchPlayerRepository
-from app.repository.provisional_match_repository import ProvisionalMatchRepository
+from app.repository.match_repository import MatchRepository
 from app.utilities.dependencies import SessionDep
 
 
-class ProvisionalMatchService:
-    async def create_match(
-        self, session: SessionDep, provisional_match_in: ProvisionalMatchCreate
-    ) -> ProvisionalMatch:
-        repo = ProvisionalMatchRepository(session)
-        return await repo.create_provisional_match(provisional_match_in)
+class MatchService:
+    async def create_match(self, session: SessionDep, match_in: MatchCreate) -> Match:
+        repo = MatchRepository(session)
+        return await repo.create_match(match_in)
 
     async def create_matches(
-        self, session: SessionDep, provisional_matches_in: list[ProvisionalMatchCreate]
-    ) -> list[ProvisionalMatch]:
-        repo = ProvisionalMatchRepository(session)
-        return await repo.create_provisional_matches(provisional_matches_in)
+        self, session: SessionDep, matches_in: list[MatchCreate]
+    ) -> list[Match]:
+        repo = MatchRepository(session)
+        return await repo.create_matches(matches_in)
 
     async def get_filter_match(
-        self, session: SessionDep, prov_match_opt: ProvisionalMatchFilters = Depends()
-    ) -> list[ProvisionalMatch]:
-        repo_provisional_match = ProvisionalMatchRepository(session)
+        self, session: SessionDep, prov_match_opt: MatchFilters = Depends()
+    ) -> list[Match]:
+        repo_match = MatchRepository(session)
         info_to_filter = [prov_match_opt]
-        return await repo_provisional_match.read_matches(info_to_filter)
+        return await repo_match.read_matches(info_to_filter)
 
     async def update_match(
         self,
         session: SessionDep,
         public_id: UUID,
-        match_in: ProvisionalMatchUpdate,
-    ) -> ProvisionalMatch:
-        repo = ProvisionalMatchRepository(session)
+        match_in: MatchUpdate,
+    ) -> Match:
+        repo = MatchRepository(session)
         return await repo.update_match(public_id, match_in)
 
     async def create_match_player(

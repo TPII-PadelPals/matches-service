@@ -6,29 +6,29 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
-class ProvisionalMatchBase(SQLModel):
+class MatchBase(SQLModel):
     court_id: int | None = Field(default=None)
     time: int | None = Field(default=None)
     date: datetime.date | None = Field(default=None)
     status: str | None = Field(default=None)
 
 
-class ProvisionalMatchInmutable(SQLModel):
+class MatchInmutable(SQLModel):
     public_id: UUID | None = Field(default_factory=uuid4, unique=True)
 
 
-class ProvisionalMatchCreate(ProvisionalMatchBase):
+class MatchCreate(MatchBase):
     status: str | None = Field(default="provisional")
 
 
-class ProvisionalMatchUpdate(ProvisionalMatchBase):
+class MatchUpdate(MatchBase):
     pass
 
 
-class ProvisionalMatch(ProvisionalMatchBase, ProvisionalMatchInmutable, table=True):
+class Match(MatchBase, MatchInmutable, table=True):
     id: int = Field(default=None, primary_key=True)
 
-    __tablename__ = "provisional_matches"
+    __tablename__ = "matches"
     __table_args__ = (
         UniqueConstraint(
             "court_id",
@@ -40,19 +40,19 @@ class ProvisionalMatch(ProvisionalMatchBase, ProvisionalMatchInmutable, table=Tr
 
 
 # Properties to return via API, id is always required
-class ProvisionalMatchPublic(ProvisionalMatchBase, ProvisionalMatchInmutable):
+class MatchPublic(MatchBase, MatchInmutable):
     @classmethod
-    def from_private(cls, match: ProvisionalMatch) -> Self:
+    def from_private(cls, match: Match) -> Self:
         data = match.model_dump()
         return cls(**data)
 
 
-class ProvisionalMatchListPublic(SQLModel):
-    data: list[ProvisionalMatchPublic]
+class MatchListPublic(SQLModel):
+    data: list[MatchPublic]
     count: int
 
 
-class ProvisionalMatchFilters(ProvisionalMatchBase, ProvisionalMatchInmutable):
+class MatchFilters(MatchBase, MatchInmutable):
     id: int | None = None
     public_id: UUID | None = None
     court_id: int | None = None

@@ -3,9 +3,9 @@ import uuid
 from httpx import AsyncClient
 
 from app.core.config import test_settings
-from app.tests.utils.provisional_matches import (
-    create_provisional_match,
-    set_provisional_match_data,
+from app.tests.utils.matches import (
+    create_match,
+    set_match_data,
 )
 
 
@@ -16,10 +16,8 @@ async def test_read_player_matches_returns_all_matches_associated_to_player(
     n_matches = 4
     match_public_ids = []
     for i in range(n_matches):
-        _data = set_provisional_match_data(0, i, "2024-11-25")
-        _response = await create_provisional_match(
-            async_client, x_api_key_header, _data
-        )
+        _data = set_match_data(0, i, "2024-11-25")
+        _response = await create_match(async_client, x_api_key_header, _data)
         _content = _response.json()
         match_public_ids.append(_content["public_id"])
 
@@ -28,7 +26,7 @@ async def test_read_player_matches_returns_all_matches_associated_to_player(
     data = {"user_public_id": user_public_id}
     for match_public_id in match_public_ids:
         await async_client.post(
-            f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/",
+            f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
             headers=x_api_key_header,
             json=data,
         )

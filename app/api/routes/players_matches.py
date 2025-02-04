@@ -3,12 +3,12 @@ from uuid import UUID
 from fastapi import APIRouter, status
 
 from app.models.match_player import MatchPlayerListPublic, MatchPlayerPublic
-from app.services.provisional_match_service import ProvisionalMatchService
+from app.services.match_service import MatchService
 from app.utilities.dependencies import SessionDep
 
 router = APIRouter()
 
-matches_service = ProvisionalMatchService()
+matches_service = MatchService()
 
 
 @router.get(

@@ -9,12 +9,12 @@ from app.models.match_player import (
     MatchPlayerPublic,
     MatchPlayerUpdate,
 )
-from app.services.provisional_match_service import ProvisionalMatchService
+from app.services.match_service import MatchService
 from app.utilities.dependencies import SessionDep
 
 router = APIRouter()
 
-matches_service = ProvisionalMatchService()
+matches_service = MatchService()
 
 
 @router.post(
@@ -46,14 +46,14 @@ async def create_match_player(
     response_model=list[MatchPlayerPublic],
     status_code=status.HTTP_201_CREATED,
 )
-async def create_provisional_matches(
+async def create_matches(
     *,
     session: SessionDep,
     match_public_id: UUID,
     match_players_in: list[MatchPlayerCreatePublic],
 ) -> list[MatchPlayerPublic]:
     """
-    Create new provisional matches.
+    Create new matches.
     """
     match_players_create = [
         MatchPlayerCreate.from_public(match_public_id, match_player_in)

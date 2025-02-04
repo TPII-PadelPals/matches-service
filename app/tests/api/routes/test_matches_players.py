@@ -3,9 +3,9 @@ import uuid
 from httpx import AsyncClient
 
 from app.core.config import test_settings
-from app.tests.utils.provisional_matches import (
-    create_provisional_match,
-    set_provisional_match_data,
+from app.tests.utils.matches import (
+    create_match,
+    set_match_data,
 )
 
 
@@ -13,14 +13,14 @@ async def test_add_one_player_to_match_reserve_is_provisional(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = set_provisional_match_data(0, 8, "2024-11-25")
-    response = await create_provisional_match(async_client, x_api_key_header, data)
+    data = set_match_data(0, 8, "2024-11-25")
+    response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
     # Add player to match
     data = {"user_public_id": str(uuid.uuid4())}
     response = await async_client.post(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
         headers=x_api_key_header,
         json=data,
     )
@@ -35,15 +35,15 @@ async def test_add_same_player_to_match_raises_exception(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = set_provisional_match_data(0, 8, "2024-11-25")
-    response = await create_provisional_match(async_client, x_api_key_header, data)
+    data = set_match_data(0, 8, "2024-11-25")
+    response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
     # Add player to match
     data = {"user_public_id": str(uuid.uuid4())}
     for _ in range(2):
         response = await async_client.post(
-            f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/",
+            f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
             headers=x_api_key_header,
             json=data,
         )
@@ -56,8 +56,8 @@ async def test_add_many_players_to_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    _data = set_provisional_match_data(0, 8, "2024-11-25")
-    _response = await create_provisional_match(async_client, x_api_key_header, _data)
+    _data = set_match_data(0, 8, "2024-11-25")
+    _response = await create_match(async_client, x_api_key_header, _data)
     _content = _response.json()
     match_public_id = _content["public_id"]
 
@@ -65,7 +65,7 @@ async def test_add_many_players_to_match(
     n_players = 4
     data = [{"user_public_id": str(uuid.uuid4())} for _ in range(n_players)]
     response = await async_client.post(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/bulk/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/bulk/",
         headers=x_api_key_header,
         json=data,
     )
@@ -81,20 +81,20 @@ async def test_read_one_match_player(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = set_provisional_match_data(0, 8, "2024-11-25")
-    response = await create_provisional_match(async_client, x_api_key_header, data)
+    data = set_match_data(0, 8, "2024-11-25")
+    response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
     # Add player to match
     user_public_id = str(uuid.uuid4())
     data = {"user_public_id": user_public_id}
     await async_client.post(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
         headers=x_api_key_header,
         json=data,
     )
     response = await async_client.get(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/{user_public_id}",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}",
         headers=x_api_key_header,
     )
     assert response.status_code == 200
@@ -108,8 +108,8 @@ async def test_read_match_players_returns_all_players_associated_to_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    _data = set_provisional_match_data(0, 8, "2024-11-25")
-    _response = await create_provisional_match(async_client, x_api_key_header, _data)
+    _data = set_match_data(0, 8, "2024-11-25")
+    _response = await create_match(async_client, x_api_key_header, _data)
     _content = _response.json()
     match_public_id = _content["public_id"]
 
@@ -118,12 +118,12 @@ async def test_read_match_players_returns_all_players_associated_to_match(
     user_public_ids = [str(uuid.uuid4()) for _ in range(n_players)]
     data = [{"user_public_id": user_public_id} for user_public_id in user_public_ids]
     await async_client.post(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/bulk/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/bulk/",
         headers=x_api_key_header,
         json=data,
     )
     response = await async_client.get(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
         headers=x_api_key_header,
     )
     assert response.status_code == 200
@@ -139,14 +139,14 @@ async def test_update_one_player_reserve_to_accept(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = set_provisional_match_data(0, 8, "2024-11-25")
-    response = await create_provisional_match(async_client, x_api_key_header, data)
+    data = set_match_data(0, 8, "2024-11-25")
+    response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
     # Add player to match
     data = {"user_public_id": str(uuid.uuid4())}
     response = await async_client.post(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
         headers=x_api_key_header,
         json=data,
     )
@@ -155,7 +155,7 @@ async def test_update_one_player_reserve_to_accept(
     # Update match player
     data = {"reserve": "accept"}
     response = await async_client.patch(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/{user_public_id}/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,
         json=data,
     )
@@ -170,14 +170,14 @@ async def test_update_one_player_reserve_to_reject(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = set_provisional_match_data(0, 8, "2024-11-25")
-    response = await create_provisional_match(async_client, x_api_key_header, data)
+    data = set_match_data(0, 8, "2024-11-25")
+    response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
     # Add player to match
     data = {"user_public_id": str(uuid.uuid4())}
     response = await async_client.post(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
         headers=x_api_key_header,
         json=data,
     )
@@ -186,7 +186,7 @@ async def test_update_one_player_reserve_to_reject(
     # Update match player
     data = {"reserve": "reject"}
     response = await async_client.patch(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/{user_public_id}/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,
         json=data,
     )
@@ -204,7 +204,7 @@ async def test_update_one_player_raises_exception_when_match_player_not_exists(
     user_public_id = str(uuid.uuid4())
     data = {"reserve": "accept"}
     response = await async_client.patch(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/{user_public_id}/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,
         json=data,
     )
