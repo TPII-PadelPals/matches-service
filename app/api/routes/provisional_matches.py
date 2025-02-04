@@ -1,4 +1,5 @@
 from typing import Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
@@ -8,6 +9,7 @@ from app.models.provisional_match import (
     ProvisionalMatchFilters,
     ProvisionalMatchListPublic,
     ProvisionalMatchPublic,
+    ProvisionalMatchUpdate,
 )
 from app.services.provisional_match_service import ProvisionalMatchService
 from app.utilities.dependencies import SessionDep
@@ -64,8 +66,23 @@ async def get_provisional_match(
         data=[ProvisionalMatchPublic.from_private(match) for match in matches],
         count=len(matches),
     )
-
-    # [
-    #     ProvisionalMatchPublic(**match.model_dump()) for match in matches
-    # ]
     return matches_public
+
+
+@router.patch(
+    "/{public_id}",
+    response_model=ProvisionalMatchPublic,
+    status_code=status.HTTP_200_OK,
+)
+async def update_provisional_match(
+    *,
+    session: SessionDep,
+    public_id: UUID,
+    provisional_match_in: ProvisionalMatchUpdate,
+) -> Any:
+    """
+    Update provisional match.
+    """
+    return await provisional_match_service.update_match(
+        session, public_id, provisional_match_in
+    )

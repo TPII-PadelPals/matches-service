@@ -3,7 +3,7 @@ import uuid
 from httpx import AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.core.config import settings
+from app.core.config import settings, test_settings
 from app.tests.utils.provisional_matches import (
     create_provisional_match,
     generate_provisional_match,
@@ -21,6 +21,8 @@ async def test_create_provisional_match(
     content = response.json()
     public_id = content.pop("public_id")
     assert len(public_id) == len(str(uuid.uuid4()))
+    assert content["status"] == "provisional"
+    content.pop("status")
     assert content == data
 
 
@@ -39,7 +41,9 @@ async def test_create_multiple_provisional_matches_returns_all(
     )
     assert response.status_code == 201
     content = response.json()
-    [item.pop("public_id") for item in content]
+    for item in content:
+        item.pop("public_id")
+        item.pop("status")
     assert len(content) == 3
     assert all(item in content for item in data)
 
@@ -54,6 +58,7 @@ async def test_create_provisional_matches_on_multiple_raises_not_unique_exceptio
     assert first_response.status_code == 201
     first_content = first_response.json()
     first_content.pop("public_id")
+    first_content.pop("status")
     assert data == first_content
     second_response = await create_provisional_match(
         async_client, x_api_key_header, data
@@ -127,8 +132,31 @@ async def test_read_multiple_provisional_match(
     )
     assert response.status_code == 200
     content = response.json()
-    [item.pop("public_id") for item in content["data"]]
+    for item in content["data"]:
+        item.pop("public_id")
+        item.pop("status")
     assert content["count"] == 3
     assert provisional_matches_in[0] in content["data"]
     assert provisional_matches_in[1] in content["data"]
     assert provisional_matches_in[4] in content["data"]
+
+
+async def test_update_provisional_match_status_to_reserved(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    data = set_provisional_match_data(0, 8, "2024-11-25")
+    response = await create_provisional_match(async_client, x_api_key_header, data)
+    match_created = response.json()
+
+    data = {"status": "reserved"}
+    response = await async_client.patch(
+        f"{test_settings.API_V1_STR}/provisional-matches/{match_created['public_id']}",
+        headers=x_api_key_header,
+        json=data,
+    )
+    assert response.status_code == 200
+    match_updated = response.json()
+    assert match_updated["status"] == "reserved"
+    match_updated.pop("status")
+    match_created.pop("status")
+    assert match_updated == match_created

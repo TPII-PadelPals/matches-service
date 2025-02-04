@@ -7,9 +7,10 @@ from sqlmodel import Field, SQLModel
 
 
 class ProvisionalMatchBase(SQLModel):
-    court_id: int | None = Field()
-    time: int | None = Field()
-    date: datetime.date | None = Field()
+    court_id: int | None = Field(default=None)
+    time: int | None = Field(default=None)
+    date: datetime.date | None = Field(default=None)
+    status: str | None = Field(default=None)
 
 
 class ProvisionalMatchInmutable(SQLModel):
@@ -17,6 +18,10 @@ class ProvisionalMatchInmutable(SQLModel):
 
 
 class ProvisionalMatchCreate(ProvisionalMatchBase):
+    status: str | None = Field(default="provisional")
+
+
+class ProvisionalMatchUpdate(ProvisionalMatchBase):
     pass
 
 
@@ -53,3 +58,4 @@ class ProvisionalMatchFilters(ProvisionalMatchBase, ProvisionalMatchInmutable):
     court_id: int | None = None
     time: int | None = None
     date: datetime.date | None = None
+    status: str | None = None

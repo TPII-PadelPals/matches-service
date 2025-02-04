@@ -1,14 +1,15 @@
+from uuid import UUID
+
 from sqlalchemy.exc import IntegrityError
 
 from app.models.provisional_match import (
     ProvisionalMatch,
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
+    ProvisionalMatchUpdate,
 )
-
-# ProvisionalMatchPublic,
 from app.repository.base_repository import BaseRepository
-from app.utilities.exceptions import NotUniqueException
+from app.utilities.exceptions import NotFoundException, NotUniqueException
 
 
 class ProvisionalMatchRepository(BaseRepository):
@@ -47,3 +48,24 @@ class ProvisionalMatchRepository(BaseRepository):
         self, filters: list[ProvisionalMatchFilters]
     ) -> list[ProvisionalMatch]:
         return await self.filter_records(ProvisionalMatch, filters)
+
+    async def read_match(self, public_id: UUID) -> ProvisionalMatch:
+        filters = [ProvisionalMatchFilters(public_id=public_id)]
+        result = await self.read_matches(filters)
+        match = result[0] if result else None
+        if match is None:
+            raise NotFoundException(str(match))
+        return match
+
+    async def update_match(
+        self,
+        public_id: UUID,
+        match_in: ProvisionalMatchUpdate,
+    ) -> ProvisionalMatch:
+        match = await self.read_match(public_id)
+        update_dict = match_in.model_dump(exclude_none=True)
+        match.sqlmodel_update(update_dict)
+        self.session.add(match)
+        await self._commit_with_exception_handling()
+        await self.session.refresh(match)
+        return match

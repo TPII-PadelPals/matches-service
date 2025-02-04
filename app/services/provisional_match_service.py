@@ -12,6 +12,7 @@ from app.models.provisional_match import (
     ProvisionalMatch,
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
+    ProvisionalMatchUpdate,
 )
 from app.repository.match_player_repository import MatchPlayerRepository
 from app.repository.provisional_match_repository import ProvisionalMatchRepository
@@ -37,6 +38,15 @@ class ProvisionalMatchService:
         repo_provisional_match = ProvisionalMatchRepository(session)
         info_to_filter = [prov_match_opt]
         return await repo_provisional_match.read_matches(info_to_filter)
+
+    async def update_match(
+        self,
+        session: SessionDep,
+        public_id: UUID,
+        match_in: ProvisionalMatchUpdate,
+    ) -> ProvisionalMatch:
+        repo = ProvisionalMatchRepository(session)
+        return await repo.update_match(public_id, match_in)
 
     async def create_match_player(
         self, session: SessionDep, match_player_in: MatchPlayerCreate
