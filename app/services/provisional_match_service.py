@@ -7,8 +7,9 @@ from app.models.provisional_match import (
     ProvisionalMatch,
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
-    ProvisionalMatchPublic,
 )
+
+# ProvisionalMatchPublic,
 from app.repository.match_player_repository import MatchPlayerRepository
 from app.repository.provisional_match_repository import ProvisionalMatchRepository
 from app.utilities.dependencies import SessionDep
@@ -29,7 +30,7 @@ class ProvisionalMatchService:
 
     async def get_filter_match(
         self, session: SessionDep, prov_match_opt: ProvisionalMatchFilters = Depends()
-    ) -> list[ProvisionalMatchPublic]:
+    ) -> list[ProvisionalMatch]:
         repo_provisional_match = ProvisionalMatchRepository(session)
         info_to_filter = [prov_match_opt]
         return await repo_provisional_match.get_provisional_matches(info_to_filter)

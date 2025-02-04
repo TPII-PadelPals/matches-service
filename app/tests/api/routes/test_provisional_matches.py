@@ -72,40 +72,40 @@ async def test_read_provisional_match_by_match_public_id(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     data = set_provisional_match_data(0, 8, "2024-11-25")
-    prov_match = await generate_provisional_match(session, data)
+    prov_match_created = await generate_provisional_match(session, data)
     response = await async_client.get(
         f"{settings.API_V1_STR}/provisional-matches/",
         headers=x_api_key_header,
-        params={"public_id": prov_match["public_id"]},
+        params={"public_id": prov_match_created["public_id"]},
     )
     assert response.status_code == 200
     content = response.json()
-    assert len(content) == 1
-    content = content[0]
-    prov_match.pop("id")
-    assert content == prov_match
+    assert content["count"] == 1
+    prov_match_read = content["data"][0]
+    prov_match_created.pop("id")
+    assert prov_match_read == prov_match_created
 
 
 async def test_read_provisional_match_by_unique_attributes(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     data = set_provisional_match_data(0, 8, "2024-11-25")
-    prov_match = await generate_provisional_match(session, data)
+    prov_match_created = await generate_provisional_match(session, data)
     response = await async_client.get(
         f"{settings.API_V1_STR}/provisional-matches/",
         headers=x_api_key_header,
         params={
-            "court_id": prov_match["court_id"],
-            "time": prov_match["time"],
-            "date": prov_match["date"],
+            "court_id": prov_match_created["court_id"],
+            "time": prov_match_created["time"],
+            "date": prov_match_created["date"],
         },
     )
     assert response.status_code == 200
     content = response.json()
-    assert len(content) == 1
-    content = content[0]
-    prov_match.pop("id")
-    assert content == prov_match
+    assert content["count"] == 1
+    prov_match_read = content["data"][0]
+    prov_match_created.pop("id")
+    assert prov_match_read == prov_match_created
 
 
 async def test_read_multiple_provisional_match(
@@ -127,8 +127,8 @@ async def test_read_multiple_provisional_match(
     )
     assert response.status_code == 200
     content = response.json()
-    [item.pop("public_id") for item in content]
-    assert len(content) == 3
-    assert provisional_matches_in[0] in content
-    assert provisional_matches_in[1] in content
-    assert provisional_matches_in[4] in content
+    [item.pop("public_id") for item in content["data"]]
+    assert content["count"] == 3
+    assert provisional_matches_in[0] in content["data"]
+    assert provisional_matches_in[1] in content["data"]
+    assert provisional_matches_in[4] in content["data"]

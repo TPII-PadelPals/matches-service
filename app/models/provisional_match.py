@@ -1,4 +1,5 @@
 import datetime
+from typing import Self
 from uuid import UUID, uuid4
 
 from sqlalchemy import UniqueConstraint
@@ -35,10 +36,13 @@ class ProvisionalMatch(ProvisionalMatchBase, ProvisionalMatchInmutable, table=Tr
 
 # Properties to return via API, id is always required
 class ProvisionalMatchPublic(ProvisionalMatchBase, ProvisionalMatchInmutable):
-    pass
+    @classmethod
+    def from_private(cls, match: ProvisionalMatch) -> Self:
+        data = match.model_dump()
+        return cls(**data)
 
 
-class ProvisionalMatchesPublic(SQLModel):
+class ProvisionalMatchListPublic(SQLModel):
     data: list[ProvisionalMatchPublic]
     count: int
 

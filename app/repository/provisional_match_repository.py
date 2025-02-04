@@ -7,8 +7,9 @@ from app.models.provisional_match import (
     ProvisionalMatch,
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
-    ProvisionalMatchPublic,
 )
+
+# ProvisionalMatchPublic,
 from app.utilities.exceptions import NotUniqueException
 
 
@@ -49,7 +50,7 @@ class ProvisionalMatchRepository:
 
     async def get_provisional_matches(
         self, prov_match_filter: list[ProvisionalMatchFilters]
-    ) -> list[ProvisionalMatchPublic]:
+    ) -> list[ProvisionalMatch]:
         conditions = []
 
         # Player filter conditions
@@ -68,7 +69,4 @@ class ProvisionalMatchRepository:
         # Execute query
         result = await self.session.exec(query)
         matches = result.all()
-        public_matches = [
-            ProvisionalMatchPublic(**match.model_dump()) for match in matches
-        ]
-        return public_matches
+        return list(matches)

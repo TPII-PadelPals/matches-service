@@ -6,6 +6,7 @@ from app.models.provisional_match import (
     ProvisionalMatch,
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
+    ProvisionalMatchListPublic,
     ProvisionalMatchPublic,
 )
 from app.services.provisional_match_service import ProvisionalMatchService
@@ -49,11 +50,22 @@ async def create_provisional_matches(
 @router.get("/", status_code=status.HTTP_200_OK)
 async def get_provisional_match(
     session: SessionDep, prov_match_filters: ProvisionalMatchFilters = Depends()
-) -> list[ProvisionalMatchPublic]:
+) -> ProvisionalMatchListPublic:
     """
     Get provisional matches, that match the filters.
     :param session: database.
     :param prov_match_filters: filters (optional None for no filter).
     :return: list of matches that match the given filter.
     """
-    return await provisional_match_service.get_filter_match(session, prov_match_filters)
+    matches = await provisional_match_service.get_filter_match(
+        session, prov_match_filters
+    )
+    matches_public = ProvisionalMatchListPublic(
+        data=[ProvisionalMatchPublic.from_private(match) for match in matches],
+        count=len(matches),
+    )
+
+    # [
+    #     ProvisionalMatchPublic(**match.model_dump()) for match in matches
+    # ]
+    return matches_public
