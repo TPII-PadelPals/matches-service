@@ -38,7 +38,7 @@ async def create_match_player(
 
 
 @router.post(
-    "/bulk",
+    "/bulk/",
     response_model=list[MatchPlayerPublic],
     status_code=status.HTTP_201_CREATED,
 )

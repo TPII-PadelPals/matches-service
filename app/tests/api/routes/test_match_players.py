@@ -65,7 +65,7 @@ async def test_add_many_players_to_match(
     n_players = 4
     data = [{"user_public_id": str(uuid.uuid4())} for _ in range(n_players)]
     response = await async_client.post(
-        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/bulk",
+        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/bulk/",
         headers=x_api_key_header,
         json=data,
     )
