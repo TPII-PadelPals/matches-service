@@ -59,13 +59,16 @@ class ProvisionalMatchRepository:
             for attr, value in vars(match).items():
                 if value is not None:
                     match_conditions.append(getattr(ProvisionalMatch, attr) == value)
+            # Combine conditions with AND
             conditions.append(and_(*match_conditions))
 
-        # Combine conditions with AND
-        query = select(*ProvisionalMatch.__table__.columns).where(or_(*conditions))
+        # Combine conditions with OR
+        query = select(ProvisionalMatch).where(or_(*conditions))
 
         # Execute query
-        # type: ignore
-        matches = (await self.session.exec(query)).mappings().all()
-        public_matches = [ProvisionalMatchPublic(**match) for match in matches]
+        result = await self.session.exec(query)
+        matches = result.all()
+        public_matches = [
+            ProvisionalMatchPublic(**match.model_dump()) for match in matches
+        ]
         return public_matches
