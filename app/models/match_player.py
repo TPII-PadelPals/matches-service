@@ -10,7 +10,9 @@ class MatchPlayerBase(SQLModel):
 
 
 class MatchPlayerMatchPublicID(SQLModel):
-    match_public_id: UUID | None = Field()
+    match_public_id: UUID | None = Field(
+        foreign_key="matches.public_id", ondelete="CASCADE"
+    )
 
 
 class MatchPlayerUserPublicID(SQLModel):

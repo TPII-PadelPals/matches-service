@@ -13,6 +13,7 @@ from app.core.db import get_async_engine, init_db
 from app.main import app
 from app.models.item import Item
 from app.models.match import Match
+from app.models.match_player import MatchPlayer
 from app.tests.utils.utils import get_x_api_key_header
 from app.utilities.dependencies import get_db
 
@@ -25,6 +26,7 @@ async def db() -> AsyncGenerator[AsyncSession, None]:
         yield session
         await session.exec(delete(Item))  # type: ignore[call-overload]
         await session.exec(delete(Match))  # type: ignore[call-overload]
+        await session.exec(delete(MatchPlayer))  # type: ignore[call-overload]
         await session.commit()
 
 
