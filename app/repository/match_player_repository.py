@@ -70,6 +70,12 @@ class MatchPlayerRepository:
         match_players = result.all()
         return list(match_players)
 
+    async def read_player_matches(self, user_public_id: UUID) -> list[MatchPlayer]:
+        query = select(MatchPlayer).where(MatchPlayer.user_public_id == user_public_id)
+        result = await self.session.exec(query)
+        match_players = result.all()
+        return list(match_players)
+
     async def update_match_player(
         self,
         match_public_id: UUID,

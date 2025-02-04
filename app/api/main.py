@@ -1,9 +1,18 @@
 from fastapi import APIRouter
 
-from app.api.routes import items, items_service, matches_players, provisional_matches
+from app.api.routes import (
+    items,
+    items_service,
+    matches_players,
+    players_matches,
+    provisional_matches,
+)
 
 api_router = APIRouter()
 api_router.include_router(items.router, prefix="/items", tags=["items"])
+api_router.include_router(
+    items_service.router, prefix="/items-service", tags=["items-service"]
+)
 api_router.include_router(
     provisional_matches.router,
     prefix="/provisional-matches",
@@ -15,5 +24,7 @@ api_router.include_router(
     tags=["matches-players"],
 )
 api_router.include_router(
-    items_service.router, prefix="/items-service", tags=["items-service"]
+    players_matches.router,
+    prefix="/players/{user_public_id}/matches",
+    tags=["players"],
 )

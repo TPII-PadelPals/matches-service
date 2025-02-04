@@ -59,6 +59,6 @@ class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutable):
         return cls(**data)
 
 
-class MatchPlayersPublic(SQLModel):
+class MatchPlayerListPublic(SQLModel):
     data: list[MatchPlayerPublic]
     count: int

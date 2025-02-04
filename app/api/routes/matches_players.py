@@ -5,8 +5,8 @@ from fastapi import APIRouter, status
 from app.models.match_player import (
     MatchPlayerCreate,
     MatchPlayerCreatePublic,
+    MatchPlayerListPublic,
     MatchPlayerPublic,
-    MatchPlayersPublic,
     MatchPlayerUpdate,
 )
 from app.services.provisional_match_service import ProvisionalMatchService
@@ -70,17 +70,17 @@ async def create_provisional_matches(
 
 @router.get(
     "/",
-    response_model=MatchPlayersPublic,
+    response_model=MatchPlayerListPublic,
     status_code=status.HTTP_200_OK,
 )
 async def read_match_players(
     *, session: SessionDep, match_public_id: UUID
-) -> MatchPlayersPublic:
+) -> MatchPlayerListPublic:
     """
     Read match player.
     """
     match_players = await matches_service.read_match_players(session, match_public_id)
-    match_players_public = MatchPlayersPublic(
+    match_players_public = MatchPlayerListPublic(
         data=[
             MatchPlayerPublic.from_private(match_player)
             for match_player in match_players
