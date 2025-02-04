@@ -7,6 +7,7 @@ from app.models.match_player import (
     MatchPlayerCreate,
     MatchPlayerCreatePublic,
     MatchPlayerPublic,
+    MatchPlayerUpdate,
 )
 from app.services.provisional_match_service import ProvisionalMatchService
 from app.utilities.dependencies import SessionDep
@@ -61,3 +62,23 @@ async def create_provisional_matches(
         MatchPlayerPublic.from_private(match_player) for match_player in match_players
     ]
     return match_players_public
+
+
+@router.patch(
+    "/{user_public_id}/",
+    response_model=MatchPlayerPublic,
+    status_code=status.HTTP_200_OK,
+)
+async def update_match_player(
+    *,
+    session: SessionDep,
+    match_public_id: UUID,
+    user_public_id: UUID,
+    match_player_in: MatchPlayerUpdate,
+) -> Any:
+    """
+    Update match player.
+    """
+    return await matches_service.update_match_player(
+        session, match_public_id, user_public_id, match_player_in
+    )

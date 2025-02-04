@@ -35,6 +35,10 @@ class MatchPlayerCreate(MatchPlayerBase, MatchPlayerInmmutable):
         return cls(**data)
 
 
+class MatchPlayerUpdate(MatchPlayerBase):
+    pass
+
+
 class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
     id: int = Field(default=None, primary_key=True)
 

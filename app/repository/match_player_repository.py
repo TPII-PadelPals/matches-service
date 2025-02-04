@@ -1,9 +1,13 @@
+from uuid import UUID
+
 from sqlalchemy.exc import IntegrityError
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.match_player import (
     MatchPlayer,
     MatchPlayerCreate,
+    MatchPlayerUpdate,
 )
 from app.utilities.exceptions import NotUniqueException
 
@@ -43,3 +47,25 @@ class MatchPlayerRepository:
         for match_player in match_players:
             await self.session.refresh(match_player)
         return match_players
+
+    async def update_match_player(
+        self,
+        match_public_id: UUID,
+        user_public_id: UUID,
+        match_player_in: MatchPlayerUpdate,
+    ) -> MatchPlayer:
+        query = (
+            select(MatchPlayer)
+            .where(MatchPlayer.match_public_id == match_public_id)
+            .where(MatchPlayer.user_public_id == user_public_id)
+        )
+        result = await self.session.exec(query)
+        match_player = result.first()
+        if match_player is None:
+            raise ValueError()
+        update_dict = match_player_in.model_dump()
+        match_player.sqlmodel_update(update_dict)
+        self.session.add(match_player)
+        await self._commit_with_exception_handling()
+        await self.session.refresh(match_player)
+        return match_player

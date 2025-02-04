@@ -1,6 +1,8 @@
+from uuid import UUID
+
 from fastapi import Depends
 
-from app.models.match_player import MatchPlayer, MatchPlayerCreate
+from app.models.match_player import MatchPlayer, MatchPlayerCreate, MatchPlayerUpdate
 from app.models.provisional_match import (
     ProvisionalMatch,
     ProvisionalMatchCreate,
@@ -44,3 +46,15 @@ class ProvisionalMatchService:
     ) -> list[MatchPlayer]:
         repo = MatchPlayerRepository(session)
         return await repo.create_match_players(match_players_in)
+
+    async def update_match_player(
+        self,
+        session: SessionDep,
+        match_public_id: UUID,
+        user_public_id: UUID,
+        match_player_in: MatchPlayerUpdate,
+    ) -> MatchPlayer:
+        repo = MatchPlayerRepository(session)
+        return await repo.update_match_player(
+            match_public_id, user_public_id, match_player_in
+        )
