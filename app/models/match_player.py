@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Self
 from uuid import UUID
 
@@ -5,8 +6,17 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
+class ReserveEnum(str, Enum):
+    provisional = "P"
+    accepted = "A"
+    rejected = "R"
+
+
 class MatchPlayerBase(SQLModel):
-    reserve: str | None = Field(default="provisional")
+    class Config:
+        use_enum_values = True
+
+    reserve: str | None = Field(default=ReserveEnum.provisional)
 
 
 class MatchPlayerMatchPublicID(SQLModel):

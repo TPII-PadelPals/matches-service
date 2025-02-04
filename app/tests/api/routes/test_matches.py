@@ -4,6 +4,7 @@ from httpx import AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import settings, test_settings
+from app.models.match import StatusEnum
 from app.tests.utils.matches import (
     create_match,
     generate_match,
@@ -21,7 +22,7 @@ async def test_create_match(
     content = response.json()
     public_id = content.pop("public_id")
     assert len(public_id) == len(str(uuid.uuid4()))
-    assert content["status"] == "provisional"
+    assert content["status"] == StatusEnum.provisional
     content.pop("status")
     assert content == data
 
@@ -170,7 +171,7 @@ async def test_update_match_status_to_reserved(
     response = await create_match(async_client, x_api_key_header, data)
     match_created = response.json()
 
-    data = {"status": "reserved"}
+    data = {"status": StatusEnum.reserved}
     response = await async_client.patch(
         f"{test_settings.API_V1_STR}/matches/{match_created['public_id']}",
         headers=x_api_key_header,
@@ -178,7 +179,7 @@ async def test_update_match_status_to_reserved(
     )
     assert response.status_code == 200
     match_updated = response.json()
-    assert match_updated["status"] == "reserved"
+    assert match_updated["status"] == StatusEnum.reserved
     match_updated.pop("status")
     match_created.pop("status")
     assert match_updated == match_created

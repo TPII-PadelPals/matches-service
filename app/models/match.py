@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 from typing import Self
 from uuid import UUID, uuid4
 
@@ -6,7 +7,16 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
+class StatusEnum(str, Enum):
+    provisional = "P"
+    reserved = "R"
+    cancelled = "C"
+
+
 class MatchBase(SQLModel):
+    class Config:
+        use_enum_values = True
+
     court_id: int | None = Field(default=None)
     time: int | None = Field(default=None)
     date: datetime.date | None = Field(default=None)
@@ -18,7 +28,7 @@ class MatchInmutable(SQLModel):
 
 
 class MatchCreate(MatchBase):
-    status: str | None = Field(default="provisional")
+    status: str | None = Field(default=StatusEnum.provisional)
 
 
 class MatchUpdate(MatchBase):
