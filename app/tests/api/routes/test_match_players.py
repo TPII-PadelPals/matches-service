@@ -137,3 +137,19 @@ async def test_update_one_player_reserve_to_reject(
     assert content["match_public_id"] == match_public_id
     assert content["user_public_id"] == user_public_id
     assert content["reserve"] == data["reserve"]
+
+
+async def test_update_one_player_raises_exception_when_match_player_not_exists(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    match_public_id = str(uuid.uuid4())
+    user_public_id = str(uuid.uuid4())
+    data = {"reserve": "accept"}
+    response = await async_client.patch(
+        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/{user_public_id}/",
+        headers=x_api_key_header,
+        json=data,
+    )
+    assert response.status_code == 404
+    content = response.json()
+    assert content["detail"] == "Couple (match, player) not found"

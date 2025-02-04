@@ -9,7 +9,7 @@ from app.models.match_player import (
     MatchPlayerCreate,
     MatchPlayerUpdate,
 )
-from app.utilities.exceptions import NotUniqueException
+from app.utilities.exceptions import NotFoundException, NotUniqueException
 
 
 class MatchPlayerRepository:
@@ -62,7 +62,7 @@ class MatchPlayerRepository:
         result = await self.session.exec(query)
         match_player = result.first()
         if match_player is None:
-            raise ValueError()
+            raise NotFoundException("Couple (match, player)")
         update_dict = match_player_in.model_dump()
         match_player.sqlmodel_update(update_dict)
         self.session.add(match_player)
