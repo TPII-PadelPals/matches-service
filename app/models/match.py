@@ -14,9 +14,6 @@ class StatusEnum(str, Enum):
 
 
 class MatchBase(SQLModel):
-    class Config:
-        use_enum_values = True
-
     court_id: int | None = Field(default=None)
     time: int | None = Field(default=None)
     date: datetime.date | None = Field(default=None)

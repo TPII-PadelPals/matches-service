@@ -13,9 +13,6 @@ class ReserveEnum(str, Enum):
 
 
 class MatchPlayerBase(SQLModel):
-    class Config:
-        use_enum_values = True
-
     reserve: str | None = Field(default=ReserveEnum.provisional)
 
 
