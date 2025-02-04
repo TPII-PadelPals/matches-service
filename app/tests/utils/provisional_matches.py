@@ -29,11 +29,12 @@ async def create_provisional_match(
 
 async def generate_provisional_match(
     session: AsyncSession, provisional_match_in: dict[str, Any]
-) -> None:
+) -> dict[str, Any]:
     provisional_match_generated = ProvisionalMatchCreate(
         court_id=provisional_match_in["court_id"],
         time=provisional_match_in["time"],
         date=datetime.date.fromisoformat(provisional_match_in["date"]),
     )
     service = ProvisionalMatchService()
-    _ = await service.create_match(session, provisional_match_generated)
+    prov_match = await service.create_match(session, provisional_match_generated)
+    return prov_match.model_dump(mode="json")
