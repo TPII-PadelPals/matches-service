@@ -64,6 +64,24 @@ async def create_provisional_matches(
     return match_players_public
 
 
+@router.get(
+    "/{user_public_id}",
+    response_model=MatchPlayerPublic,
+    status_code=status.HTTP_200_OK,
+)
+async def read_match_player(
+    *, session: SessionDep, match_public_id: UUID, user_public_id: UUID
+) -> MatchPlayerPublic:
+    """
+    Read match player.
+    """
+    match_player = await matches_service.read_match_player(
+        session, match_public_id, user_public_id
+    )
+    match_player_public = MatchPlayerPublic.from_private(match_player)
+    return match_player_public
+
+
 @router.patch(
     "/{user_public_id}/",
     response_model=MatchPlayerPublic,

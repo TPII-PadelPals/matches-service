@@ -48,11 +48,8 @@ class MatchPlayerRepository:
             await self.session.refresh(match_player)
         return match_players
 
-    async def update_match_player(
-        self,
-        match_public_id: UUID,
-        user_public_id: UUID,
-        match_player_in: MatchPlayerUpdate,
+    async def read_match_player(
+        self, match_public_id: UUID, user_public_id: UUID
     ) -> MatchPlayer:
         query = (
             select(MatchPlayer)
@@ -63,6 +60,15 @@ class MatchPlayerRepository:
         match_player = result.first()
         if match_player is None:
             raise NotFoundException("Couple (match, player)")
+        return match_player
+
+    async def update_match_player(
+        self,
+        match_public_id: UUID,
+        user_public_id: UUID,
+        match_player_in: MatchPlayerUpdate,
+    ) -> MatchPlayer:
+        match_player = await self.read_match_player(match_public_id, user_public_id)
         update_dict = match_player_in.model_dump()
         match_player.sqlmodel_update(update_dict)
         self.session.add(match_player)

@@ -77,6 +77,33 @@ async def test_add_many_players_to_match(
     all(match_player in data for match_player in content)
 
 
+async def test_read_one_player(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    # Create match
+    data = set_provisional_match_data(0, 8, "2024-11-25")
+    response = await create_provisional_match(async_client, x_api_key_header, data)
+    content = response.json()
+    match_public_id = content["public_id"]
+    # Add player to match
+    user_public_id = str(uuid.uuid4())
+    data = {"user_public_id": user_public_id}
+    response = await async_client.post(
+        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/",
+        headers=x_api_key_header,
+        json=data,
+    )
+    response = await async_client.get(
+        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/{user_public_id}",
+        headers=x_api_key_header,
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert content["match_public_id"] == match_public_id
+    assert content["user_public_id"] == user_public_id
+    assert content["reserve"] == "provisional"
+
+
 async def test_update_one_player_reserve_to_accept(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
