@@ -38,8 +38,9 @@ class Match(MatchBase, MatchInmutable, table=True):
         ),
     )
 
-    def __str__(self) -> str:
-        return f"Match(public_id={self.public_id})"
+    @classmethod
+    def name(self) -> str:
+        return "Match"
 
 
 class MatchPublic(MatchBase, MatchInmutable):

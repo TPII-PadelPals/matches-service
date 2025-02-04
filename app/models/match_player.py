@@ -53,6 +53,10 @@ class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
         ),
     )
 
+    @classmethod
+    def name(self) -> str:
+        return "MatchPlayer"
+
 
 class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutable):
     @classmethod

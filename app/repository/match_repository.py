@@ -9,7 +9,7 @@ from app.models.match import (
     MatchUpdate,
 )
 from app.repository.base_repository import BaseRepository
-from app.utilities.exceptions import NotFoundException, NotUniqueException
+from app.utilities.exceptions import NotUniqueException
 
 
 class MatchRepository(BaseRepository):
@@ -20,40 +20,22 @@ class MatchRepository(BaseRepository):
             raise err
 
     async def create_match(self, match_in: MatchCreate) -> Match:
-        match = Match.model_validate(match_in)
-        self.session.add(match)
-        await self._commit_with_exception_handling()
-        await self.session.refresh(match)
-        return match
+        return await self.create_record(Match, match_in)
 
     async def create_matches(self, matches_in: list[MatchCreate]) -> list[Match]:
-        matches = [Match.model_validate(match) for match in matches_in]
-        self.session.add_all(matches)
-        await self._commit_with_exception_handling()
-        for match in matches:
-            await self.session.refresh(match)
-        return matches
+        return await self.create_records(Match, matches_in)
 
     async def read_matches(self, filters: list[MatchFilters]) -> list[Match]:
-        return await self.filter_records(Match, filters)
+        return await self.read_records(Match, filters)
 
     async def read_match(self, public_id: UUID) -> Match:
-        filters = [MatchFilters(public_id=public_id)]
-        result = await self.read_matches(filters)
-        match = result[0] if result else None
-        if match is None:
-            raise NotFoundException("Match")
-        return match
+        return await self.read_record(Match, MatchFilters, {"public_id": public_id})
 
     async def update_match(
         self,
         public_id: UUID,
         match_in: MatchUpdate,
     ) -> Match:
-        match = await self.read_match(public_id)
-        update_dict = match_in.model_dump(exclude_none=True)
-        match.sqlmodel_update(update_dict)
-        self.session.add(match)
-        await self._commit_with_exception_handling()
-        await self.session.refresh(match)
-        return match
+        return await self.update_record(
+            Match, MatchFilters, {"public_id": public_id}, match_in
+        )
