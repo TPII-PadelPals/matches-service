@@ -77,7 +77,7 @@ async def test_add_many_players_to_match(
     all(match_player in data for match_player in content)
 
 
-async def test_read_one_player(
+async def test_read_one_match_player(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
@@ -88,7 +88,7 @@ async def test_read_one_player(
     # Add player to match
     user_public_id = str(uuid.uuid4())
     data = {"user_public_id": user_public_id}
-    response = await async_client.post(
+    await async_client.post(
         f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/",
         headers=x_api_key_header,
         json=data,
@@ -102,6 +102,37 @@ async def test_read_one_player(
     assert content["match_public_id"] == match_public_id
     assert content["user_public_id"] == user_public_id
     assert content["reserve"] == "provisional"
+
+
+async def test_read_match_players_returns_all_players_associated_to_match(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    # Create match
+    _data = set_provisional_match_data(0, 8, "2024-11-25")
+    _response = await create_provisional_match(async_client, x_api_key_header, _data)
+    _content = _response.json()
+    match_public_id = _content["public_id"]
+
+    # Add players to match
+    n_players = 4
+    user_public_ids = [str(uuid.uuid4()) for _ in range(n_players)]
+    data = [{"user_public_id": user_public_id} for user_public_id in user_public_ids]
+    await async_client.post(
+        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/bulk/",
+        headers=x_api_key_header,
+        json=data,
+    )
+    response = await async_client.get(
+        f"{test_settings.API_V1_STR}/provisional-matches/{match_public_id}/players/",
+        headers=x_api_key_header,
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert content["count"] == n_players
+    for match_player in content["data"]:
+        assert match_player["match_public_id"] == match_public_id
+        assert match_player["user_public_id"] in user_public_ids
+        assert match_player["reserve"] == "provisional"
 
 
 async def test_update_one_player_reserve_to_accept(

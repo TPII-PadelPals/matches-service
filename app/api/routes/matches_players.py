@@ -6,6 +6,7 @@ from app.models.match_player import (
     MatchPlayerCreate,
     MatchPlayerCreatePublic,
     MatchPlayerPublic,
+    MatchPlayersPublic,
     MatchPlayerUpdate,
 )
 from app.services.provisional_match_service import ProvisionalMatchService
@@ -64,6 +65,28 @@ async def create_provisional_matches(
     match_players_public = [
         MatchPlayerPublic.from_private(match_player) for match_player in match_players
     ]
+    return match_players_public
+
+
+@router.get(
+    "/",
+    response_model=MatchPlayersPublic,
+    status_code=status.HTTP_200_OK,
+)
+async def read_match_players(
+    *, session: SessionDep, match_public_id: UUID
+) -> MatchPlayersPublic:
+    """
+    Read match player.
+    """
+    match_players = await matches_service.read_match_players(session, match_public_id)
+    match_players_public = MatchPlayersPublic(
+        data=[
+            MatchPlayerPublic.from_private(match_player)
+            for match_player in match_players
+        ],
+        count=len(match_players),
+    )
     return match_players_public
 
 

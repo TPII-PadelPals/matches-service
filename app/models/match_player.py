@@ -57,3 +57,8 @@ class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutable):
     def from_private(cls, match_player: MatchPlayer) -> Self:
         data = match_player.model_dump()
         return cls(**data)
+
+
+class MatchPlayersPublic(SQLModel):
+    data: list[MatchPlayerPublic]
+    count: int

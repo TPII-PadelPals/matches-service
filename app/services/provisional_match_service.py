@@ -55,6 +55,14 @@ class ProvisionalMatchService:
         repo = MatchPlayerRepository(session)
         return await repo.read_match_player(match_public_id, user_public_id)
 
+    async def read_match_players(
+        self,
+        session: SessionDep,
+        match_public_id: UUID,
+    ) -> list[MatchPlayer]:
+        repo = MatchPlayerRepository(session)
+        return await repo.read_match_players(match_public_id)
+
     async def update_match_player(
         self,
         session: SessionDep,

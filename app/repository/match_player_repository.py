@@ -62,6 +62,14 @@ class MatchPlayerRepository:
             raise NotFoundException("Couple (match, player)")
         return match_player
 
+    async def read_match_players(self, match_public_id: UUID) -> list[MatchPlayer]:
+        query = select(MatchPlayer).where(
+            MatchPlayer.match_public_id == match_public_id
+        )
+        result = await self.session.exec(query)
+        match_players = result.all()
+        return list(match_players)
+
     async def update_match_player(
         self,
         match_public_id: UUID,

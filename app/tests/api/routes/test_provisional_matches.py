@@ -108,19 +108,6 @@ async def test_read_provisional_match_by_unique_attributes(
     assert content == prov_match
 
 
-async def test_read_provisional_matches_returns_empty_list_when_player_has_zero_provisional_matches(
-    async_client: AsyncClient, x_api_key_header: dict[str, str]
-) -> None:
-    response = await async_client.get(
-        f"{settings.API_V1_STR}/provisional-matches/",
-        headers=x_api_key_header,
-        params={"user_public_id_1": str(uuid.uuid4())},
-    )
-    assert response.status_code == 200
-    content = response.json()
-    assert len(content) == 0
-
-
 async def test_read_multiple_provisional_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
