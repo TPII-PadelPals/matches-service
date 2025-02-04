@@ -68,7 +68,7 @@ async def get_match(
     :param prov_match_filters: filters (optional None for no filter).
     :return: list of matches that match the given filter.
     """
-    matches = await match_service.get_filter_match(session, prov_match_filters)
+    matches = await match_service.read_matches(session, prov_match_filters)
     matches_public = MatchListPublic(
         data=[MatchPublic.from_private(match) for match in matches],
         count=len(matches),

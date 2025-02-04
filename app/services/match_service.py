@@ -31,7 +31,7 @@ class MatchService:
         repo = MatchRepository(session)
         return await repo.read_match(public_id)
 
-    async def get_filter_match(
+    async def read_matches(
         self, session: SessionDep, prov_match_opt: MatchFilters = Depends()
     ) -> list[Match]:
         repo_match = MatchRepository(session)
