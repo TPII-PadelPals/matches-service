@@ -62,3 +62,9 @@ class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutable):
 class MatchPlayerListPublic(SQLModel):
     data: list[MatchPlayerPublic]
     count: int
+
+
+class MatchPlayerFilter(SQLModel):
+    match_public_id: UUID | None = None
+    user_public_id: UUID | None = None
+    reserve: str | None = None

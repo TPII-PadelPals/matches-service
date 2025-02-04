@@ -2,14 +2,17 @@ from uuid import UUID
 
 from fastapi import Depends
 
-from app.models.match_player import MatchPlayer, MatchPlayerCreate, MatchPlayerUpdate
+from app.models.match_player import (
+    MatchPlayer,
+    MatchPlayerCreate,
+    MatchPlayerFilter,
+    MatchPlayerUpdate,
+)
 from app.models.provisional_match import (
     ProvisionalMatch,
     ProvisionalMatchCreate,
     ProvisionalMatchFilters,
 )
-
-# ProvisionalMatchPublic,
 from app.repository.match_player_repository import MatchPlayerRepository
 from app.repository.provisional_match_repository import ProvisionalMatchRepository
 from app.utilities.dependencies import SessionDep
@@ -62,7 +65,9 @@ class ProvisionalMatchService:
         match_public_id: UUID,
     ) -> list[MatchPlayer]:
         repo = MatchPlayerRepository(session)
-        return await repo.read_match_players(match_public_id)
+        return await repo.read_matches_players(
+            [MatchPlayerFilter(match_public_id=match_public_id)]
+        )
 
     async def read_player_matches(
         self,
@@ -70,7 +75,9 @@ class ProvisionalMatchService:
         user_public_id: UUID,
     ) -> list[MatchPlayer]:
         repo = MatchPlayerRepository(session)
-        return await repo.read_player_matches(user_public_id)
+        return await repo.read_matches_players(
+            [MatchPlayerFilter(user_public_id=user_public_id)]
+        )
 
     async def update_match_player(
         self,
