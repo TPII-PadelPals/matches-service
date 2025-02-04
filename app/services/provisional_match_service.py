@@ -36,7 +36,7 @@ class ProvisionalMatchService:
     ) -> list[ProvisionalMatch]:
         repo_provisional_match = ProvisionalMatchRepository(session)
         info_to_filter = [prov_match_opt]
-        return await repo_provisional_match.get_provisional_matches(info_to_filter)
+        return await repo_provisional_match.read_matches(info_to_filter)
 
     async def create_match_player(
         self, session: SessionDep, match_player_in: MatchPlayerCreate

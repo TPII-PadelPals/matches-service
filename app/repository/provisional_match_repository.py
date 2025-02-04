@@ -1,7 +1,4 @@
-from sqlalchemy import and_, or_
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.provisional_match import (
     ProvisionalMatch,
@@ -10,13 +7,11 @@ from app.models.provisional_match import (
 )
 
 # ProvisionalMatchPublic,
+from app.repository.base_repository import BaseRepository
 from app.utilities.exceptions import NotUniqueException
 
 
-class ProvisionalMatchRepository:
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session
-
+class ProvisionalMatchRepository(BaseRepository):
     async def _commit_with_exception_handling(self) -> None:
         try:
             await self.session.commit()
@@ -48,25 +43,7 @@ class ProvisionalMatchRepository:
             await self.session.refresh(match)
         return provisional_matches
 
-    async def get_provisional_matches(
-        self, prov_match_filter: list[ProvisionalMatchFilters]
+    async def read_matches(
+        self, filters: list[ProvisionalMatchFilters]
     ) -> list[ProvisionalMatch]:
-        conditions = []
-
-        # Player filter conditions
-        for match in prov_match_filter:
-            match_conditions = []
-            # Iterate through attributes and their values
-            for attr, value in vars(match).items():
-                if value is not None:
-                    match_conditions.append(getattr(ProvisionalMatch, attr) == value)
-            # Combine conditions with AND
-            conditions.append(and_(*match_conditions))
-
-        # Combine conditions with OR
-        query = select(ProvisionalMatch).where(or_(*conditions))
-
-        # Execute query
-        result = await self.session.exec(query)
-        matches = result.all()
-        return list(matches)
+        return await self.filter_records(ProvisionalMatch, filters)

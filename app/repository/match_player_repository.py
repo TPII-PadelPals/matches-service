@@ -1,9 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import and_, or_
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.match_player import (
     MatchPlayer,
@@ -11,13 +8,11 @@ from app.models.match_player import (
     MatchPlayerFilter,
     MatchPlayerUpdate,
 )
+from app.repository.base_repository import BaseRepository
 from app.utilities.exceptions import NotFoundException, NotUniqueException
 
 
-class MatchPlayerRepository:
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session
-
+class MatchPlayerRepository(BaseRepository):
     async def _commit_with_exception_handling(self) -> None:
         try:
             await self.session.commit()
@@ -53,36 +48,17 @@ class MatchPlayerRepository:
     async def read_matches_players(
         self, filters: list[MatchPlayerFilter]
     ) -> list[MatchPlayer]:
-        or_conditions = []
-
-        # Player filter conditions
-        for filter in filters:
-            and_conditions = []
-            # Iterate through attributes and their values
-            for attr, value in vars(filter).items():
-                if value is not None:
-                    and_conditions.append(getattr(MatchPlayer, attr) == value)
-            # Combine conditions with AND
-            or_conditions.append(and_(*and_conditions))
-
-        # Combine conditions with OR
-        query = select(MatchPlayer).where(or_(*or_conditions))
-
-        # Execute query
-        result = await self.session.exec(query)
-        matches = result.all()
-        return list(matches)
+        return await self.filter_records(MatchPlayer, filters)
 
     async def read_match_player(
         self, match_public_id: UUID, user_public_id: UUID
     ) -> MatchPlayer:
-        result = await self.read_matches_players(
-            [
-                MatchPlayerFilter(
-                    match_public_id=match_public_id, user_public_id=user_public_id
-                )
-            ]
-        )
+        filters = [
+            MatchPlayerFilter(
+                match_public_id=match_public_id, user_public_id=user_public_id
+            )
+        ]
+        result = await self.read_matches_players(filters)
         match_player = result[0] if result else None
         if match_player is None:
             raise NotFoundException("Couple (match, player)")
