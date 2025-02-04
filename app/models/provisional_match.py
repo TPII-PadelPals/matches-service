@@ -5,10 +5,7 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
-# Shared properties
 class ProvisionalMatchBase(SQLModel):
-    user_public_id_1: UUID | None = Field()
-    user_public_id_2: UUID | None = Field()
     court_id: int | None = Field()
     time: int | None = Field()
     date: datetime.date | None = Field()
@@ -18,22 +15,16 @@ class ProvisionalMatchInmutable(SQLModel):
     public_id: UUID | None = Field(default_factory=uuid4, unique=True)
 
 
-# Properties to receive on Provisional Match creation
-
-
 class ProvisionalMatchCreate(ProvisionalMatchBase):
     pass
 
 
-# Database model, database table inferred from class name
 class ProvisionalMatch(ProvisionalMatchBase, ProvisionalMatchInmutable, table=True):
     id: int = Field(default=None, primary_key=True)
 
     __tablename__ = "provisional_matches"
     __table_args__ = (
         UniqueConstraint(
-            "user_public_id_1",
-            "user_public_id_2",
             "court_id",
             "time",
             "date",
@@ -55,22 +46,6 @@ class ProvisionalMatchesPublic(SQLModel):
 class ProvisionalMatchFilters(ProvisionalMatchBase, ProvisionalMatchInmutable):
     id: int | None = None
     public_id: UUID | None = None
-    user_public_id_1: UUID | None = None
-    user_public_id_2: UUID | None = None
     court_id: int | None = None
-    court_name: str | None = None  # TODO: Remove
     time: int | None = None
     date: datetime.date | None = None
-
-    def rotate_players_ids(self) -> "ProvisionalMatchFilters":
-        result = ProvisionalMatchFilters(
-            id=self.id,
-            public_id=self.public_id,
-            user_public_id_1=self.user_public_id_2,
-            user_public_id_2=self.user_public_id_1,
-            court_id=self.court_id,
-            court_name=self.court_name,
-            time=self.time,
-            date=self.date,
-        )
-        return result

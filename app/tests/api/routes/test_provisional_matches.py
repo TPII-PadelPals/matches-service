@@ -30,7 +30,7 @@ async def test_create_multiple_provisional_matches_returns_all(
     data = [
         set_provisional_match_data(0, 8, "2024-11-25"),
         set_provisional_match_data(1, 8, "2024-11-25"),
-        set_provisional_match_data(1, 8, "2024-11-25"),
+        set_provisional_match_data(1, 9, "2024-11-25"),
     ]
     response = await async_client.post(
         f"{settings.API_V1_STR}/provisional-matches/bulk",
