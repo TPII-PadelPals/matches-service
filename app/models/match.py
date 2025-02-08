@@ -61,6 +61,14 @@ class MatchListPublic(SQLModel):
     data: list[MatchPublic]
     count: int
 
+    @classmethod
+    def from_private(cls, match_list: list[Match]) -> Self:
+        data = []
+        for match in match_list:
+            data.append(MatchPublic.from_private(match))
+        count = len(match_list)
+        return cls(data=data, count=count)
+
 
 class MatchFilters(MatchBase, MatchInmutable):
     id: int | None = None
