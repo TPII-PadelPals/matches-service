@@ -76,13 +76,7 @@ async def read_match_players(
     Read match player.
     """
     match_players = await mp_service.read_match_players(session, match_public_id)
-    match_players_public = MatchPlayerListPublic(
-        data=[
-            MatchPlayerPublic.from_private(match_player)
-            for match_player in match_players
-        ],
-        count=len(match_players),
-    )
+    match_players_public = MatchPlayerListPublic.from_private(match_players)
     return match_players_public
 
 

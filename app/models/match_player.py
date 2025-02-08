@@ -76,6 +76,14 @@ class MatchPlayerListPublic(SQLModel):
     data: list[MatchPlayerPublic]
     count: int
 
+    @classmethod
+    def from_private(cls, match_player_list: list[MatchPlayer]) -> Self:
+        data = []
+        for match_player in match_player_list:
+            data.append(MatchPlayerPublic.from_private(match_player))
+        count = len(match_player_list)
+        return cls(data=data, count=count)
+
 
 class MatchPlayerFilter(SQLModel):
     match_public_id: UUID | None = None
