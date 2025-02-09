@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Self
 from uuid import UUID
 
 from sqlalchemy import UniqueConstraint
@@ -38,7 +37,7 @@ class MatchPlayerCreate(MatchPlayerBase, MatchPlayerInmmutable):
     @classmethod
     def from_public(
         cls, match_public_id: UUID, match_player_public_in: MatchPlayerCreatePublic
-    ) -> Self:
+    ) -> "MatchPlayerCreate":
         data = match_player_public_in.model_dump()
         data["match_public_id"] = match_public_id
         return cls(**data)
@@ -67,7 +66,7 @@ class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
 
 class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutable):
     @classmethod
-    def from_private(cls, match_player: MatchPlayer) -> Self:
+    def from_private(cls, match_player: MatchPlayer) -> "MatchPlayerPublic":
         data = match_player.model_dump()
         return cls(**data)
 
@@ -77,7 +76,9 @@ class MatchPlayerListPublic(SQLModel):
     count: int
 
     @classmethod
-    def from_private(cls, match_player_list: list[MatchPlayer]) -> Self:
+    def from_private(
+        cls, match_player_list: list[MatchPlayer]
+    ) -> "MatchPlayerListPublic":
         data = []
         for match_player in match_player_list:
             data.append(MatchPlayerPublic.from_private(match_player))

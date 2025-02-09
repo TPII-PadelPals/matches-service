@@ -1,6 +1,5 @@
 import datetime
 from enum import Enum
-from typing import Self
 from uuid import UUID, uuid4
 
 from sqlalchemy import UniqueConstraint
@@ -52,7 +51,7 @@ class Match(MatchBase, MatchInmutable, table=True):
 
 class MatchPublic(MatchBase, MatchInmutable):
     @classmethod
-    def from_private(cls, match: Match) -> Self:
+    def from_private(cls, match: Match) -> "MatchPublic":
         data = match.model_dump()
         return cls(**data)
 
@@ -62,7 +61,7 @@ class MatchListPublic(SQLModel):
     count: int
 
     @classmethod
-    def from_private(cls, match_list: list[Match]) -> Self:
+    def from_private(cls, match_list: list[Match]) -> "MatchListPublic":
         data = []
         for match in match_list:
             data.append(MatchPublic.from_private(match))
