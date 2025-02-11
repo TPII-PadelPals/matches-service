@@ -8,7 +8,7 @@ from app.utilities.dependencies import SessionDep
 
 router = APIRouter()
 
-mp_service = MatchPlayerService()
+match_player_service = MatchPlayerService()
 
 
 @router.get(
@@ -22,6 +22,8 @@ async def read_player_matches(
     """
     Read player matches.
     """
-    match_players = await mp_service.read_player_matches(session, user_public_id)
+    match_players = await match_player_service.read_player_matches(
+        session, user_public_id
+    )
     match_players_public = MatchPlayerListPublic.from_private(match_players)
     return match_players_public

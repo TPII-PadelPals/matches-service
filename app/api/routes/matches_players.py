@@ -14,7 +14,7 @@ from app.utilities.dependencies import SessionDep
 
 router = APIRouter()
 
-mp_service = MatchPlayerService()
+match_player_service = MatchPlayerService()
 
 
 @router.post(
@@ -34,7 +34,9 @@ async def create_match_player(
     match_player_create = MatchPlayerCreate.from_public(
         match_public_id, match_player_in
     )
-    match_player = await mp_service.create_match_player(session, match_player_create)
+    match_player = await match_player_service.create_match_player(
+        session, match_player_create
+    )
     match_player_public = MatchPlayerPublic.from_private(match_player)
     return match_player_public
 
@@ -57,7 +59,9 @@ async def create_matches(
         MatchPlayerCreate.from_public(match_public_id, match_player_in)
         for match_player_in in match_players_in
     ]
-    match_players = await mp_service.create_match_players(session, match_players_create)
+    match_players = await match_player_service.create_match_players(
+        session, match_players_create
+    )
     match_players_public = [
         MatchPlayerPublic.from_private(match_player) for match_player in match_players
     ]
@@ -75,7 +79,9 @@ async def read_match_players(
     """
     Read match player.
     """
-    match_players = await mp_service.read_match_players(session, match_public_id)
+    match_players = await match_player_service.read_match_players(
+        session, match_public_id
+    )
     match_players_public = MatchPlayerListPublic.from_private(match_players)
     return match_players_public
 
@@ -91,7 +97,7 @@ async def read_match_player(
     """
     Read match player.
     """
-    match_player = await mp_service.read_match_player(
+    match_player = await match_player_service.read_match_player(
         session, match_public_id, user_public_id
     )
     match_player_public = MatchPlayerPublic.from_private(match_player)
@@ -113,7 +119,7 @@ async def update_match_player(
     """
     Update match player.
     """
-    match_player = await mp_service.update_match_player(
+    match_player = await match_player_service.update_match_player(
         session, match_public_id, user_public_id, match_player_in
     )
     match_player_public = MatchPlayerPublic.from_private(match_player)
