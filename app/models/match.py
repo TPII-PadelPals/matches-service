@@ -7,9 +7,9 @@ from sqlmodel import Field, SQLModel
 
 
 class MatchStatus(str, Enum):
-    provisional = "P"
-    reserved = "R"
-    cancelled = "C"
+    provisional = "Provisional"
+    reserved = "Reserved"
+    cancelled = "Cancelled"
 
 
 class MatchBase(SQLModel):
