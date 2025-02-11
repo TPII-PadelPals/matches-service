@@ -29,15 +29,15 @@ class MatchPlayerRepository(BaseRepository):
     ) -> list[MatchPlayer]:
         return await self.create_records(MatchPlayer, match_players_in)
 
-    async def read_matches_players(
+    async def get_matches_players(
         self, filters: list[MatchPlayerFilter]
     ) -> list[MatchPlayer]:
-        return await self.read_records(MatchPlayer, filters)
+        return await self.get_records(MatchPlayer, filters)
 
-    async def read_match_player(
+    async def get_match_player(
         self, match_public_id: UUID, user_public_id: UUID
     ) -> MatchPlayer:
-        return await self.read_record(
+        return await self.get_record(
             MatchPlayer,
             MatchPlayerFilter,
             {"match_public_id": match_public_id, "user_public_id": user_public_id},

@@ -16,13 +16,13 @@ match_player_service = MatchPlayerService()
     response_model=MatchPlayerListPublic,
     status_code=status.HTTP_200_OK,
 )
-async def read_player_matches(
+async def get_player_matches(
     *, session: SessionDep, user_public_id: UUID
 ) -> MatchPlayerListPublic:
     """
-    Read player matches.
+    Get player matches.
     """
-    match_players = await match_player_service.read_player_matches(
+    match_players = await match_player_service.get_player_matches(
         session, user_public_id
     )
     match_players_public = MatchPlayerListPublic.from_private(match_players)

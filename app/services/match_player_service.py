@@ -23,32 +23,32 @@ class MatchPlayerService:
         repo = MatchPlayerRepository(session)
         return await repo.create_match_players(match_players_in)
 
-    async def read_match_player(
+    async def get_match_player(
         self,
         session: SessionDep,
         match_public_id: UUID,
         user_public_id: UUID,
     ) -> MatchPlayer:
         repo = MatchPlayerRepository(session)
-        return await repo.read_match_player(match_public_id, user_public_id)
+        return await repo.get_match_player(match_public_id, user_public_id)
 
-    async def read_match_players(
+    async def get_match_players(
         self,
         session: SessionDep,
         match_public_id: UUID,
     ) -> list[MatchPlayer]:
         repo = MatchPlayerRepository(session)
-        return await repo.read_matches_players(
+        return await repo.get_matches_players(
             [MatchPlayerFilter(match_public_id=match_public_id)]
         )
 
-    async def read_player_matches(
+    async def get_player_matches(
         self,
         session: SessionDep,
         user_public_id: UUID,
     ) -> list[MatchPlayer]:
         repo = MatchPlayerRepository(session)
-        return await repo.read_matches_players(
+        return await repo.get_matches_players(
             [MatchPlayerFilter(user_public_id=user_public_id)]
         )
 

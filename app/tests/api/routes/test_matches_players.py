@@ -78,7 +78,7 @@ async def test_add_many_players_to_match(
     all(match_player in data for match_player in content)
 
 
-async def test_read_one_match_player(
+async def test_get_one_match_player(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
@@ -105,7 +105,7 @@ async def test_read_one_match_player(
     assert content["reserve"] == ReserveEnum.provisional
 
 
-async def test_read_match_players_returns_all_players_associated_to_match(
+async def test_get_match_players_returns_all_players_associated_to_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match

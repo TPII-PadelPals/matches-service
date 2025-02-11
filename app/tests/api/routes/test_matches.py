@@ -70,7 +70,7 @@ async def test_create_matches_on_multiple_raises_not_unique_exception(
     ), f"Expected '{expected_detail}' but got '{response_detail}'"
 
 
-async def test_read_match(
+async def test_get_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     data = set_match_data(0, 8, "2024-11-25")
@@ -81,11 +81,11 @@ async def test_read_match(
         headers=x_api_key_header,
     )
     assert response.status_code == 200
-    prov_match_read = response.json()
-    assert prov_match_read == prov_match_created
+    prov_match_get = response.json()
+    assert prov_match_get == prov_match_created
 
 
-async def test_read_match_raises_exception_when_match_not_exists(
+async def test_get_match_raises_exception_when_match_not_exists(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     response = await async_client.get(
@@ -96,7 +96,7 @@ async def test_read_match_raises_exception_when_match_not_exists(
     assert content["detail"] == "Match not found."
 
 
-async def test_read_matches_by_match_public_id(
+async def test_get_matches_by_match_public_id(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     data = set_match_data(0, 8, "2024-11-25")
@@ -109,12 +109,12 @@ async def test_read_matches_by_match_public_id(
     assert response.status_code == 200
     content = response.json()
     assert content["count"] == 1
-    prov_match_read = content["data"][0]
+    prov_match_get = content["data"][0]
     prov_match_created.pop("id")
-    assert prov_match_read == prov_match_created
+    assert prov_match_get == prov_match_created
 
 
-async def test_read_matches_by_unique_attributes(
+async def test_get_matches_by_unique_attributes(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     data = set_match_data(0, 8, "2024-11-25")
@@ -131,12 +131,12 @@ async def test_read_matches_by_unique_attributes(
     assert response.status_code == 200
     content = response.json()
     assert content["count"] == 1
-    prov_match_read = content["data"][0]
+    prov_match_get = content["data"][0]
     prov_match_created.pop("id")
-    assert prov_match_read == prov_match_created
+    assert prov_match_get == prov_match_created
 
 
-async def test_read_multiple_match(
+async def test_get_multiple_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     matches_in = [

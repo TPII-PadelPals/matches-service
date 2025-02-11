@@ -25,11 +25,11 @@ class MatchRepository(BaseRepository):
     async def create_matches(self, matches_in: list[MatchCreate]) -> list[Match]:
         return await self.create_records(Match, matches_in)
 
-    async def read_matches(self, filters: list[MatchFilters]) -> list[Match]:
-        return await self.read_records(Match, filters)
+    async def get_matches(self, filters: list[MatchFilters]) -> list[Match]:
+        return await self.get_records(Match, filters)
 
-    async def read_match(self, public_id: UUID) -> Match:
-        return await self.read_record(Match, MatchFilters, {"public_id": public_id})
+    async def get_match(self, public_id: UUID) -> Match:
+        return await self.get_record(Match, MatchFilters, {"public_id": public_id})
 
     async def update_match(
         self,

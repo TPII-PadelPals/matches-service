@@ -44,7 +44,7 @@ class BaseRepository:
             await self.session.refresh(record)
         return records
 
-    async def read_records(self, model: type[M], filters: list[F]) -> list[M]:
+    async def get_records(self, model: type[M], filters: list[F]) -> list[M]:
         or_conditions = []
 
         for filter in filters:
@@ -59,11 +59,11 @@ class BaseRepository:
         result = await self.session.exec(query)  # type: ignore
         return list(result.scalars().all())
 
-    async def read_record(
+    async def get_record(
         self, model: type[M], model_filter: type[F], ids: dict[str, UUID]
     ) -> M:
         filters = [model_filter(**ids)]
-        result = await self.read_records(model, filters)
+        result = await self.get_records(model, filters)
         record = result[0] if result else None
         if record is None:
             raise NotFoundException(model.name())  # type: ignore
@@ -76,7 +76,7 @@ class BaseRepository:
         ids: dict[str, UUID],
         record_update: U,
     ) -> M:
-        record = await self.read_record(model, model_filter, ids)
+        record = await self.get_record(model, model_filter, ids)
         update_dict = record_update.model_dump(exclude_none=True)
         record.sqlmodel_update(update_dict)
         self.session.add(record)

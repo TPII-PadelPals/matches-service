@@ -73,13 +73,13 @@ async def create_matches(
     response_model=MatchPlayerListPublic,
     status_code=status.HTTP_200_OK,
 )
-async def read_match_players(
+async def get_match_players(
     *, session: SessionDep, match_public_id: UUID
 ) -> MatchPlayerListPublic:
     """
-    Read match player.
+    Get match player.
     """
-    match_players = await match_player_service.read_match_players(
+    match_players = await match_player_service.get_match_players(
         session, match_public_id
     )
     match_players_public = MatchPlayerListPublic.from_private(match_players)
@@ -91,13 +91,13 @@ async def read_match_players(
     response_model=MatchPlayerPublic,
     status_code=status.HTTP_200_OK,
 )
-async def read_match_player(
+async def get_match_player(
     *, session: SessionDep, match_public_id: UUID, user_public_id: UUID
 ) -> MatchPlayerPublic:
     """
-    Read match player.
+    Get match player.
     """
-    match_player = await match_player_service.read_match_player(
+    match_player = await match_player_service.get_match_player(
         session, match_public_id, user_public_id
     )
     match_player_public = MatchPlayerPublic.from_private(match_player)

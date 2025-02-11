@@ -10,7 +10,7 @@ from app.tests.utils.matches import (
 )
 
 
-async def test_read_player_matches_returns_all_matches_associated_to_player(
+async def test_get_player_matches_returns_all_matches_associated_to_player(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match

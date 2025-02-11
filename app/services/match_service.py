@@ -23,20 +23,20 @@ class MatchService:
         repo = MatchRepository(session)
         return await repo.create_matches(matches_in)
 
-    async def read_match(
+    async def get_match(
         self,
         session: SessionDep,
         public_id: UUID,
     ) -> Match:
         repo = MatchRepository(session)
-        return await repo.read_match(public_id)
+        return await repo.get_match(public_id)
 
-    async def read_matches(
+    async def get_matches(
         self, session: SessionDep, prov_match_opt: MatchFilters = Depends()
     ) -> list[Match]:
         repo_match = MatchRepository(session)
         info_to_filter = [prov_match_opt]
-        return await repo_match.read_matches(info_to_filter)
+        return await repo_match.get_matches(info_to_filter)
 
     async def update_match(
         self,

@@ -46,20 +46,20 @@ async def create_matches(
 
 
 @router.get("/{public_id}", status_code=status.HTTP_200_OK)
-async def read_match(session: SessionDep, public_id: UUID) -> MatchPublic:
+async def get_match(session: SessionDep, public_id: UUID) -> MatchPublic:
     """
     Get matches, that match the filters.
     :param session: database.
     :param prov_match_filters: filters (optional None for no filter).
     :return: list of matches that match the given filter.
     """
-    match = await match_service.read_match(session, public_id)
+    match = await match_service.get_match(session, public_id)
     match_public = MatchPublic.from_private(match)
     return match_public
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
-async def get_match(
+async def get_matches(
     session: SessionDep, prov_match_filters: MatchFilters = Depends()
 ) -> MatchListPublic:
     """
@@ -68,7 +68,7 @@ async def get_match(
     :param prov_match_filters: filters (optional None for no filter).
     :return: list of matches that match the given filter.
     """
-    matches = await match_service.read_matches(session, prov_match_filters)
+    matches = await match_service.get_matches(session, prov_match_filters)
     matches_public = MatchListPublic.from_private(matches)
     return matches_public
 
