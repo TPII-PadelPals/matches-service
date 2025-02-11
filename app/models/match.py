@@ -6,7 +6,7 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
-class StatusEnum(str, Enum):
+class MatchStatus(str, Enum):
     provisional = "P"
     reserved = "R"
     cancelled = "C"
@@ -24,7 +24,7 @@ class MatchInmutable(SQLModel):
 
 
 class MatchCreate(MatchBase):
-    status: str | None = Field(default=StatusEnum.provisional)
+    status: str | None = Field(default=MatchStatus.provisional)
 
 
 class MatchUpdate(MatchBase):
