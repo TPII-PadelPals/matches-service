@@ -3,7 +3,7 @@ import uuid
 from httpx import AsyncClient
 
 from app.core.config import test_settings
-from app.models.match_player import ReserveEnum
+from app.models.match_player import ReserveStatus
 from app.tests.utils.matches import (
     create_match,
     set_match_data,
@@ -28,7 +28,7 @@ async def test_add_one_player_to_match_reserve_is_provisional(
     assert response.status_code == 201
     content = response.json()
     data["match_public_id"] = match_public_id
-    data["reserve"] = ReserveEnum.provisional
+    data["reserve"] = ReserveStatus.provisional
     assert content == data
 
 
@@ -74,7 +74,7 @@ async def test_add_many_players_to_match(
     content = response.json()
     for value in data:
         value["match_public_id"] = match_public_id
-        value["reserve"] = ReserveEnum.provisional
+        value["reserve"] = ReserveStatus.provisional
     all(match_player in data for match_player in content)
 
 
@@ -102,7 +102,7 @@ async def test_get_one_match_player(
     content = response.json()
     assert content["match_public_id"] == match_public_id
     assert content["user_public_id"] == user_public_id
-    assert content["reserve"] == ReserveEnum.provisional
+    assert content["reserve"] == ReserveStatus.provisional
 
 
 async def test_get_match_players_returns_all_players_associated_to_match(
@@ -133,7 +133,7 @@ async def test_get_match_players_returns_all_players_associated_to_match(
     for match_player in content["data"]:
         assert match_player["match_public_id"] == match_public_id
         assert match_player["user_public_id"] in user_public_ids
-        assert match_player["reserve"] == ReserveEnum.provisional
+        assert match_player["reserve"] == ReserveStatus.provisional
 
 
 async def test_update_one_player_reserve_to_accept(
@@ -154,7 +154,7 @@ async def test_update_one_player_reserve_to_accept(
     content = response.json()
     user_public_id = content["user_public_id"]
     # Update match player
-    data = {"reserve": ReserveEnum.accepted}
+    data = {"reserve": ReserveStatus.accepted}
     response = await async_client.patch(
         f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,
@@ -185,7 +185,7 @@ async def test_update_one_player_reserve_to_reject(
     content = response.json()
     user_public_id = content["user_public_id"]
     # Update match player
-    data = {"reserve": ReserveEnum.rejected}
+    data = {"reserve": ReserveStatus.rejected}
     response = await async_client.patch(
         f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,
@@ -203,7 +203,7 @@ async def test_update_one_player_raises_exception_when_match_player_not_exists(
 ) -> None:
     match_public_id = str(uuid.uuid4())
     user_public_id = str(uuid.uuid4())
-    data = {"reserve": ReserveEnum.accepted}
+    data = {"reserve": ReserveStatus.accepted}
     response = await async_client.patch(
         f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,

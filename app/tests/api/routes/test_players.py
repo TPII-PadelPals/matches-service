@@ -3,7 +3,7 @@ import uuid
 from httpx import AsyncClient
 
 from app.core.config import test_settings
-from app.models.match_player import ReserveEnum
+from app.models.match_player import ReserveStatus
 from app.tests.utils.matches import (
     create_match,
     set_match_data,
@@ -41,4 +41,4 @@ async def test_get_player_matches_returns_all_matches_associated_to_player(
     for match_player in content["data"]:
         assert match_player["match_public_id"] in match_public_ids
         assert match_player["user_public_id"] == user_public_id
-        assert match_player["reserve"] == ReserveEnum.provisional
+        assert match_player["reserve"] == ReserveStatus.provisional

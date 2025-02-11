@@ -5,14 +5,14 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
-class ReserveEnum(str, Enum):
+class ReserveStatus(str, Enum):
     provisional = "P"
     accepted = "A"
     rejected = "R"
 
 
 class MatchPlayerBase(SQLModel):
-    reserve: str | None = Field(default=ReserveEnum.provisional)
+    reserve: str | None = Field(default=ReserveStatus.provisional)
 
 
 class MatchPlayerMatchPublicID(SQLModel):
