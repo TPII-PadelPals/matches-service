@@ -14,22 +14,22 @@ from app.utilities.dependencies import SessionDep
 
 class MatchService:
     async def create_match(self, session: SessionDep, match_in: MatchCreate) -> Match:
-        repo = MatchRepository(session)
-        return await repo.create_match(match_in)
+        repo_match = MatchRepository(session)
+        return await repo_match.create_match(match_in)
 
     async def create_matches(
         self, session: SessionDep, matches_in: list[MatchCreate]
     ) -> list[Match]:
-        repo = MatchRepository(session)
-        return await repo.create_matches(matches_in)
+        repo_match = MatchRepository(session)
+        return await repo_match.create_matches(matches_in)
 
     async def get_match(
         self,
         session: SessionDep,
         public_id: UUID,
     ) -> Match:
-        repo = MatchRepository(session)
-        return await repo.get_match(public_id)
+        repo_match = MatchRepository(session)
+        return await repo_match.get_match(public_id)
 
     async def get_matches(
         self, session: SessionDep, prov_match_opt: MatchFilters = Depends()
@@ -44,5 +44,5 @@ class MatchService:
         public_id: UUID,
         match_in: MatchUpdate,
     ) -> Match:
-        repo = MatchRepository(session)
-        return await repo.update_match(public_id, match_in)
+        repo_match = MatchRepository(session)
+        return await repo_match.update_match(public_id, match_in)
