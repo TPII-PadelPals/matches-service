@@ -16,7 +16,7 @@ from app.utilities.exceptions import NotUniqueException
 async def test_create_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = set_match_data(0, 8, "2024-11-25")
+    data = set_match_data(court_id=0, time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     assert response.status_code == 201
     content = response.json()
@@ -31,9 +31,9 @@ async def test_create_multiple_matches_returns_all(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     data = [
-        set_match_data(0, 8, "2024-11-25"),
-        set_match_data(1, 8, "2024-11-25"),
-        set_match_data(1, 9, "2024-11-25"),
+        set_match_data(court_id=0, time=8, date="2024-11-25"),
+        set_match_data(court_id=1, time=8, date="2024-11-25"),
+        set_match_data(court_id=1, time=9, date="2024-11-25"),
     ]
     response = await async_client.post(
         f"{settings.API_V1_STR}/matches/bulk",
@@ -52,7 +52,7 @@ async def test_create_multiple_matches_returns_all(
 async def test_create_matches_on_multiple_raises_not_unique_exception(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = set_match_data(0, 8, "2024-11-25")
+    data = set_match_data(court_id=0, time=8, date="2024-11-25")
     first_response = await create_match(async_client, x_api_key_header, data)
     assert first_response.status_code == 201
     first_content = first_response.json()
@@ -73,7 +73,7 @@ async def test_create_matches_on_multiple_raises_not_unique_exception(
 async def test_get_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = set_match_data(0, 8, "2024-11-25")
+    data = set_match_data(court_id=0, time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     prov_match_created = response.json()
     response = await async_client.get(
@@ -99,7 +99,7 @@ async def test_get_match_raises_exception_when_match_not_exists(
 async def test_get_matches_by_match_public_id(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
-    data = set_match_data(0, 8, "2024-11-25")
+    data = set_match_data(court_id=0, time=8, date="2024-11-25")
     prov_match_created = await generate_match(session, data)
     response = await async_client.get(
         f"{settings.API_V1_STR}/matches/",
@@ -117,7 +117,7 @@ async def test_get_matches_by_match_public_id(
 async def test_get_matches_by_unique_attributes(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
-    data = set_match_data(0, 8, "2024-11-25")
+    data = set_match_data(court_id=0, time=8, date="2024-11-25")
     prov_match_created = await generate_match(session, data)
     response = await async_client.get(
         f"{settings.API_V1_STR}/matches/",
@@ -140,11 +140,11 @@ async def test_get_multiple_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     matches_in = [
-        set_match_data(0, 8, "2024-11-25"),
-        set_match_data(1, 8, "2024-11-25"),
-        set_match_data(5, 9, "2024-11-25"),
-        set_match_data(0, 12, "2024-11-25"),
-        set_match_data(4, 8, "2024-01-05"),
+        set_match_data(court_id=0, time=8, date="2024-11-25"),
+        set_match_data(court_id=1, time=8, date="2024-11-25"),
+        set_match_data(court_id=5, time=9, date="2024-11-25"),
+        set_match_data(court_id=0, time=12, date="2024-11-25"),
+        set_match_data(court_id=4, time=8, date="2024-01-05"),
     ]
     for match_in in matches_in:
         await generate_match(session, match_in)
@@ -167,7 +167,7 @@ async def test_get_multiple_match(
 async def test_update_match_status_to_reserved(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = set_match_data(0, 8, "2024-11-25")
+    data = set_match_data(court_id=0, time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     match_created = response.json()
 
