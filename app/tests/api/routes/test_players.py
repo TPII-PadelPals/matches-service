@@ -6,7 +6,7 @@ from app.core.config import test_settings
 from app.models.match_player import ReserveStatus
 from app.tests.utils.matches import (
     create_match,
-    set_match_data,
+    serialize_match_data,
 )
 
 
@@ -17,7 +17,7 @@ async def test_get_player_matches_returns_all_matches_associated_to_player(
     n_matches = 4
     match_public_ids = []
     for i in range(n_matches):
-        _data = set_match_data(court_id=0, time=i, date="2024-11-25")
+        _data = serialize_match_data(court_id=0, time=i, date="2024-11-25")
         _response = await create_match(async_client, x_api_key_header, _data)
         _content = _response.json()
         match_public_ids.append(_content["public_id"])

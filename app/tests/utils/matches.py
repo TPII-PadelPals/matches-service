@@ -9,7 +9,7 @@ from app.models.match import MatchCreate
 from app.services.match_service import MatchService
 
 
-def set_match_data(court_id: int, time: int, date: str) -> dict[str, Any]:
+def serialize_match_data(court_id: int, time: int, date: str) -> dict[str, Any]:
     return {
         "court_id": court_id,
         "time": time,
