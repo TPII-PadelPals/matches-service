@@ -60,7 +60,7 @@ class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
     )
 
     @classmethod
-    def name(self) -> str:
+    def name(cls) -> str:
         return "MatchPlayer"
 
 

@@ -45,7 +45,7 @@ class Match(MatchBase, MatchInmutable, table=True):
     )
 
     @classmethod
-    def name(self) -> str:
+    def name(cls) -> str:
         return "Match"
 
 
