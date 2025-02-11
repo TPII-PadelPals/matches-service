@@ -6,9 +6,9 @@ from sqlmodel import Field, SQLModel
 
 
 class ReserveStatus(str, Enum):
-    provisional = "P"
-    accepted = "A"
-    rejected = "R"
+    provisional = "Provisional"
+    accepted = "Accepted"
+    rejected = "Rejected"
 
 
 class MatchPlayerBase(SQLModel):
