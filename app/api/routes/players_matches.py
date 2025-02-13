@@ -1,0 +1,29 @@
+from uuid import UUID
+
+from fastapi import APIRouter, status
+
+from app.models.match_player import MatchPlayerListPublic
+from app.services.match_player_service import MatchPlayerService
+from app.utilities.dependencies import SessionDep
+
+router = APIRouter()
+
+match_player_service = MatchPlayerService()
+
+
+@router.get(
+    "/",
+    response_model=MatchPlayerListPublic,
+    status_code=status.HTTP_200_OK,
+)
+async def get_player_matches(
+    *, session: SessionDep, user_public_id: UUID
+) -> MatchPlayerListPublic:
+    """
+    Get player matches.
+    """
+    match_players = await match_player_service.get_player_matches(
+        session, user_public_id
+    )
+    match_players_public = MatchPlayerListPublic.from_private(match_players)
+    return match_players_public
