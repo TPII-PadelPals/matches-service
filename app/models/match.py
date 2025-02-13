@@ -16,7 +16,7 @@ class MatchBase(SQLModel):
     court_id: int | None = Field(default=None)
     time: int | None = Field(default=None)
     date: datetime.date | None = Field(default=None)
-    status: str | None = Field(default=None)
+    status: str | None = Field(default=MatchStatus.provisional)
 
 
 class MatchInmutable(SQLModel):
@@ -24,11 +24,11 @@ class MatchInmutable(SQLModel):
 
 
 class MatchCreate(MatchBase):
-    status: str | None = Field(default=MatchStatus.provisional)
+    pass
 
 
 class MatchUpdate(MatchBase):
-    pass
+    status: str | None = Field(default=None)
 
 
 class Match(MatchBase, MatchInmutable, table=True):
