@@ -48,10 +48,9 @@ async def create_matches(
 @router.get("/{public_id}", status_code=status.HTTP_200_OK)
 async def get_match(session: SessionDep, public_id: UUID) -> MatchPublic:
     """
-    Get matches, that match the filters.
+    Get matches by public id.
     :param session: database.
-    :param prov_match_filters: filters (optional None for no filter).
-    :return: list of matches that match the given filter.
+    :return: list of matches that match the public id.
     """
     match = await match_service.get_match(session, public_id)
     match_public = MatchPublic.from_private(match)
