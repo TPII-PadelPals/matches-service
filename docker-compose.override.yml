@@ -4,7 +4,7 @@ services:
     ports:
       - "${POSTGRES_PORT_EXT?Variable not set}:${POSTGRES_PORT?Variable not set}"
 
-  service-template:
+  matches-service:
     restart: "no"
     ports:
       - "${SERVICE_PORT_EXT?Variable not set}:8000"

@@ -19,7 +19,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
 
-  service-template:
+  matches-service:
     build: .
     restart: always
     networks:
