@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     ITEMS_SERVICE_PORT: int | None = None
     ITEMS_SERVICE_API_KEY: str | None = None
 
+    BUSINESS_SERVICE_HOST: str
+    BUSINESS_SERVICE_PORT: int | None = None
+    BUSINESS_SERVICE_API_KEY: str | None = None
+
     # Testing
     POSTGRES_DB_TESTING: str
 
