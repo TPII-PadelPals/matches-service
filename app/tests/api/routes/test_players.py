@@ -38,7 +38,11 @@ async def test_get_player_matches_returns_all_matches_associated_to_player(
     assert response.status_code == 200
     content = response.json()
     assert content["count"] == n_matches
-    for match_player in content["data"]:
-        assert match_player["match_public_id"] in match_public_ids
-        assert match_player["user_public_id"] == user_public_id
-        assert match_player["reserve"] == ReserveStatus.provisional
+    for response_data in content["data"]:
+        assert response_data["match_public_id"] in match_public_ids
+        assert response_data["user_public_id"] == user_public_id
+        assert response_data["reserve"] == ReserveStatus.provisional
+        assert response_data["court_id"] == 0
+        assert response_data["date"] == "2024-11-25"
+        assert response_data["status"] == ReserveStatus.provisional
+        assert response_data["time"] >= 0 and response_data["time"] < n_matches

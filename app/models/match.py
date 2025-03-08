@@ -1,5 +1,6 @@
 import datetime
 from enum import Enum
+from typing import Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import UniqueConstraint
@@ -17,6 +18,9 @@ class MatchBase(SQLModel):
     time: int | None = Field(default=None)
     date: datetime.date | None = Field(default=None)
     status: str | None = Field(default=MatchStatus.provisional)
+
+    def get_info_base(self) -> dict[str, Any]:
+        return self.model_dump()
 
 
 class MatchInmutable(SQLModel):
