@@ -35,17 +35,39 @@ async def test_get_player_matches_returns_all_matches_associated_to_player(
         f"{test_settings.API_V1_STR}/players/{user_public_id}/matches/",
         headers=x_api_key_header,
     )
+    # {
+    #     "data": [
+    #         {
+    #             "public_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    #             "court_id": 0,
+    #             "time": 0,
+    #             "date": "2025-03-10",
+    #             "status": "Provisional",
+    #             "match_players": [
+    #                 {
+    #                     "user_public_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    #                     "match_public_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    #                     "reserve": "Provisional",
+    #                 }
+    #             ]
+    #         }
+    #     ],
+    #     "count": 0
+    # }
     assert response.status_code == 200
     content = response.json()
     assert content["count"] == n_matches
     for response_data in content["data"]:
-        assert response_data["match_public_id"] in match_public_ids
-        assert response_data["user_public_id"] == user_public_id
-        assert response_data["reserve"] == ReserveStatus.provisional
+        assert response_data["public_id"] in match_public_ids
         assert response_data["court_id"] == 0
+        assert response_data["time"] >= 0 and response_data["time"] < n_matches
         assert response_data["date"] == "2024-11-25"
         assert response_data["status"] == ReserveStatus.provisional
-        assert response_data["time"] >= 0 and response_data["time"] < n_matches
+        assert len(response_data["match_players"]) == 1
+        for player_data in response_data["match_players"]:
+            assert player_data["user_public_id"] == user_public_id
+            assert player_data["match_public_id"] in match_public_ids
+            assert player_data["reserve"] == ReserveStatus.provisional
 
 
 async def test_get_player_matches_returns_all_matches_associated_to_player_multiple_days(
@@ -89,9 +111,7 @@ async def test_get_player_matches_returns_all_matches_associated_to_player_multi
     content = response.json()
     assert content["count"] == n_matches * 3
     for response_data in content["data"]:
-        assert response_data["match_public_id"] in match_public_ids
-        assert response_data["user_public_id"] == user_public_id
-        assert response_data["reserve"] == ReserveStatus.provisional
+        assert response_data["public_id"] in match_public_ids
         assert response_data["court_id"] >= 0 and response_data["court_id"] <= 2
         if response_data["court_id"] == 0:
             assert response_data["date"] == "2024-11-25"
@@ -99,5 +119,10 @@ async def test_get_player_matches_returns_all_matches_associated_to_player_multi
             assert response_data["date"] == "2024-11-26"
         elif response_data["court_id"] == 2:
             assert response_data["date"] == "2024-11-27"
-        assert response_data["status"] == ReserveStatus.provisional
         assert response_data["time"] >= 0 and response_data["time"] < n_matches
+        assert response_data["status"] == ReserveStatus.provisional
+        assert len(response_data["match_players"]) == 1
+        for player_data in response_data["match_players"]:
+            assert player_data["user_public_id"] == user_public_id
+            assert player_data["match_public_id"] in match_public_ids
+            assert player_data["reserve"] == ReserveStatus.provisional

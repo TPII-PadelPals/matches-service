@@ -10,10 +10,11 @@ from app.utilities.dependencies import SessionDep
 class GetPlayerMatchesService:
     async def get_player_matches(
         self, session: SessionDep, player_id: uuid.UUID
-    ) -> list[tuple[MatchPlayer, Match]]:
+    ) -> list[tuple[Match, list[MatchPlayer]]]:
+        match_player_service = MatchPlayerService()
         player_matches: list[
             MatchPlayer
-        ] = await MatchPlayerService().get_player_matches(session, player_id)
+        ] = await match_player_service.get_player_matches(session, player_id)
         if not player_matches:
             return []
         result = []
@@ -25,5 +26,10 @@ class GetPlayerMatchesService:
             match_for_player_match: Match = await match_service.get_match(
                 session, match_id
             )
-            result.append((player_match, match_for_player_match))
+            list_of_players = await match_player_service.get_match_players(
+                session, match_id
+            )
+            if list_of_players is None:
+                continue
+            result.append((match_for_player_match, list_of_players))
         return result

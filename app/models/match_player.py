@@ -1,11 +1,8 @@
-import datetime
 from enum import Enum
 from uuid import UUID
 
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
-
-from app.models.match import Match, MatchStatus
 
 
 class ReserveStatus(str, Enum):
@@ -86,37 +83,6 @@ class MatchPlayerListPublic(SQLModel):
         for match_player in match_player_list:
             data.append(MatchPlayerPublic.from_private(match_player))
         count = len(match_player_list)
-        return cls(data=data, count=count)
-
-
-class PlayerMatchPublic(MatchPlayerBase, MatchPlayerInmmutable):
-    court_id: int | None = Field(default=None)
-    time: int | None = Field(default=None)
-    date: datetime.date | None = Field(default=None)
-    status: str | None = Field(default=MatchStatus.provisional)
-
-    @classmethod
-    def from_public(
-        cls, match_player: MatchPlayer, match: Match
-    ) -> "PlayerMatchPublic":
-        data_player = match_player.model_dump()
-        data_match = match.model_dump()
-        data = {**data_player, **data_match}
-        return cls(**data)
-
-
-class PlayerMatchListPublic(SQLModel):
-    data: list[PlayerMatchPublic]
-    count: int
-
-    @classmethod
-    def from_public(
-        cls, match_player_and_match_list: list[tuple[MatchPlayer, Match]]
-    ) -> "PlayerMatchListPublic":
-        data = []
-        for match_player, match in match_player_and_match_list:
-            data.append(PlayerMatchPublic.from_public(match_player, match))
-        count = len(match_player_and_match_list)
         return cls(data=data, count=count)
 
 
