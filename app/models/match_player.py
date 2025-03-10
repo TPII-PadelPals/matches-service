@@ -62,9 +62,6 @@ class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
         ),
     )
 
-    def get_match_public_id(self) -> UUID | None:
-        return self.match_public_id
-
     @classmethod
     def name(cls) -> str:
         return "MatchPlayer"

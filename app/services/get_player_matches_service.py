@@ -19,7 +19,7 @@ class GetPlayerMatchesService:
         result = []
         match_service = MatchService()
         for player_match in player_matches:
-            match_id = player_match.get_match_public_id()
+            match_id = player_match.match_public_id
             if match_id is None:
                 continue
             match_for_player_match: Match = await match_service.get_match(
