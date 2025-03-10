@@ -19,9 +19,6 @@ class MatchBase(SQLModel):
     date: datetime.date | None = Field(default=None)
     status: str | None = Field(default=MatchStatus.provisional)
 
-    def get_info_base(self) -> dict[str, Any]:
-        return self.model_dump()
-
 
 class MatchInmutable(SQLModel):
     public_id: UUID | None = Field(default_factory=uuid4, unique=True)

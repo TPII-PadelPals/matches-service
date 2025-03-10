@@ -103,7 +103,7 @@ class PlayerMatchPublic(MatchPlayerBase, MatchPlayerInmmutable):
         cls, match_player: MatchPlayer, match: Match
     ) -> "PlayerMatchPublic":
         data_player = match_player.model_dump()
-        data_match = match.get_info_base()
+        data_match = match.model_dump()
         data = {**data_player, **data_match}
         return cls(**data)
 
