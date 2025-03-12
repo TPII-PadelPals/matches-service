@@ -1,9 +1,7 @@
-from typing import Any
-
-from app.models.match import MatchBase, MatchInmutable, Match
-from app.models.match_player import MatchPlayerPublic, MatchPlayer
 from sqlmodel import SQLModel
 
+from app.models.match import Match, MatchBase, MatchInmutable
+from app.models.match_player import MatchPlayer, MatchPlayerPublic
 
 
 class MatchExtendedPublic(MatchBase, MatchInmutable):
@@ -28,9 +26,7 @@ class MatchesExtendedListPublic(SQLModel):
     count: int
 
     @classmethod
-    def from_private(
-            cls, all_info: list[MatchExtended]
-    ) -> "MatchesExtendedListPublic":
+    def from_private(cls, all_info: list[MatchExtended]) -> "MatchesExtendedListPublic":
         data = []
         for match_extend in all_info:
             match_extend_public = match_extend.generate_match_extend_public()

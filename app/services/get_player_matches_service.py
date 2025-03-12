@@ -12,7 +12,7 @@ class GetPlayerMatchesService:
     async def get_player_matches(
         self, session: SessionDep, player_id: uuid.UUID
     ) -> list[MatchExtended]:
-    # ) -> MatchesExtendedListPublic:
+        # ) -> MatchesExtendedListPublic:
         match_player_service = MatchPlayerService()
         player_matches: list[
             MatchPlayer
