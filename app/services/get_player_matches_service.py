@@ -1,6 +1,7 @@
 import uuid
 
 from app.models.match import Match
+from app.models.match_extended import MatchExtended
 from app.models.match_player import MatchPlayer
 from app.services.match_player_service import MatchPlayerService
 from app.services.match_service import MatchService
@@ -10,7 +11,8 @@ from app.utilities.dependencies import SessionDep
 class GetPlayerMatchesService:
     async def get_player_matches(
         self, session: SessionDep, player_id: uuid.UUID
-    ) -> list[tuple[Match, list[MatchPlayer]]]:
+    ) -> list[MatchExtended]:
+    # ) -> MatchesExtendedListPublic:
         match_player_service = MatchPlayerService()
         player_matches: list[
             MatchPlayer
@@ -31,5 +33,7 @@ class GetPlayerMatchesService:
             )
             if list_of_players is None:
                 continue
-            result.append((match_for_player_match, list_of_players))
+            # result.append((match_for_player_match, list_of_players))
+            result.append(MatchExtended(match_for_player_match, list_of_players))
+        # return MatchesExtendedListPublic.from_private(result)
         return result
