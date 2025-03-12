@@ -12,7 +12,6 @@ class GetPlayerMatchesService:
     async def get_player_matches(
         self, session: SessionDep, player_id: uuid.UUID
     ) -> list[MatchExtended]:
-        # ) -> MatchesExtendedListPublic:
         match_player_service = MatchPlayerService()
         player_matches: list[
             MatchPlayer
@@ -33,7 +32,5 @@ class GetPlayerMatchesService:
             )
             if list_of_players is None:
                 continue
-            # result.append((match_for_player_match, list_of_players))
             result.append(MatchExtended(match_for_player_match, list_of_players))
-        # return MatchesExtendedListPublic.from_private(result)
         return result

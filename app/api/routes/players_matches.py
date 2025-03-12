@@ -27,4 +27,3 @@ async def get_player_matches(
     match_info = await aux_service.get_player_matches(session, user_public_id)
     match_players_public = MatchesExtendedListPublic.from_private(match_info)
     return match_players_public
-    # return match_info
