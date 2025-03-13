@@ -8,7 +8,7 @@ from app.services.match_service import MatchService
 from app.utilities.dependencies import SessionDep
 
 
-class GetPlayerMatchesService:
+class MatchExtendedService:
     async def get_player_matches(
         self, session: SessionDep, player_id: uuid.UUID
     ) -> list[MatchExtended]:
@@ -24,13 +24,13 @@ class GetPlayerMatchesService:
             match_id = player_match.match_public_id
             if match_id is None:
                 continue
-            match_for_player_match: Match = await match_service.get_match(
+            match: Match = await match_service.get_match(
                 session, match_id
             )
-            list_of_players = await match_player_service.get_match_players(
+            match_players = await match_player_service.get_match_players(
                 session, match_id
             )
-            if list_of_players is None:
+            if match_players is None:
                 continue
-            result.append(MatchExtended(match_for_player_match, list_of_players))
+            result.append(MatchExtended(match, match_players))
         return result
