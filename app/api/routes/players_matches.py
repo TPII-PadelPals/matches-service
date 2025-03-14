@@ -2,7 +2,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, status
 
-from app.models.match_player import MatchPlayerListPublic
+from app.models.match_extended import MatchesExtendedListPublic
+from app.services.get_player_matches_service import MatchExtendedService
 from app.services.match_player_service import MatchPlayerService
 from app.utilities.dependencies import SessionDep
 
@@ -13,17 +14,16 @@ match_player_service = MatchPlayerService()
 
 @router.get(
     "/",
-    response_model=MatchPlayerListPublic,
+    response_model=MatchesExtendedListPublic,
     status_code=status.HTTP_200_OK,
 )
 async def get_player_matches(
     *, session: SessionDep, user_public_id: UUID
-) -> MatchPlayerListPublic:
+) -> MatchesExtendedListPublic:
     """
     Get player matches.
     """
-    match_players = await match_player_service.get_player_matches(
-        session, user_public_id
-    )
-    match_players_public = MatchPlayerListPublic.from_private(match_players)
+    aux_service = MatchExtendedService()
+    match_info = await aux_service.get_player_matches(session, user_public_id)
+    match_players_public = MatchesExtendedListPublic.from_private(match_info)
     return match_players_public
