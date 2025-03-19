@@ -13,9 +13,11 @@ from app.utilities.dependencies import SessionDep
 
 
 class MatchService:
-    async def create_match(self, session: SessionDep, match_in: MatchCreate) -> Match:
+    async def create_match(
+        self, session: SessionDep, match_in: MatchCreate, commit: bool = True
+    ) -> Match:
         repo_match = MatchRepository(session)
-        return await repo_match.create_match(match_in)
+        return await repo_match.create_match(match_in, commit)
 
     async def create_matches(
         self, session: SessionDep, matches_in: list[MatchCreate]

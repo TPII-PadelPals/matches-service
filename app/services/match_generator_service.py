@@ -54,13 +54,15 @@ class MatchGeneratorService:
                 match_public_id=match_public_id,
                 reserve=reserve_status,
             )
-            await MatchPlayerService().create_match_player(session, match_player_create)
+            await MatchPlayerService().create_match_player(
+                session, match_player_create, commit=False
+            )
 
     async def _generate_match(
         self, session: SessionDep, avail_time: AvailableTime
-    ) -> MatchExtended:
+    ) -> UUID:
         match_create = MatchCreate.from_available_time(avail_time)
-        match = await MatchService().create_match(session, match_create)
+        match = await MatchService().create_match(session, match_create, commit=False)
         match_public_id = match.public_id
 
         assigned_player, similar_players = await self._choose_match_players(avail_time)
@@ -71,14 +73,7 @@ class MatchGeneratorService:
             similar_players,
         )
 
-        # Note: For some reason, SQLModels break in memory during
-        # the matches generation process, so it is needed to
-        # recover them again from DB
-        match_extended = await MatchExtendedService().get_match(
-            session,
-            match_public_id,  # type: ignore
-        )
-        return match_extended
+        return match_public_id  # type: ignore
 
     async def generate_matches(
         self,
@@ -87,13 +82,23 @@ class MatchGeneratorService:
         court_public_id: str,
         date: datetime,
     ) -> list[MatchExtended]:
-        matches_extended = []
+        match_public_ids = []
 
         avail_times = await BusinessService().get_available_times(
             business_public_id, court_public_id, date
         )
         for avail_time in avail_times:
-            match_extended = await self._generate_match(session, avail_time)
-            matches_extended.append(match_extended)
+            match_public_id = await self._generate_match(session, avail_time)
+            match_public_ids.append(match_public_id)
 
+        await session.commit()
+
+        # Note: SQLModels are erased after commit, so it is needed to reload them
+        matches_extended = []
+        for match_public_id in match_public_ids:
+            match_extended = await MatchExtendedService().get_match(
+                session,
+                match_public_id,  # type: ignore
+            )
+            matches_extended.append(match_extended)
         return matches_extended

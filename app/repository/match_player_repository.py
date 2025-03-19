@@ -20,14 +20,14 @@ class MatchPlayerRepository(BaseRepository):
             raise err
 
     async def create_match_player(
-        self, match_player_in: MatchPlayerCreate
+        self, match_player_in: MatchPlayerCreate, commit: bool = True
     ) -> MatchPlayer:
-        return await self.create_record(MatchPlayer, match_player_in)
+        return await self.create_record(MatchPlayer, match_player_in, commit)
 
     async def create_match_players(
-        self, match_players_in: list[MatchPlayerCreate]
+        self, match_players_in: list[MatchPlayerCreate], commit: bool = True
     ) -> list[MatchPlayer]:
-        return await self.create_records(MatchPlayer, match_players_in)
+        return await self.create_records(MatchPlayer, match_players_in, commit)
 
     async def get_matches_players(
         self, filters: list[MatchPlayerFilter]
@@ -48,10 +48,12 @@ class MatchPlayerRepository(BaseRepository):
         match_public_id: UUID,
         user_public_id: UUID,
         match_player_in: MatchPlayerUpdate,
+        commit: bool = True,
     ) -> MatchPlayer:
         return await self.update_record(
             MatchPlayer,
             MatchPlayerFilter,
             {"match_public_id": match_public_id, "user_public_id": user_public_id},
             match_player_in,
+            commit,
         )
