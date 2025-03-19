@@ -71,9 +71,9 @@ class MatchGeneratorService:
             similar_players,
         )
 
-        # Note: For some reason, SQLModels in memory break during
-        # the matches generation process, so it is needed to recover
-        # them again from DB
+        # Note: For some reason, SQLModels break in memory during
+        # the matches generation process, so it is needed to
+        # recover them again from DB
         match_extended = await MatchExtendedService().get_match(
             session,
             match_public_id,  # type: ignore
