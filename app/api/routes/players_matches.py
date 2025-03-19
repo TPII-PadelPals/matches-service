@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, status
 
 from app.models.match_extended import MatchesExtendedListPublic
-from app.services.get_player_matches_service import MatchExtendedService
+from app.services.match_extended_service import MatchExtendedService
 from app.services.match_player_service import MatchPlayerService
 from app.utilities.dependencies import SessionDep
 

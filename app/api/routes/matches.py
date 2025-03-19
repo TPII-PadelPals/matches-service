@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -11,6 +12,8 @@ from app.models.match import (
     MatchPublic,
     MatchUpdate,
 )
+from app.models.match_extended import MatchesExtendedListPublic
+from app.services.match_generator_service import MatchGeneratorService
 from app.services.match_service import MatchService
 from app.utilities.dependencies import SessionDep
 
@@ -43,6 +46,27 @@ async def create_matches(
     Create new matches.
     """
     return await match_service.create_matches(session, matches_in)
+
+
+@router.post(
+    "/generation",
+    response_model=MatchesExtendedListPublic,
+    status_code=status.HTTP_201_CREATED,
+)
+async def generate_matches(
+    *,
+    session: SessionDep,
+    business_public_id: int,
+    court_public_id: str,
+    date: datetime,
+) -> Any:
+    """
+    Generate matches given business, court and date
+    """
+    matches = await MatchGeneratorService().generate_matches(
+        session, business_public_id, court_public_id, date
+    )
+    return MatchesExtendedListPublic.from_private(matches)
 
 
 @router.get("/{public_id}", status_code=status.HTTP_200_OK)
