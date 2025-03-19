@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import ClassVar
+from uuid import UUID
 
+from app.models.available_time import AvailableTime
 from app.models.match import MatchCreate
 from app.models.match_extended import MatchExtended
 from app.models.match_player import MatchPlayerCreate, ReserveStatus
@@ -22,6 +24,62 @@ class MatchGeneratorService:
         # TODO: Choose priority player base on last played match w.r.t. today.
         return players[0]
 
+    async def _choose_match_players(
+        self, avail_time: AvailableTime
+    ) -> tuple[Player, list[Player]]:
+        players_filters = PlayerFilters.from_available_time(avail_time)
+        avail_players = await PlayersService().get_players_by_filters(players_filters)
+
+        assigned_player = self._choose_priority_player(avail_players)
+
+        players_filters.user_public_id = assigned_player.user_public_id
+        players_filters.n_players = self.N_SIM_PLAYERS
+        similar_players = await PlayersService().get_players_by_filters(players_filters)
+        return assigned_player, similar_players
+
+    async def _generate_match_players(
+        self,
+        session: SessionDep,
+        match_public_id: UUID,
+        assigned_player: Player,
+        similar_players: list[Player],
+    ) -> None:
+        for player in [assigned_player] + similar_players:
+            reserve_status = ReserveStatus.Similar
+            if player.user_public_id == assigned_player.user_public_id:
+                reserve_status = ReserveStatus.Assigned
+
+            match_player_create = MatchPlayerCreate(
+                user_public_id=player.user_public_id,
+                match_public_id=match_public_id,
+                reserve=reserve_status,
+            )
+            await MatchPlayerService().create_match_player(session, match_player_create)
+
+    async def _generate_match(
+        self, session: SessionDep, avail_time: AvailableTime
+    ) -> MatchExtended:
+        match_create = MatchCreate.from_available_time(avail_time)
+        match = await MatchService().create_match(session, match_create)
+        match_public_id = match.public_id
+
+        assigned_player, similar_players = await self._choose_match_players(avail_time)
+        await self._generate_match_players(
+            session,
+            match_public_id,  # type: ignore
+            assigned_player,
+            similar_players,
+        )
+
+        # Note: For some reason, SQLModels in memory break during
+        # the matches generation process, so it is needed to recover
+        # them again from DB
+        match_extended = await MatchExtendedService().get_match(
+            session,
+            match_public_id,  # type: ignore
+        )
+        return match_extended
+
     async def generate_matches(
         self,
         session: SessionDep,
@@ -35,44 +93,7 @@ class MatchGeneratorService:
             business_public_id, court_public_id, date
         )
         for avail_time in avail_times:
-            match_create = MatchCreate.from_available_time(avail_time)
-            match = await MatchService().create_match(session, match_create)
-            match_public_id = match.public_id
-
-            players_filters = PlayerFilters.from_available_time(avail_time)
-            avail_players = await PlayersService().get_players_by_filters(
-                players_filters
-            )
-
-            assigned_player = self._choose_priority_player(avail_players)
-
-            players_filters.user_public_id = assigned_player.user_public_id
-            players_filters.n_players = self.N_SIM_PLAYERS
-            similar_players = await PlayersService().get_players_by_filters(
-                players_filters
-            )
-
-            # match_players = []
-
-            for player in [assigned_player] + similar_players:
-                reserve_status = ReserveStatus.Similar
-                if player.user_public_id == assigned_player.user_public_id:
-                    reserve_status = ReserveStatus.Assigned
-
-                match_player_create = MatchPlayerCreate(
-                    user_public_id=player.user_public_id,
-                    match_public_id=match_public_id,
-                    reserve=reserve_status,
-                )
-                await MatchPlayerService().create_match_player(
-                    session, match_player_create
-                )
-
-                # match_players.append(match_player)
-
-            match_extended = await MatchExtendedService().get_match(
-                session, match_public_id
-            )  # type: ignore
+            match_extended = await self._generate_match(session, avail_time)
             matches_extended.append(match_extended)
 
         return matches_extended
