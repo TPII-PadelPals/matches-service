@@ -8,7 +8,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.core.config import settings, test_settings
 from app.models.available_time import AvailableTime
 from app.models.match import MatchStatus
-from app.models.player import Player
+from app.models.match_player import ReserveStatus
+from app.models.player import Player, PlayerFilters
 from app.services.business_service import BusinessService
 from app.services.match_generator_service import MatchGeneratorService
 from app.services.players_service import PlayersService
@@ -23,7 +24,7 @@ from app.utilities.exceptions import NotUniqueException
 async def test_create_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = serialize_match_data(court_id=0, time=8, date="2024-11-25")
+    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     assert response.status_code == 201
     content = response.json()
@@ -38,9 +39,9 @@ async def test_create_multiple_matches_returns_all(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     data = [
-        serialize_match_data(court_id=0, time=8, date="2024-11-25"),
-        serialize_match_data(court_id=1, time=8, date="2024-11-25"),
-        serialize_match_data(court_id=1, time=9, date="2024-11-25"),
+        serialize_match_data(court_id="0", time=8, date="2024-11-25"),
+        serialize_match_data(court_id="1", time=8, date="2024-11-25"),
+        serialize_match_data(court_id="1", time=9, date="2024-11-25"),
     ]
     response = await async_client.post(
         f"{settings.API_V1_STR}/matches/bulk",
@@ -59,7 +60,7 @@ async def test_create_multiple_matches_returns_all(
 async def test_create_matches_on_multiple_raises_not_unique_exception(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = serialize_match_data(court_id=0, time=8, date="2024-11-25")
+    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
     first_response = await create_match(async_client, x_api_key_header, data)
     assert first_response.status_code == 201
     first_content = first_response.json()
@@ -80,7 +81,7 @@ async def test_create_matches_on_multiple_raises_not_unique_exception(
 async def test_get_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = serialize_match_data(court_id=0, time=8, date="2024-11-25")
+    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     prov_match_created = response.json()
     response = await async_client.get(
@@ -106,7 +107,7 @@ async def test_get_match_raises_exception_when_match_not_exists(
 async def test_get_matches_by_match_public_id(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
-    data = serialize_match_data(court_id=0, time=8, date="2024-11-25")
+    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
     prov_match_created = await generate_match(session, data)
     response = await async_client.get(
         f"{settings.API_V1_STR}/matches/",
@@ -124,7 +125,7 @@ async def test_get_matches_by_match_public_id(
 async def test_get_matches_by_unique_attributes(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
-    data = serialize_match_data(court_id=0, time=8, date="2024-11-25")
+    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
     prov_match_created = await generate_match(session, data)
     response = await async_client.get(
         f"{settings.API_V1_STR}/matches/",
@@ -147,11 +148,11 @@ async def test_get_multiple_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     matches_in = [
-        serialize_match_data(court_id=0, time=8, date="2024-11-25"),
-        serialize_match_data(court_id=1, time=8, date="2024-11-25"),
-        serialize_match_data(court_id=5, time=9, date="2024-11-25"),
-        serialize_match_data(court_id=0, time=12, date="2024-11-25"),
-        serialize_match_data(court_id=4, time=8, date="2024-01-05"),
+        serialize_match_data(court_id="0", time=8, date="2024-11-25"),
+        serialize_match_data(court_id="1", time=8, date="2024-11-25"),
+        serialize_match_data(court_id="5", time=9, date="2024-11-25"),
+        serialize_match_data(court_id="0", time=12, date="2024-11-25"),
+        serialize_match_data(court_id="4", time=8, date="2024-01-05"),
     ]
     for match_in in matches_in:
         await generate_match(session, match_in)
@@ -174,7 +175,7 @@ async def test_get_multiple_match(
 async def test_update_match_status_to_reserved(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = serialize_match_data(court_id=0, time=8, date="2024-11-25")
+    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     match_created = response.json()
 
@@ -198,7 +199,7 @@ async def test_generate_matches_given_one_avail_time(
     # Test ctes
     business_public_id = 1000
     court_public_id = "1"
-    date = str(datetime.strptime("2025-03-19", "%Y-%m-%d"))
+    date = "2025-03-19"
     time = 9
     latitude = 0.0
     longitude = 0.0
@@ -236,20 +237,15 @@ async def test_generate_matches_given_one_avail_time(
         Player(user_public_id=uuid.uuid4()) for _ in range(n_similar_players)
     ]
     similar_players_user_public_ids = [
-        player.user_public_id for player in similar_players
+        str(player.user_public_id) for player in similar_players
     ]
     avail_players = [assigned_player] + similar_players
 
     async def mock_get_players_by_filters(
         self: Any,  # noqa: ARG001
-        latitude: float | None,  # noqa: ARG001
-        longitude: float | None,  # noqa: ARG001
-        time_availability: int | None,  # noqa: ARG001
-        date: datetime | None,  # noqa: ARG001
-        user_public_id: uuid.UUID | None,
-        n_players: int | None,  # noqa: ARG001
+        player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
-        if user_public_id == assigned_user_public_id:
+        if player_filters.user_public_id == assigned_user_public_id:
             return similar_players
         return avail_players
 
@@ -258,23 +254,21 @@ async def test_generate_matches_given_one_avail_time(
     )
 
     # Mock MatchGeneratorService
-    async def mock_get_priority_player(
+    def mock_choose_priority_player(
         self: Any,  # noqa: ARG001
         players: list[Player],  # noqa: ARG001
     ) -> Player:
         return assigned_player
 
     monkeypatch.setattr(
-        MatchGeneratorService, "_get_priority_player", mock_get_priority_player
+        MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
     )
 
     # Main request
-    # data = {"business_public_id": business_public_id,
-    #         "court_public_id": court_public_id,
-    #         "date": date}
     data = {
         "business_public_id": business_public_id,
         "court_public_id": court_public_id,
+        "date": date,
     }
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/generation",
@@ -290,19 +284,18 @@ async def test_generate_matches_given_one_avail_time(
     assert len(matches) == 1
 
     match_extended = matches[0]
-    match = match_extended["match"]
     # TODO: In Match, add business_public_id
-    # assert match["business_public_id"] == business_public_id
+    # assert match_extended["business_public_id"] == business_public_id
     # TODO: In Match, rename court_id to court_public_id
-    assert match["court_id"] == court_public_id
-    assert match["latitude"] == latitude
-    assert match["longitude"] == longitude
-    assert match["date"] == date
-    assert match["time"] == time
+    assert match_extended["court_id"] == court_public_id
+    assert match_extended["date"] == date
+    assert match_extended["time"] == time
 
     match_players = match_extended["match_players"]
     match_assigned_players = [
-        player for player in match_players if player["reserve"] == "assigned"
+        player
+        for player in match_players
+        if player["reserve"] == ReserveStatus.Assigned
     ]
     assert len(match_assigned_players) == 1
 
@@ -312,9 +305,9 @@ async def test_generate_matches_given_one_avail_time(
     )
 
     match_similar_players_user_public_ids = [
-        player.user_public_id
+        player["user_public_id"]
         for player in match_players
-        if player["reserve"] == "similar"
+        if player["reserve"] == ReserveStatus.Similar
     ]
     assert set(match_similar_players_user_public_ids) == set(
         similar_players_user_public_ids

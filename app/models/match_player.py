@@ -6,6 +6,8 @@ from sqlmodel import Field, SQLModel
 
 
 class ReserveStatus(str, Enum):
+    Assigned = "assigned"
+    Similar = "similar"
     provisional = "Provisional"
     accepted = "Accepted"
     rejected = "Rejected"

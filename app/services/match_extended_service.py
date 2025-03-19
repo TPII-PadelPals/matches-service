@@ -9,6 +9,15 @@ from app.utilities.dependencies import SessionDep
 
 
 class MatchExtendedService:
+    async def get_match(
+        self, session: SessionDep, match_public_id: uuid.UUID
+    ) -> MatchExtended:
+        match: Match = await MatchService().get_match(session, match_public_id)
+        match_players = await MatchPlayerService().get_match_players(
+            session, match_public_id
+        )
+        return MatchExtended(match, match_players)
+
     async def get_player_matches(
         self, session: SessionDep, player_id: uuid.UUID
     ) -> list[MatchExtended]:
