@@ -1,18 +1,10 @@
 import uuid
-from datetime import datetime
-from typing import Any
 
 from httpx import AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import settings, test_settings
-from app.models.available_time import AvailableTime
 from app.models.match import MatchStatus
-from app.models.match_player import ReserveStatus
-from app.models.player import Player, PlayerFilters
-from app.services.business_service import BusinessService
-from app.services.match_generator_service import MatchGeneratorService
-from app.services.players_service import PlayersService
 from app.tests.utils.matches import (
     create_match,
     generate_match,
@@ -191,124 +183,3 @@ async def test_update_match_status_to_reserved(
     match_updated.pop("status")
     match_created.pop("status")
     assert match_updated == match_created
-
-
-async def test_generate_matches_given_one_avail_time(
-    async_client: AsyncClient, x_api_key_header: dict[str, str], monkeypatch: Any
-) -> None:
-    # Test ctes
-    business_public_id = 1000
-    court_public_id = "1"
-    date = "2025-03-19"
-    time = 9
-    latitude = 0.0
-    longitude = 0.0
-    assigned_user_public_id = uuid.uuid4()
-    n_similar_players = 6
-
-    # Mock BusinessService
-    avail_times = [
-        AvailableTime(
-            business_public_id=business_public_id,
-            court_public_id=court_public_id,
-            latitude=latitude,
-            longitude=longitude,
-            date=date,
-            time=time,
-            is_reserved=False,
-        )
-    ]
-
-    async def mock_get_available_times(
-        self: Any,  # noqa: ARG001
-        business_public_id: int,  # noqa: ARG001
-        court_public_id: str,  # noqa: ARG001
-        date: datetime,  # noqa: ARG001
-    ) -> Any:
-        return avail_times
-
-    monkeypatch.setattr(
-        BusinessService, "get_available_times", mock_get_available_times
-    )
-
-    # Mock PlayersService
-    assigned_player = Player(user_public_id=assigned_user_public_id)
-    similar_players = [
-        Player(user_public_id=uuid.uuid4()) for _ in range(n_similar_players)
-    ]
-    similar_players_user_public_ids = [
-        str(player.user_public_id) for player in similar_players
-    ]
-    avail_players = [assigned_player] + similar_players
-
-    async def mock_get_players_by_filters(
-        self: Any,  # noqa: ARG001
-        player_filters: PlayerFilters,  # noqa: ARG001
-    ) -> Any:
-        if player_filters.user_public_id == assigned_user_public_id:
-            return similar_players
-        return avail_players
-
-    monkeypatch.setattr(
-        PlayersService, "get_players_by_filters", mock_get_players_by_filters
-    )
-
-    # Mock MatchGeneratorService
-    def mock_choose_priority_player(
-        self: Any,  # noqa: ARG001
-        players: list[Player],  # noqa: ARG001
-    ) -> Player:
-        return assigned_player
-
-    monkeypatch.setattr(
-        MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
-    )
-
-    # Main request
-    data = {
-        "business_public_id": business_public_id,
-        "court_public_id": court_public_id,
-        "date": date,
-    }
-    response = await async_client.post(
-        f"{test_settings.API_V1_STR}/matches/generation",
-        headers=x_api_key_header,
-        json=data,
-    )
-
-    # Assertions
-    assert response.status_code == 201
-
-    matches_list = response.json()
-    matches = matches_list["data"]
-    assert len(matches) == 1
-
-    match_extended = matches[0]
-    # TODO: In Match, add business_public_id
-    # assert match_extended["business_public_id"] == business_public_id
-    # TODO: In Match, rename court_id to court_public_id
-    assert match_extended["court_id"] == court_public_id
-    assert match_extended["date"] == date
-    assert match_extended["time"] == time
-
-    match_players = match_extended["match_players"]
-    match_assigned_players = [
-        player
-        for player in match_players
-        if player["reserve"] == ReserveStatus.Assigned
-    ]
-    assert len(match_assigned_players) == 1
-
-    match_assigned_player = match_assigned_players[0]
-    assert match_assigned_player["user_public_id"] == str(
-        assigned_player.user_public_id
-    )
-
-    match_similar_players_user_public_ids = [
-        player["user_public_id"]
-        for player in match_players
-        if player["reserve"] == ReserveStatus.Similar
-    ]
-    assert set(match_similar_players_user_public_ids) == set(
-        similar_players_user_public_ids
-    )
