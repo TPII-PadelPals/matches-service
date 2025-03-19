@@ -82,23 +82,20 @@ class MatchGeneratorService:
         court_public_id: str,
         date: datetime,
     ) -> list[MatchExtended]:
-        match_public_ids = []
+        try:
+            match_public_ids = []
 
-        avail_times = await BusinessService().get_available_times(
-            business_public_id, court_public_id, date
-        )
-        for avail_time in avail_times:
-            match_public_id = await self._generate_match(session, avail_time)
-            match_public_ids.append(match_public_id)
-
-        await session.commit()
-
-        # Note: SQLModels are erased after commit, so it is needed to reload them
-        matches_extended = []
-        for match_public_id in match_public_ids:
-            match_extended = await MatchExtendedService().get_match(
-                session,
-                match_public_id,  # type: ignore
+            avail_times = await BusinessService().get_available_times(
+                business_public_id, court_public_id, date
             )
-            matches_extended.append(match_extended)
-        return matches_extended
+            for avail_time in avail_times:
+                match_public_id = await self._generate_match(session, avail_time)
+                match_public_ids.append(match_public_id)
+
+            await session.commit()
+
+            # Note: MatchExtended models are erased after commit, so it is needed to recover them
+            return await MatchExtendedService().get_matches(session, match_public_ids)
+        except Exception as e:
+            await session.rollback()
+            raise e

@@ -240,8 +240,9 @@ async def test_generate_matches_given_three_avail_time(
         assigned_player = assigned_players[time]["assigned"]
         similar_players = assigned_players[time]["similar"]
         similar_players_user_public_ids = [
-            str(player.user_public_id) for player in similar_players
-        ]  # type: ignore
+            str(player.user_public_id)
+            for player in similar_players  # type: ignore
+        ]
 
         match_players = match_extended["match_players"]
         match_assigned_players = [
