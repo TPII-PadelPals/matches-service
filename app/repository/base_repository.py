@@ -22,14 +22,6 @@ class BaseRepository:
     def _handle_commit_exceptions(self, err: IntegrityError) -> None:
         raise err
 
-    # async def _commit_with_exception_handling(self) -> None:
-    #     try:
-    #         await self.session.commit()
-    #     except IntegrityError as e:
-    #         await self.session.rollback()
-    #         self._handle_commit_exceptions(e)
-    #     pass
-
     async def _commit_refresh_or_flush(self, commit: bool, records: list[M]) -> None:
         try:
             if commit:
@@ -47,8 +39,6 @@ class BaseRepository:
     ) -> M:
         record = model.model_validate(record_create)
         self.session.add(record)
-        # await self._commit_with_exception_handling()
-        # await self.session.refresh(record)
         await self._commit_refresh_or_flush(commit, [record])
         return record
 
@@ -57,9 +47,6 @@ class BaseRepository:
     ) -> list[M]:
         records = [model.model_validate(record) for record in records_create]
         self.session.add_all(records)
-        # await self._commit_with_exception_handling()
-        # for record in records:
-        #     await self.session.refresh(record)
         await self._commit_refresh_or_flush(commit, records)
         return records
 
@@ -100,7 +87,5 @@ class BaseRepository:
         update_dict = record_update.model_dump(exclude_none=True)
         record.sqlmodel_update(update_dict)
         self.session.add(record)
-        # await self._commit_with_exception_handling()
-        # await self.session.refresh(record)
         await self._commit_refresh_or_flush(commit, [record])
         return record
