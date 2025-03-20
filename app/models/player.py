@@ -5,22 +5,21 @@ from sqlmodel import Field, SQLModel
 from app.models.available_time import AvailableTime
 
 
-class Player(SQLModel):
-    user_public_id: UUID = Field()
+class PlayerBase(SQLModel):
+    user_public_id: UUID | None = Field(default=None)
+    latitude: float | None = Field(default=None)
+    longitude: float | None = Field(default=None)
+    time_availability: int | None = Field(default=None)
+
+
+class Player(PlayerBase):
     telegram_id: int | None = Field(default=None)
     search_range_km: int | None = Field(default=None)
     address: str | None = Field(default=None)
-    latitude: float | None = Field(default=None)
-    longitude: float | None = Field(default=None)
-    time_availability: int | None = Field(default=None)
 
 
-class PlayerFilters(SQLModel):
-    latitude: float | None = Field(default=None)
-    longitude: float | None = Field(default=None)
-    time_availability: int | None = Field(default=None)
+class PlayerFilters(PlayerBase):
     available_days: list[int] | None = Field(default=None)
-    user_public_id: UUID | None = Field(default=None)
     n_players: int | None = Field(default=None)
 
     @classmethod
