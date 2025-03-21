@@ -55,7 +55,7 @@ class MatchGeneratorService:
                 reserve=reserve_status,
             )
             match_player = await MatchPlayerService().create_match_player(
-                session, match_player_create, commit=False
+                session, match_player_create, should_commit=False
             )
             match_players.append(match_player)
         return match_players
@@ -64,7 +64,9 @@ class MatchGeneratorService:
         self, session: SessionDep, avail_time: AvailableTime
     ) -> MatchExtended:
         match_create = MatchCreate.from_available_time(avail_time)
-        match = await MatchService().create_match(session, match_create, commit=False)
+        match = await MatchService().create_match(
+            session, match_create, should_commit=False
+        )
         match_public_id = match.public_id
 
         assigned_player, similar_players = await self._choose_match_players(avail_time)

@@ -22,9 +22,11 @@ class BaseRepository:
     def _handle_commit_exceptions(self, err: IntegrityError) -> None:
         raise err
 
-    async def _commit_refresh_or_flush(self, commit: bool, records: list[M]) -> None:
+    async def _commit_refresh_or_flush(
+        self, should_commit: bool, records: list[M]
+    ) -> None:
         try:
-            if commit:
+            if should_commit:
                 await self.session.commit()
                 for record in records:
                     await self.session.refresh(record)
@@ -35,19 +37,19 @@ class BaseRepository:
             self._handle_commit_exceptions(e)
 
     async def create_record(
-        self, model: type[M], record_create: C, commit: bool = True
+        self, model: type[M], record_create: C, should_commit: bool = True
     ) -> M:
         record = model.model_validate(record_create)
         self.session.add(record)
-        await self._commit_refresh_or_flush(commit, [record])
+        await self._commit_refresh_or_flush(should_commit, [record])
         return record
 
     async def create_records(
-        self, model: type[M], records_create: list[C], commit: bool = True
+        self, model: type[M], records_create: list[C], should_commit: bool = True
     ) -> list[M]:
         records = [model.model_validate(record) for record in records_create]
         self.session.add_all(records)
-        await self._commit_refresh_or_flush(commit, records)
+        await self._commit_refresh_or_flush(should_commit, records)
         return records
 
     async def get_records(self, model: type[M], filters: list[F]) -> list[M]:
@@ -81,11 +83,11 @@ class BaseRepository:
         model_filter: type[F],
         ids: dict[str, UUID],
         record_update: U,
-        commit: bool = True,
+        should_commit: bool = True,
     ) -> M:
         record = await self.get_record(model, model_filter, ids)
         update_dict = record_update.model_dump(exclude_none=True)
         record.sqlmodel_update(update_dict)
         self.session.add(record)
-        await self._commit_refresh_or_flush(commit, [record])
+        await self._commit_refresh_or_flush(should_commit, [record])
         return record
