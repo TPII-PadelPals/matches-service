@@ -19,9 +19,9 @@ class PlayersService(BaseService):
     ) -> list[Player]:
         "Get players by filters from players service"
         content = await self.get("/api/v1/players", params=player_filters.model_dump())
-        data = content["data"]
+        players_data = content["data"]
         players = []
-        for datum in data:
-            player = Player(**datum)
+        for player_data in players_data:
+            player = Player(**player_data)
             players.append(player)
         return players
