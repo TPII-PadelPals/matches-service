@@ -45,9 +45,9 @@ class MatchGeneratorService:
     ) -> list[MatchPlayer]:
         match_players = []
         for player in [assigned_player] + similar_players:
-            reserve_status = ReserveStatus.Similar
+            reserve_status = ReserveStatus.SIMILAR
             if player.user_public_id == assigned_player.user_public_id:
-                reserve_status = ReserveStatus.Assigned
+                reserve_status = ReserveStatus.ASSIGNED
 
             match_player_create = MatchPlayerCreate(
                 user_public_id=player.user_public_id,

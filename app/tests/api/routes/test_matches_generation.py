@@ -115,7 +115,7 @@ async def test_generate_matches_given_one_avail_time(
     match_assigned_players = [
         player
         for player in match_players
-        if player["reserve"] == ReserveStatus.Assigned
+        if player["reserve"] == ReserveStatus.ASSIGNED
     ]
     assert len(match_assigned_players) == 1
 
@@ -127,7 +127,7 @@ async def test_generate_matches_given_one_avail_time(
     match_similar_players_user_public_ids = [
         player["user_public_id"]
         for player in match_players
-        if player["reserve"] == ReserveStatus.Similar
+        if player["reserve"] == ReserveStatus.SIMILAR
     ]
     assert set(match_similar_players_user_public_ids) == set(
         similar_players_user_public_ids
@@ -248,7 +248,7 @@ async def test_generate_matches_given_three_avail_time(
         match_assigned_players = [
             player
             for player in match_players
-            if player["reserve"] == ReserveStatus.Assigned
+            if player["reserve"] == ReserveStatus.ASSIGNED
         ]
         assert len(match_assigned_players) == 1
 
@@ -260,7 +260,7 @@ async def test_generate_matches_given_three_avail_time(
         match_similar_players_user_public_ids = [
             player["user_public_id"]
             for player in match_players
-            if player["reserve"] == ReserveStatus.Similar
+            if player["reserve"] == ReserveStatus.SIMILAR
         ]
         assert set(match_similar_players_user_public_ids) == set(
             similar_players_user_public_ids
