@@ -54,17 +54,12 @@ async def create_matches(
     status_code=status.HTTP_201_CREATED,
 )
 async def generate_matches(
-    *, session: SessionDep, match_generation: MatchGenerationCreate
+    *, session: SessionDep, match_gen_create: MatchGenerationCreate
 ) -> Any:
     """
     Generate matches given business, court and date
     """
-    matches = await MatchGeneratorService().generate_matches(
-        session,
-        match_generation.business_public_id,
-        match_generation.court_public_id,
-        match_generation.date,
-    )
+    matches = await MatchGeneratorService().generate_matches(session, match_gen_create)
     return MatchesExtendedListPublic.from_private(matches)
 
 

@@ -1,10 +1,10 @@
-from datetime import datetime
 from typing import ClassVar
 from uuid import UUID
 
 from app.models.available_time import AvailableTime
 from app.models.match import MatchCreate
 from app.models.match_extended import MatchExtended
+from app.models.match_generation import MatchGenerationCreate
 from app.models.match_player import MatchPlayer, MatchPlayerCreate, ReserveStatus
 from app.models.player import Player, PlayerFilters
 from app.services.business_service import BusinessService
@@ -78,17 +78,13 @@ class MatchGeneratorService:
         return MatchExtended(match, match_players)
 
     async def generate_matches(
-        self,
-        session: SessionDep,
-        business_public_id: int,
-        court_public_id: str,
-        date: datetime,
+        self, session: SessionDep, match_gen_create: MatchGenerationCreate
     ) -> list[MatchExtended]:
         try:
             matches_extended = []
 
             avail_times = await BusinessService().get_available_times(
-                business_public_id, court_public_id, date
+                **match_gen_create.model_dump()
             )
             for avail_time in avail_times:
                 match_extended = await self._generate_match(session, avail_time)
