@@ -13,9 +13,7 @@ class PlayerBase(SQLModel):
 
 
 class Player(PlayerBase):
-    telegram_id: int | None = Field(default=None)
-    search_range_km: int | None = Field(default=None)
-    address: str | None = Field(default=None)
+    pass
 
 
 class PlayerFilters(PlayerBase):
