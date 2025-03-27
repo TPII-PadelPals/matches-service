@@ -44,7 +44,9 @@ class MatchPlayerCreate(MatchPlayerBase, MatchPlayerInmmutable):
 
 
 class MatchPlayerUpdate(MatchPlayerBase):
-    pass
+    @classmethod
+    def accept_update(cls) -> "MatchPlayerUpdate":
+        return MatchPlayerUpdate(reserve=ReserveStatus.accepted)
 
 
 class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
