@@ -8,6 +8,7 @@ from app.models.match_player import (
 )
 from app.repository.match_player_repository import MatchPlayerRepository
 from app.utilities.dependencies import SessionDep
+from app.utilities.exceptions import NotAuthorizedException
 
 
 class MatchPlayerService:
@@ -70,6 +71,11 @@ class MatchPlayerService:
         match_public_id: UUID,
         user_public_id: UUID,
     ) -> MatchPlayer:
+        match_player = await self.get_match_player(
+            session, match_public_id, user_public_id
+        )
+        if not match_player.is_provisional():
+            raise NotAuthorizedException()
         match_player_in = MatchPlayerUpdate.accept_update()
         return await self.update_match_player(
             session, match_public_id, user_public_id, match_player_in

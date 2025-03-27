@@ -65,6 +65,9 @@ class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
     def name(cls) -> str:
         return "MatchPlayer"
 
+    def is_provisional(self) -> bool:
+        return self.reserve == ReserveStatus.provisional
+
 
 class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutable):
     @classmethod

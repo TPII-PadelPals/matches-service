@@ -241,3 +241,63 @@ async def test_one_player_reserve_to_accept(
     assert content["match_public_id"] == match_public_id
     assert content["user_public_id"] == user_public_id
     assert content["reserve"] == ReserveStatus.accepted
+
+
+async def test_one_player_reserve_to_accept_not_provionl_is_accepted(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    # Create match
+    data = serialize_match_data(court_id=0, time=8, date="2024-11-25")
+    response = await create_match(async_client, x_api_key_header, data)
+    content = response.json()
+    match_public_id = content["public_id"]
+    # Add player to match
+    data = {"user_public_id": str(uuid.uuid4())}
+    response = await async_client.post(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
+        headers=x_api_key_header,
+        json=data,
+    )
+    content = response.json()
+    user_public_id = content["user_public_id"]
+    _ = await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/accept/",
+        headers=x_api_key_header,
+        json={"reserve": ReserveStatus.accepted},
+    )
+    # Update match player
+    response = await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/accept/",
+        headers=x_api_key_header,
+    )
+    assert response.status_code == 401
+
+
+async def test_one_player_reserve_to_accept_not_provionl_is_rejected(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    # Create match
+    data = serialize_match_data(court_id=0, time=8, date="2024-11-25")
+    response = await create_match(async_client, x_api_key_header, data)
+    content = response.json()
+    match_public_id = content["public_id"]
+    # Add player to match
+    data = {"user_public_id": str(uuid.uuid4())}
+    response = await async_client.post(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
+        headers=x_api_key_header,
+        json=data,
+    )
+    content = response.json()
+    user_public_id = content["user_public_id"]
+    _ = await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/accept/",
+        headers=x_api_key_header,
+        json={"reserve": ReserveStatus.rejected},
+    )
+    # Update match player
+    response = await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/accept/",
+        headers=x_api_key_header,
+    )
+    assert response.status_code == 401
