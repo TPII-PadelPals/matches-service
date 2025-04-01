@@ -36,6 +36,8 @@ class PlayerFilters(PlayerBase, PlayerImmutable):
             return PlayerFilters.AFTERNOON
         elif time > 17 and time <= 24:
             return PlayerFilters.EVENING
+        else:
+            return 0
 
     @classmethod
     def from_available_time(cls, avail_time: AvailableTime) -> "PlayerFilters":

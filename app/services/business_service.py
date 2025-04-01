@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 from typing import Any
 
@@ -23,7 +24,7 @@ class BusinessService(BaseService):
             self.set_base_headers({"x-api-key": settings.BUSINESS_SERVICE_API_KEY})
 
     async def get_available_times(
-        self, business_public_id: int, court_public_id: str, date: date
+        self, business_public_id: uuid.UUID, court_public_id: str, date: date
     ) -> list[AvailableTime]:
         "Get available times from business service"
         params: dict[str, Any] = {

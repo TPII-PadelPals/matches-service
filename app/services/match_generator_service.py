@@ -25,7 +25,7 @@ class MatchGeneratorService:
 
     async def _choose_match_players(
         self, avail_time: AvailableTime
-    ) -> tuple[Player, list[Player]]:
+    ) -> tuple[Player | None, list[Player]]:
         players_filters = PlayerFilters.from_available_time(avail_time)
         avail_players = await PlayersService().get_players_by_filters(players_filters)
 
@@ -67,7 +67,7 @@ class MatchGeneratorService:
 
     async def _generate_match(
         self, session: SessionDep, avail_time: AvailableTime
-    ) -> MatchExtended:
+    ) -> MatchExtended | None:
         match_create = MatchCreate.from_available_time(avail_time)
 
         assigned_player, similar_players = await self._choose_match_players(avail_time)
