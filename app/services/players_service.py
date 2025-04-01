@@ -22,7 +22,9 @@ class PlayersService(BaseService):
         self: Any, player_filters: PlayerFilters
     ) -> list[Player]:
         "Get players by filters from players service"
-        content = await self.get("/api/v1/players/", params=player_filters.model_dump())
+        content = await self.get(
+            "/api/v1/players/", params=player_filters.model_dump(exclude_none=True)
+        )
         players_data = content["data"]
         players = []
         for player_data in players_data:
