@@ -43,12 +43,12 @@ async def test_get_player_matches_returns_all_matches_associated_to_player(
         assert response_data["court_id"] == "0"
         assert response_data["time"] >= 0 and response_data["time"] < n_matches
         assert response_data["date"] == "2024-11-25"
-        assert response_data["status"] == ReserveStatus.provisional
+        assert response_data["status"] == ReserveStatus.PROVISIONAL
         assert len(response_data["match_players"]) == 1
         for player_data in response_data["match_players"]:
             assert player_data["user_public_id"] == user_public_id
             assert player_data["match_public_id"] in match_public_ids
-            assert player_data["reserve"] == ReserveStatus.provisional
+            assert player_data["reserve"] == ReserveStatus.PROVISIONAL
 
 
 async def test_get_player_matches_returns_all_matches_associated_to_player_multiple_days(
@@ -101,12 +101,12 @@ async def test_get_player_matches_returns_all_matches_associated_to_player_multi
         elif response_data["court_id"] == "2":
             assert response_data["date"] == "2024-11-27"
         assert response_data["time"] >= 0 and response_data["time"] < n_matches
-        assert response_data["status"] == ReserveStatus.provisional
+        assert response_data["status"] == ReserveStatus.PROVISIONAL
         assert len(response_data["match_players"]) == 1
         for player_data in response_data["match_players"]:
             assert player_data["user_public_id"] == user_public_id
             assert player_data["match_public_id"] in match_public_ids
-            assert player_data["reserve"] == ReserveStatus.provisional
+            assert player_data["reserve"] == ReserveStatus.PROVISIONAL
 
 
 async def test_get_player_matches_returns_all_matches_associated_to_multiple_player(
@@ -143,9 +143,9 @@ async def test_get_player_matches_returns_all_matches_associated_to_multiple_pla
         assert response_data["court_id"] == "0"
         assert response_data["time"] >= 0 and response_data["time"] < n_matches
         assert response_data["date"] == "2024-11-25"
-        assert response_data["status"] == ReserveStatus.provisional
+        assert response_data["status"] == ReserveStatus.PROVISIONAL
         assert len(response_data["match_players"]) == 2
         for player_data in response_data["match_players"]:
             assert player_data["user_public_id"] in list_users
             assert player_data["match_public_id"] in match_public_ids
-            assert player_data["reserve"] == ReserveStatus.provisional
+            assert player_data["reserve"] == ReserveStatus.PROVISIONAL
