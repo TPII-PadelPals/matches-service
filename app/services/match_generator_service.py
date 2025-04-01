@@ -29,8 +29,13 @@ class MatchGeneratorService:
         players_filters = PlayerFilters.from_available_time(avail_time)
         avail_players = await PlayersService().get_players_by_filters(players_filters)
 
+        if not len(avail_players) > 0:
+            return None, []
+
         assigned_player = self._choose_priority_player(avail_players)
 
+        # Por qué se asigna un user_public_id aca?
+        # Porque al filtro si le ponés el user_public_id te trae todos menos el del filtro.
         players_filters.user_public_id = assigned_player.user_public_id
         players_filters.n_players = self.N_SIM_PLAYERS
         similar_players = await PlayersService().get_players_by_filters(players_filters)
@@ -64,12 +69,16 @@ class MatchGeneratorService:
         self, session: SessionDep, avail_time: AvailableTime
     ) -> MatchExtended:
         match_create = MatchCreate.from_available_time(avail_time)
+
+        assigned_player, similar_players = await self._choose_match_players(avail_time)
+        if not assigned_player or len(similar_players) == 0:
+            return None
+
         match = await MatchService().create_match(
             session, match_create, should_commit=False
         )
         match_public_id = match.public_id
 
-        assigned_player, similar_players = await self._choose_match_players(avail_time)
         match_players = await self._generate_match_players(
             session,
             match_public_id,  # type: ignore
@@ -90,6 +99,8 @@ class MatchGeneratorService:
             )
             for avail_time in avail_times:
                 match_extended = await self._generate_match(session, avail_time)
+                if not match_extended:
+                    continue
                 matches_extended.append(match_extended)
 
             await session.commit()
