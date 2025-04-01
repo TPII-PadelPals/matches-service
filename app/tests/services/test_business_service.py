@@ -1,15 +1,20 @@
-from datetime import datetime
+import datetime
+import uuid
 from typing import Any
 
-from app.services.business_service import BusinessService
+from app.services.business_service import (
+    PROVISIONAL_LATITUDE,
+    PROVISIONAL_LONGITUDE,
+    BusinessService,
+)
 
 
 async def test_get_matches_for_business_court_and_date(monkeypatch: Any) -> None:
-    business_public_id = 1000
+    business_public_id = uuid.uuid4()
     court_public_id = "1"
-    latitude = -34.6174339725913
-    longitude = -58.36818568912263
-    date = datetime.strptime("2025-03-03", "%Y-%m-%d")
+    latitude = PROVISIONAL_LATITUDE
+    longitude = PROVISIONAL_LONGITUDE
+    date = datetime.date(2025, 3, 3)
     times = [8, 9, 10]
 
     expected_avail_times: dict[str, Any] = {"data": []}
@@ -22,12 +27,15 @@ async def test_get_matches_for_business_court_and_date(monkeypatch: Any) -> None
                 "longitude": longitude,
                 "date": date,
                 "initial_hour": time,
-                "is_reserved": False,
+                "reserve": False,
             }
         )
 
     async def mock_get(self: Any, url: str, params: Any) -> Any:  # noqa: ARG001
-        assert url == "/api/v1/padel-courts-available-date"
+        assert (
+            url
+            == f"/api/v1/businesses/{business_public_id}/padel-courts/{court_public_id}/available-matches/"
+        )
         return expected_avail_times
 
     monkeypatch.setattr(BusinessService, "get", mock_get)
