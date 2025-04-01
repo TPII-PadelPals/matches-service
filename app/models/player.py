@@ -1,3 +1,4 @@
+from typing import ClassVar
 from uuid import UUID
 
 from sqlmodel import Field, SQLModel
@@ -20,17 +21,21 @@ class Player(PlayerBase, PlayerImmutable):
 
 
 class PlayerFilters(PlayerBase, PlayerImmutable):
+    MORNING: ClassVar[int] = 1
+    AFTERNOON: ClassVar[int] = 2
+    EVENING: ClassVar[int] = 3
+
     available_days: list[int] | None = Field(default=None)
     n_players: int | None = Field(default=None)
 
     @staticmethod
     def to_time_availability(time: int) -> int:
         if time >= 6 and time <= 11:
-            return 1
+            return PlayerFilters.MORNING
         elif time > 11 and time <= 17:
-            return 2
+            return PlayerFilters.AFTERNOON
         elif time > 17 and time <= 24:
-            return 3
+            return PlayerFilters.EVENING
 
     @classmethod
     def from_available_time(cls, avail_time: AvailableTime) -> "PlayerFilters":
