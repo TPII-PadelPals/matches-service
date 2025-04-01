@@ -1,5 +1,5 @@
+import datetime
 import uuid
-from datetime import datetime
 from typing import Any
 
 from httpx import AsyncClient
@@ -17,7 +17,7 @@ async def test_generate_matches_given_one_avail_time(
     async_client: AsyncClient, x_api_key_header: dict[str, str], monkeypatch: Any
 ) -> None:
     # Test ctes
-    business_public_id = 1000
+    business_public_id = str(uuid.uuid4())
     court_public_id = "1"
     date = "2025-03-19"
     time = 9
@@ -41,9 +41,9 @@ async def test_generate_matches_given_one_avail_time(
 
     async def mock_get_available_times(
         self: Any,  # noqa: ARG001
-        business_public_id: int,  # noqa: ARG001
+        business_public_id: uuid.UUID,  # noqa: ARG001
         court_public_id: str,  # noqa: ARG001
-        date: datetime,  # noqa: ARG001
+        date: datetime.date,  # noqa: ARG001
     ) -> Any:
         return avail_times
 
@@ -138,7 +138,7 @@ async def test_generate_matches_given_three_avail_time(
     async_client: AsyncClient, x_api_key_header: dict[str, str], monkeypatch: Any
 ) -> None:
     # Test ctes
-    business_public_id = 1000
+    business_public_id = str(uuid.uuid4())
     court_public_id = "1"
     date = "2025-03-19"
     times = [8, 9, 10]
@@ -162,9 +162,9 @@ async def test_generate_matches_given_three_avail_time(
 
     async def mock_get_available_times(
         self: Any,  # noqa: ARG001
-        business_public_id: int,  # noqa: ARG001
+        business_public_id: uuid.UUID,  # noqa: ARG001
         court_public_id: str,  # noqa: ARG001
-        date: datetime,  # noqa: ARG001
+        date: datetime.date,  # noqa: ARG001
     ) -> Any:
         return avail_times
 
@@ -175,10 +175,14 @@ async def test_generate_matches_given_three_avail_time(
     # Mock PlayersService
     assigned_players = {}
     for time in times:
-        assigned_players[time] = {
-            "assigned": Player(user_public_id=uuid.uuid4(), time_availability=time),
+        time_availability = PlayerFilters.to_time_availability(time)
+
+        assigned_players[time_availability] = {
+            "assigned": Player(
+                user_public_id=uuid.uuid4(), time_availability=time_availability
+            ),
             "similar": [
-                Player(user_public_id=uuid.uuid4(), time_availability=time)
+                Player(user_public_id=uuid.uuid4(), time_availability=time_availability)
                 for _ in range(n_similar_players)
             ],
         }
@@ -187,9 +191,9 @@ async def test_generate_matches_given_three_avail_time(
         self: Any,  # noqa: ARG001
         player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
-        time = player_filters.time_availability
-        assigned_player = assigned_players[time]["assigned"]  # type: ignore
-        similar_players = assigned_players[time]["similar"]  # type: ignore
+        time_availability = player_filters.time_availability
+        assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
+        similar_players = assigned_players[time_availability]["similar"]  # type: ignore
         if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
             return similar_players
         return [assigned_player] + similar_players  # type: ignore
@@ -203,8 +207,8 @@ async def test_generate_matches_given_three_avail_time(
         self: Any,  # noqa: ARG001
         players: list[Player],  # noqa: ARG001
     ) -> Player:
-        time = players[0].time_availability
-        return assigned_players[time]["assigned"]  # type: ignore
+        time_availability = players[0].time_availability
+        return assigned_players[time_availability]["assigned"]  # type: ignore
 
     monkeypatch.setattr(
         MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
@@ -237,8 +241,9 @@ async def test_generate_matches_given_three_avail_time(
         assert match_extended["date"] == date
         assert match_extended["time"] in times
         time = match_extended["time"]
-        assigned_player = assigned_players[time]["assigned"]
-        similar_players = assigned_players[time]["similar"]
+        time_availability = PlayerFilters.to_time_availability(time)
+        assigned_player = assigned_players[time_availability]["assigned"]
+        similar_players = assigned_players[time_availability]["similar"]
         similar_players_user_public_ids = [
             str(player.user_public_id)
             for player in similar_players  # type: ignore
