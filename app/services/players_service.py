@@ -10,7 +10,11 @@ class PlayersService(BaseService):
     def __init__(self) -> None:
         """Init the service."""
         super().__init__()
-        self._set_base_url(settings.PLAYERS_SERVICE_HOST, settings.PLAYERS_SERVICE_PORT)
+        self._set_base_url(
+            is_http=True,
+            host=settings.PLAYERS_SERVICE_HOST,
+            port=settings.PLAYERS_SERVICE_PORT,
+        )
         if settings.PLAYERS_SERVICE_API_KEY:
             self.set_base_headers({"x-api-key": settings.PLAYERS_SERVICE_API_KEY})
 
@@ -18,7 +22,7 @@ class PlayersService(BaseService):
         self: Any, player_filters: PlayerFilters
     ) -> list[Player]:
         "Get players by filters from players service"
-        content = await self.get("/api/v1/players", params=player_filters.model_dump())
+        content = await self.get("/api/v1/players/", params=player_filters.model_dump())
         players_data = content["data"]
         players = []
         for player_data in players_data:
