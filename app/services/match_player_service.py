@@ -60,7 +60,7 @@ class MatchPlayerService:
         user_public_id: UUID,
         match_player_in: MatchPlayerUpdate,
     ) -> MatchPlayer:
-        if match_player_in.is_accepted():
+        if match_player_in.is_inside():
             await self._validate_accept_match_player(
                 session, match_public_id, user_public_id
             )

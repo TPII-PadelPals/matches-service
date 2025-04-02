@@ -9,7 +9,7 @@ class ReserveStatus(str, Enum):
     ASSIGNED = "assigned"
     SIMILAR = "similar"
     provisional = "Provisional"
-    accepted = "Accepted"
+    inside = "Inside"
     rejected = "Rejected"
 
 
@@ -50,8 +50,8 @@ class MatchPlayerUpdate(MatchPlayerBase):
     # def accept_update(cls) -> "MatchPlayerUpdate":
     #     return MatchPlayerUpdate(reserve=ReserveStatus.accepted)
 
-    def is_accepted(self) -> bool:
-        return self.reserve == ReserveStatus.accepted
+    def is_inside(self) -> bool:
+        return self.reserve == ReserveStatus.inside
 
 
 class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
