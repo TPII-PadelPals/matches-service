@@ -6,6 +6,8 @@ from sqlmodel import Field, SQLModel
 
 
 class ReserveStatus(str, Enum):
+    ASSIGNED = "assigned"
+    SIMILAR = "similar"
     provisional = "Provisional"
     accepted = "Accepted"
     rejected = "Rejected"
@@ -44,9 +46,12 @@ class MatchPlayerCreate(MatchPlayerBase, MatchPlayerInmmutable):
 
 
 class MatchPlayerUpdate(MatchPlayerBase):
-    @classmethod
-    def accept_update(cls) -> "MatchPlayerUpdate":
-        return MatchPlayerUpdate(reserve=ReserveStatus.accepted)
+    # @classmethod
+    # def accept_update(cls) -> "MatchPlayerUpdate":
+    #     return MatchPlayerUpdate(reserve=ReserveStatus.accepted)
+
+    def is_accepted(self) -> bool:
+        return self.reserve == ReserveStatus.accepted
 
 
 class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
@@ -65,8 +70,8 @@ class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
     def name(cls) -> str:
         return "MatchPlayer"
 
-    def is_provisional(self) -> bool:
-        return self.reserve == ReserveStatus.provisional
+    def is_assigned(self) -> bool:
+        return self.reserve == ReserveStatus.ASSIGNED
 
 
 class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutable):

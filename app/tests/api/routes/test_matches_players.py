@@ -153,6 +153,11 @@ async def test_update_one_player_reserve_to_accept(
     )
     content = response.json()
     user_public_id = content["user_public_id"]
+    _response = await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
+        headers=x_api_key_header,
+        json={"reserve": ReserveStatus.ASSIGNED},
+    )
     # Update match player
     data = {"reserve": ReserveStatus.accepted}
     response = await async_client.patch(
@@ -231,10 +236,16 @@ async def test_one_player_reserve_to_accept(
     )
     content = response.json()
     user_public_id = content["user_public_id"]
+    _response = await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
+        headers=x_api_key_header,
+        json={"reserve": ReserveStatus.ASSIGNED},
+    )
     # Update match player
     response = await async_client.patch(
-        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/accept/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,
+        json={"reserve": ReserveStatus.accepted},
     )
     assert response.status_code == 200
     content = response.json()
@@ -261,14 +272,15 @@ async def test_one_player_reserve_to_accept_not_provionl_is_accepted(
     content = response.json()
     user_public_id = content["user_public_id"]
     _ = await async_client.patch(
-        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/accept/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,
         json={"reserve": ReserveStatus.accepted},
     )
     # Update match player
     response = await async_client.patch(
-        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/accept/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,
+        json={"reserve": ReserveStatus.accepted},
     )
     assert response.status_code == 401
 
@@ -291,13 +303,14 @@ async def test_one_player_reserve_to_accept_not_provionl_is_rejected(
     content = response.json()
     user_public_id = content["user_public_id"]
     _ = await async_client.patch(
-        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/accept/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,
         json={"reserve": ReserveStatus.rejected},
     )
     # Update match player
     response = await async_client.patch(
-        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/accept/",
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,
+        json={"reserve": ReserveStatus.accepted},
     )
     assert response.status_code == 401

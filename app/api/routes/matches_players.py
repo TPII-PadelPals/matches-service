@@ -124,24 +124,3 @@ async def update_match_player(
     )
     match_player_public = MatchPlayerPublic.from_private(match_player)
     return match_player_public
-
-
-@router.patch(
-    "/{user_public_id}/accept/",
-    response_model=MatchPlayerPublic,
-    status_code=status.HTTP_200_OK,
-)
-async def accept_match_player(
-    *,
-    session: SessionDep,
-    match_public_id: UUID,
-    user_public_id: UUID,
-) -> MatchPlayerPublic:
-    """
-    Update match player.
-    """
-    match_player = await match_player_service.accept_match_player(
-        session, match_public_id, user_public_id
-    )
-    match_player_public = MatchPlayerPublic.from_private(match_player)
-    return match_player_public

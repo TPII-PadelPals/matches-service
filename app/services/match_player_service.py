@@ -60,23 +60,23 @@ class MatchPlayerService:
         user_public_id: UUID,
         match_player_in: MatchPlayerUpdate,
     ) -> MatchPlayer:
+        if match_player_in.is_accepted():
+            await self._validate_accept_match_player(
+                session, match_public_id, user_public_id
+            )
         repo_match_player = MatchPlayerRepository(session)
         return await repo_match_player.update_match_player(
             match_public_id, user_public_id, match_player_in
         )
 
-    async def accept_match_player(
+    async def _validate_accept_match_player(
         self,
         session: SessionDep,
         match_public_id: UUID,
         user_public_id: UUID,
-    ) -> MatchPlayer:
+    ) -> None:
         match_player = await self.get_match_player(
             session, match_public_id, user_public_id
         )
-        if not match_player.is_provisional():
+        if not match_player.is_assigned():
             raise NotAuthorizedException()
-        match_player_in = MatchPlayerUpdate.accept_update()
-        return await self.update_match_player(
-            session, match_public_id, user_public_id, match_player_in
-        )
