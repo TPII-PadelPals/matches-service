@@ -11,6 +11,7 @@ from app.models.match_player import (
 )
 from app.services.match_player_service import MatchPlayerService
 from app.utilities.dependencies import SessionDep
+from app.utilities.messages import PATCH_MATCHES_PLAYERS
 
 router = APIRouter()
 
@@ -107,6 +108,7 @@ async def get_match_player(
 @router.patch(
     "/{user_public_id}/",
     response_model=MatchPlayerPublic,
+    responses={**PATCH_MATCHES_PLAYERS},  # type: ignore[dict-item]
     status_code=status.HTTP_200_OK,
 )
 async def update_match_player(

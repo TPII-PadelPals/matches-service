@@ -8,6 +8,7 @@ from app.models.match_player import (
 )
 from app.repository.match_player_repository import MatchPlayerRepository
 from app.utilities.dependencies import SessionDep
+from app.utilities.exceptions import NotAuthorizedException
 
 
 class MatchPlayerService:
@@ -59,7 +60,23 @@ class MatchPlayerService:
         user_public_id: UUID,
         match_player_in: MatchPlayerUpdate,
     ) -> MatchPlayer:
+        if match_player_in.is_inside():
+            await self._validate_accept_match_player(
+                session, match_public_id, user_public_id
+            )
         repo_match_player = MatchPlayerRepository(session)
         return await repo_match_player.update_match_player(
             match_public_id, user_public_id, match_player_in
         )
+
+    async def _validate_accept_match_player(
+        self,
+        session: SessionDep,
+        match_public_id: UUID,
+        user_public_id: UUID,
+    ) -> None:
+        match_player = await self.get_match_player(
+            session, match_public_id, user_public_id
+        )
+        if not match_player.is_assigned():
+            raise NotAuthorizedException()
