@@ -8,13 +8,13 @@ from sqlmodel import Field, SQLModel
 class ReserveStatus(str, Enum):
     ASSIGNED = "assigned"
     SIMILAR = "similar"
-    provisional = "Provisional"
+    PROVISIONAL = "Provisional"
     INSIDE = "Inside"
-    rejected = "Rejected"
+    REJECTED = "Rejected"
 
 
 class MatchPlayerBase(SQLModel):
-    reserve: str | None = Field(default=ReserveStatus.provisional)
+    reserve: str | None = Field(default=ReserveStatus.PROVISIONAL)
 
 
 class MatchPlayerMatchPublicID(SQLModel):

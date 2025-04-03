@@ -19,11 +19,15 @@ class MatchRepository(BaseRepository):
         else:
             raise err
 
-    async def create_match(self, match_in: MatchCreate) -> Match:
-        return await self.create_record(Match, match_in)
+    async def create_match(
+        self, match_in: MatchCreate, should_commit: bool = True
+    ) -> Match:
+        return await self.create_record(Match, match_in, should_commit)
 
-    async def create_matches(self, matches_in: list[MatchCreate]) -> list[Match]:
-        return await self.create_records(Match, matches_in)
+    async def create_matches(
+        self, matches_in: list[MatchCreate], should_commit: bool = True
+    ) -> list[Match]:
+        return await self.create_records(Match, matches_in, should_commit)
 
     async def get_matches(self, filters: list[MatchFilters]) -> list[Match]:
         return await self.get_records(Match, filters)
@@ -32,10 +36,8 @@ class MatchRepository(BaseRepository):
         return await self.get_record(Match, MatchFilters, {"public_id": public_id})
 
     async def update_match(
-        self,
-        public_id: UUID,
-        match_in: MatchUpdate,
+        self, public_id: UUID, match_in: MatchUpdate, should_commit: bool = True
     ) -> Match:
         return await self.update_record(
-            Match, MatchFilters, {"public_id": public_id}, match_in
+            Match, MatchFilters, {"public_id": public_id}, match_in, should_commit
         )

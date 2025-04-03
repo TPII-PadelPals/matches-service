@@ -14,15 +14,17 @@ class BaseService:
         self.base_url = ""
         self.base_headers: dict[str, str] = {}
         self.timeout = 5
-        self._set_base_url("localhost", 8000)
+        self._set_base_url(is_http=False, host="localhost", port=8000)
 
-    def _set_base_url(self, host: str = "localhost", port: int | None = None) -> None:
+    def _set_base_url(
+        self, is_http: bool = False, host: str = "localhost", port: int | None = None
+    ) -> None:
         """Set the base URL for the service."""
         local_server = ["localhost", "127.0.0.1"]
         service_url = f"{host}:{port}" if port is not None else f"{host}"
         self.base_url = (
             f"http://{service_url}"
-            if host in local_server
+            if host in local_server or is_http
             else f"https://{service_url}"
         )
 

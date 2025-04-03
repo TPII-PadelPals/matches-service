@@ -22,26 +22,34 @@ class BaseRepository:
     def _handle_commit_exceptions(self, err: IntegrityError) -> None:
         raise err
 
-    async def _commit_with_exception_handling(self) -> None:
+    async def _commit_refresh_or_flush(
+        self, should_commit: bool, records: list[M]
+    ) -> None:
         try:
-            await self.session.commit()
+            if should_commit:
+                await self.session.commit()
+                for record in records:
+                    await self.session.refresh(record)
+            else:
+                await self.session.flush()
         except IntegrityError as e:
             await self.session.rollback()
             self._handle_commit_exceptions(e)
 
-    async def create_record(self, model: type[M], record_create: C) -> M:
+    async def create_record(
+        self, model: type[M], record_create: C, should_commit: bool = True
+    ) -> M:
         record = model.model_validate(record_create)
         self.session.add(record)
-        await self._commit_with_exception_handling()
-        await self.session.refresh(record)
+        await self._commit_refresh_or_flush(should_commit, [record])
         return record
 
-    async def create_records(self, model: type[M], records_create: list[C]) -> list[M]:
+    async def create_records(
+        self, model: type[M], records_create: list[C], should_commit: bool = True
+    ) -> list[M]:
         records = [model.model_validate(record) for record in records_create]
         self.session.add_all(records)
-        await self._commit_with_exception_handling()
-        for record in records:
-            await self.session.refresh(record)
+        await self._commit_refresh_or_flush(should_commit, records)
         return records
 
     async def get_records(self, model: type[M], filters: list[F]) -> list[M]:
@@ -75,11 +83,11 @@ class BaseRepository:
         model_filter: type[F],
         ids: dict[str, UUID],
         record_update: U,
+        should_commit: bool = True,
     ) -> M:
         record = await self.get_record(model, model_filter, ids)
         update_dict = record_update.model_dump(exclude_none=True)
         record.sqlmodel_update(update_dict)
         self.session.add(record)
-        await self._commit_with_exception_handling()
-        await self.session.refresh(record)
+        await self._commit_refresh_or_flush(should_commit, [record])
         return record

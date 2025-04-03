@@ -13,10 +13,15 @@ from app.utilities.exceptions import NotAuthorizedException
 
 class MatchPlayerService:
     async def create_match_player(
-        self, session: SessionDep, match_player_in: MatchPlayerCreate
+        self,
+        session: SessionDep,
+        match_player_in: MatchPlayerCreate,
+        should_commit: bool = True,
     ) -> MatchPlayer:
         repo_match_player = MatchPlayerRepository(session)
-        return await repo_match_player.create_match_player(match_player_in)
+        return await repo_match_player.create_match_player(
+            match_player_in, should_commit
+        )
 
     async def create_match_players(
         self, session: SessionDep, match_players_in: list[MatchPlayerCreate]

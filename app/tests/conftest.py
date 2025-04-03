@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncGenerator
 from typing import Any
 
@@ -17,30 +18,44 @@ from app.models.match_player import MatchPlayer
 from app.tests.utils.utils import get_x_api_key_header
 from app.utilities.dependencies import get_db
 
+db_url = str(test_settings.SQLALCHEMY_DATABASE_URI)
+
 
 @pytest_asyncio.fixture(name="session")
 async def db() -> AsyncGenerator[AsyncSession, None]:
-    db_url = str(test_settings.SQLALCHEMY_DATABASE_URI)
-    async with AsyncSession(get_async_engine(db_url)) as session:
-        await init_db(db_url)
-        yield session
-        await session.exec(delete(Item))  # type: ignore[call-overload]
-        await session.exec(delete(Match))  # type: ignore[call-overload]
-        await session.exec(delete(MatchPlayer))  # type: ignore[call-overload]
-        await session.commit()
+    async with AsyncSession(
+        get_async_engine(db_url), expire_on_commit=False
+    ) as _session:
+        try:
+            await init_db(db_url)
+            yield _session
+            await _session.exec(delete(Item))  # type: ignore[call-overload]
+            await _session.exec(delete(Match))  # type: ignore[call-overload]
+            await _session.exec(delete(MatchPlayer))  # type: ignore[call-overload]
+            await _session.commit()
+        finally:
+            await _session.close()
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def override_dependency(session: AsyncSession) -> None:
+    app.dependency_overrides[get_db] = lambda: session
 
 
 @pytest_asyncio.fixture(name="async_client")
-async def async_client(session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-    def get_session_override() -> AsyncSession:
-        return session
-
-    app.dependency_overrides[get_db] = get_session_override
+async def async_client() -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         yield client
-    app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture(scope="session")
+def event_loop() -> Any:
+    """Create an instance of the default event loop for each test case."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest_asyncio.fixture

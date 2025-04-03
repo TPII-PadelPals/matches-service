@@ -5,6 +5,8 @@ from uuid import UUID, uuid4
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
+from app.models.available_time import AvailableTime
+
 
 class MatchStatus(str, Enum):
     provisional = "Provisional"
@@ -13,7 +15,7 @@ class MatchStatus(str, Enum):
 
 
 class MatchBase(SQLModel):
-    court_id: int | None = Field(default=None)
+    court_id: str | None = Field(default=None)
     time: int | None = Field(default=None)
     date: datetime.date | None = Field(default=None)
     status: str | None = Field(default=MatchStatus.provisional)
@@ -24,7 +26,9 @@ class MatchInmutable(SQLModel):
 
 
 class MatchCreate(MatchBase):
-    pass
+    @classmethod
+    def from_available_time(cls, avail_time: AvailableTime) -> "MatchCreate":
+        return cls(court_id=avail_time.court_public_id, **(avail_time.model_dump()))
 
 
 class MatchUpdate(MatchBase):
@@ -72,7 +76,7 @@ class MatchListPublic(SQLModel):
 class MatchFilters(MatchBase, MatchInmutable):
     id: int | None = None
     public_id: UUID | None = None
-    court_id: int | None = None
+    court_id: str | None = None
     time: int | None = None
     date: datetime.date | None = None
     status: str | None = None
