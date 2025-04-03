@@ -9,7 +9,7 @@ class ReserveStatus(str, Enum):
     ASSIGNED = "assigned"
     SIMILAR = "similar"
     PROVISIONAL = "Provisional"
-    ACCEPTED = "Accepted"
+    INSIDE = "Inside"
     REJECTED = "Rejected"
 
 
@@ -46,7 +46,8 @@ class MatchPlayerCreate(MatchPlayerBase, MatchPlayerInmmutable):
 
 
 class MatchPlayerUpdate(MatchPlayerBase):
-    pass
+    def is_inside(self) -> bool:
+        return self.reserve == ReserveStatus.INSIDE
 
 
 class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
@@ -64,6 +65,9 @@ class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
     @classmethod
     def name(cls) -> str:
         return "MatchPlayer"
+
+    def is_assigned(self) -> bool:
+        return self.reserve == ReserveStatus.ASSIGNED
 
 
 class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutable):
