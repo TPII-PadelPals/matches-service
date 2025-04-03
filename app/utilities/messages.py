@@ -8,3 +8,8 @@ NOT_ENOUGH_PERMISSIONS = {
 # Item responses
 ITEM_NOT_FOUND = {status.HTTP_404_NOT_FOUND: {"description": "Item not found"}}
 ITEM_RESPONSES = {**ITEM_NOT_FOUND, **NOT_ENOUGH_PERMISSIONS}
+
+PATCH_MATCHES_PLAYERS = {
+    status.HTTP_200_OK: {"description": "Updated match player"},
+    status.HTTP_401_UNAUTHORIZED: {"description": "This change is not authorized"}
+}
