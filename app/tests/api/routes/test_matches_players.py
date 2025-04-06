@@ -331,7 +331,7 @@ async def test_only_one_player_inside_then_only_one_similar_is_assigned(
         session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
     )
     # === PRE ===
-    # Create one match player ASSIGNED
+    # Create one player ASSIGNED
     assigned_uuid = uuid.uuid4()
     await MatchPlayerService().create_match_player(
         session,
@@ -342,7 +342,7 @@ async def test_only_one_player_inside_then_only_one_similar_is_assigned(
         ),
     )
 
-    # Create one match player SIMILAR
+    # Create one player SIMILAR
     similar_uuid = uuid.uuid4()
     await MatchPlayerService().create_match_player(
         session,
@@ -376,7 +376,7 @@ async def test_only_one_player_inside_then_only_three_similar_are_assigned(
         session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
     )
     # === PRE ===
-    # Create one match player ASSIGNED
+    # Create one player ASSIGNED
     assigned_uuid = uuid.uuid4()
     await MatchPlayerService().create_match_player(
         session,
@@ -387,7 +387,7 @@ async def test_only_one_player_inside_then_only_three_similar_are_assigned(
         ),
     )
 
-    # Create three match players SIMILAR
+    # Create three players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(3)]
     for similar_uuid in similar_uuids:
         await MatchPlayerService().create_match_player(
@@ -423,7 +423,7 @@ async def test_four_players_inside_then_no_more_assigned(
         session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
     )
     # === PRE ===
-    # Create three match players INSIDE
+    # Create three players INSIDE
     for _ in range(3):
         await MatchPlayerService().create_match_player(
             session,
@@ -434,7 +434,7 @@ async def test_four_players_inside_then_no_more_assigned(
             ),
         )
 
-    # Create one match player ASSIGNED
+    # Create one player ASSIGNED
     assigned_uuid = uuid.uuid4()
     await MatchPlayerService().create_match_player(
         session,
@@ -445,7 +445,7 @@ async def test_four_players_inside_then_no_more_assigned(
         ),
     )
 
-    # Create three match players SIMILAR
+    # Create three players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(3)]
     for similar_uuid in similar_uuids:
         await MatchPlayerService().create_match_player(
@@ -474,7 +474,7 @@ async def test_four_players_inside_then_no_more_assigned(
         assert similar_player.reserve == ReserveStatus.SIMILAR
 
 
-async def test_two_players_assigned_two_players_inside_then_no_more_assigned(
+async def test_two_players_inside_two_players_assigned_then_no_more_assigned(
     async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
 ) -> None:
     match = await MatchService().create_match(
