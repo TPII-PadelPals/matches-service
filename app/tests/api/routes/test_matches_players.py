@@ -324,14 +324,14 @@ async def test_one_player_reserve_to_accept_not_provisional_is_rejected(
     assert response.status_code == 401
 
 
-async def test_only_player_inside_then_only_similar_is_assigned(
+async def test_only_one_player_inside_then_only_one_similar_is_assigned(
     async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
 ) -> None:
     match = await MatchService().create_match(
         session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
     )
     # === PRE ===
-    # Create match player 1 ASSIGNED
+    # Create one match player ASSIGNED
     assigned_uuid = uuid.uuid4()
     await MatchPlayerService().create_match_player(
         session,
@@ -342,7 +342,7 @@ async def test_only_player_inside_then_only_similar_is_assigned(
         ),
     )
 
-    # Create match player 2 SIMILAR
+    # Create one match player SIMILAR
     similar_uuid = uuid.uuid4()
     await MatchPlayerService().create_match_player(
         session,
@@ -354,7 +354,7 @@ async def test_only_player_inside_then_only_similar_is_assigned(
     )
 
     # === Action ===
-    # Update player 1 ASSIGNED -> INSIDE
+    # Update player ASSIGNED -> INSIDE
     await async_client.patch(
         f"{test_settings.API_V1_STR}/matches/{match.public_id}/players/{assigned_uuid}/",
         headers=x_api_key_header,
@@ -362,8 +362,55 @@ async def test_only_player_inside_then_only_similar_is_assigned(
     )
 
     # === POST ===
-    # Verify player 2 SIMILAR -> ASSIGNED
+    # Verify player SIMILAR -> ASSIGNED
     similar_player = await MatchPlayerService().get_match_player(
         session, match.public_id, similar_uuid
     )
     assert similar_player.reserve == ReserveStatus.ASSIGNED
+
+
+async def test_only_one_player_inside_then_only_three_similar_are_assigned(
+    async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
+) -> None:
+    match = await MatchService().create_match(
+        session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
+    )
+    # === PRE ===
+    # Create one match player ASSIGNED
+    assigned_uuid = uuid.uuid4()
+    await MatchPlayerService().create_match_player(
+        session,
+        MatchPlayerCreate(
+            match_public_id=match.public_id,
+            user_public_id=assigned_uuid,
+            reserve=ReserveStatus.ASSIGNED,
+        ),
+    )
+
+    # Create three match players SIMILAR
+    similar_uuids = [uuid.uuid4() for _ in range(3)]
+    for similar_uuid in similar_uuids:
+        await MatchPlayerService().create_match_player(
+            session,
+            MatchPlayerCreate(
+                match_public_id=match.public_id,
+                user_public_id=similar_uuid,
+                reserve=ReserveStatus.SIMILAR,
+            ),
+        )
+
+    # === Action ===
+    # Update player ASSIGNED -> INSIDE
+    await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match.public_id}/players/{assigned_uuid}/",
+        headers=x_api_key_header,
+        json={"reserve": ReserveStatus.INSIDE},
+    )
+
+    # === POST ===
+    # Verify three players SIMILAR -> ASSIGNED
+    for similar_uuid in similar_uuids:
+        similar_player = await MatchPlayerService().get_match_player(
+            session, match.public_id, similar_uuid
+        )
+        assert similar_player.reserve == ReserveStatus.ASSIGNED
