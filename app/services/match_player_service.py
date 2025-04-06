@@ -74,12 +74,7 @@ class MatchPlayerService:
             await self._validate_accept_match_player(
                 session, match_public_id, user_public_id
             )
-        # repo_match_player = MatchPlayerRepository(session)
-        # match_player = await repo_match_player.update_match_player(
-        #     match_public_id, user_public_id, match_player_in
-        # )
 
-        # await AssignationService().assign(session, match_public_id)
         match_player = await self._update_match_player(
             session, match_public_id, user_public_id, match_player_in
         )
