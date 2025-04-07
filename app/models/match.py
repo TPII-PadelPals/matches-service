@@ -22,7 +22,7 @@ class MatchBase(SQLModel):
 
 
 class MatchInmutable(SQLModel):
-    public_id: UUID | None = Field(default_factory=uuid4, unique=True)
+    public_id: UUID = Field(default_factory=uuid4, unique=True)
 
 
 class MatchCreate(MatchBase):
@@ -73,7 +73,7 @@ class MatchListPublic(SQLModel):
         return cls(data=data, count=count)
 
 
-class MatchFilters(MatchBase, MatchInmutable):
+class MatchFilters(MatchBase):
     id: int | None = None
     public_id: UUID | None = None
     court_id: str | None = None

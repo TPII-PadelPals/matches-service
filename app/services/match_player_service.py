@@ -5,6 +5,7 @@ from app.models.match_player import (
     MatchPlayerCreate,
     MatchPlayerFilter,
     MatchPlayerUpdate,
+    ReserveStatus,
 )
 from app.repository.match_player_repository import MatchPlayerRepository
 from app.utilities.dependencies import SessionDep
@@ -12,6 +13,8 @@ from app.utilities.exceptions import NotAuthorizedException
 
 
 class MatchPlayerService:
+    MAX_MATCH_PLAYERS = 4
+
     async def create_match_player(
         self,
         session: SessionDep,
@@ -42,11 +45,13 @@ class MatchPlayerService:
         self,
         session: SessionDep,
         match_public_id: UUID,
+        status: ReserveStatus | None = None,
     ) -> list[MatchPlayer]:
         repo_match_player = MatchPlayerRepository(session)
-        return await repo_match_player.get_matches_players(
-            [MatchPlayerFilter(match_public_id=match_public_id)]
-        )
+        match_player_filter = MatchPlayerFilter(match_public_id=match_public_id)
+        if status:
+            match_player_filter.reserve = status
+        return await repo_match_player.get_matches_players([match_player_filter])
 
     async def get_player_matches(
         self,
@@ -69,10 +74,27 @@ class MatchPlayerService:
             await self._validate_accept_match_player(
                 session, match_public_id, user_public_id
             )
+
+        match_player = await self._update_match_player(
+            session, match_public_id, user_public_id, match_player_in
+        )
+
+        await self._update_match_similars(session, match_public_id)
+
+        return match_player
+
+    async def _update_match_player(
+        self,
+        session: SessionDep,
+        match_public_id: UUID,
+        user_public_id: UUID,
+        match_player_in: MatchPlayerUpdate,
+    ) -> MatchPlayer:
         repo_match_player = MatchPlayerRepository(session)
-        return await repo_match_player.update_match_player(
+        match_player = await repo_match_player.update_match_player(
             match_public_id, user_public_id, match_player_in
         )
+        return match_player
 
     async def _validate_accept_match_player(
         self,
@@ -85,3 +107,31 @@ class MatchPlayerService:
         )
         if not match_player.is_assigned():
             raise NotAuthorizedException()
+
+    async def _update_match_similars(
+        self, session: SessionDep, match_public_id: UUID
+    ) -> None:
+        assigned_players = await self.get_match_players(
+            session, match_public_id, status=ReserveStatus.ASSIGNED
+        )
+        inside_players = await self.get_match_players(
+            session, match_public_id, status=ReserveStatus.INSIDE
+        )
+
+        n_missing_players = (
+            self.MAX_MATCH_PLAYERS - len(assigned_players) - len(inside_players)
+        )
+
+        similar_players = await self.get_match_players(
+            session, match_public_id, status=ReserveStatus.SIMILAR
+        )
+
+        next_assign_players = similar_players[:n_missing_players]
+
+        for player in next_assign_players:
+            await self._update_match_player(
+                session,
+                match_public_id,
+                player.user_public_id,
+                MatchPlayerUpdate(reserve=ReserveStatus.ASSIGNED),
+            )

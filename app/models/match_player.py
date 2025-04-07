@@ -24,7 +24,7 @@ class MatchPlayerMatchPublicID(SQLModel):
 
 
 class MatchPlayerUserPublicID(SQLModel):
-    user_public_id: UUID | None = Field()
+    user_public_id: UUID = Field()
 
 
 class MatchPlayerCreatePublic(MatchPlayerBase, MatchPlayerUserPublicID):
