@@ -111,10 +111,10 @@ class MatchPlayerService:
     async def _update_match_similars(
         self, session: SessionDep, match_public_id: UUID
     ) -> None:
-        assigned_players = await MatchPlayerService().get_match_players(
+        assigned_players = await self.get_match_players(
             session, match_public_id, status=ReserveStatus.ASSIGNED
         )
-        inside_players = await MatchPlayerService().get_match_players(
+        inside_players = await self.get_match_players(
             session, match_public_id, status=ReserveStatus.INSIDE
         )
 
@@ -122,14 +122,14 @@ class MatchPlayerService:
             self.MAX_MATCH_PLAYERS - len(assigned_players) - len(inside_players)
         )
 
-        similar_players = await MatchPlayerService().get_match_players(
+        similar_players = await self.get_match_players(
             session, match_public_id, status=ReserveStatus.SIMILAR
         )
 
         next_assign_players = similar_players[:n_missing_players]
 
         for player in next_assign_players:
-            await MatchPlayerService()._update_match_player(
+            await self._update_match_player(
                 session,
                 match_public_id,
                 player.user_public_id,
