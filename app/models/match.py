@@ -73,7 +73,7 @@ class MatchListPublic(SQLModel):
         return cls(data=data, count=count)
 
 
-class MatchFilters(MatchBase):  # match.public_id
+class MatchFilters(MatchBase):
     id: int | None = None
     public_id: UUID | None = None
     court_id: str | None = None
