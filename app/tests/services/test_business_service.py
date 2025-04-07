@@ -21,7 +21,7 @@ async def test_get_matches_for_business_court_and_date(monkeypatch: Any) -> None
     for time in times:
         expected_avail_times["data"].append(
             {
-                "business_id": business_public_id,
+                "business_public_id": business_public_id,
                 "court_name": court_public_id,
                 "latitude": latitude,
                 "longitude": longitude,

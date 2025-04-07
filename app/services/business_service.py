@@ -40,7 +40,7 @@ class BusinessService(BaseService):
         avail_times = []
         for datum in data:
             avail_time = AvailableTime(
-                business_public_id=datum["business_id"],
+                business_public_id=datum["business_public_id"],
                 court_public_id=datum["court_name"],
                 latitude=PROVISIONAL_LATITUDE,
                 longitude=PROVISIONAL_LONGITUDE,
