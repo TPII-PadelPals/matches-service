@@ -9,9 +9,9 @@ from app.models.match import MatchCreate
 from app.services.match_service import MatchService
 
 
-def serialize_match_data(court_id: str, time: int, date: str) -> dict[str, Any]:
+def serialize_match_data(court_name: str, time: int, date: str) -> dict[str, Any]:
     return {
-        "court_id": court_id,
+        "court_name": court_name,
         "time": time,
         "date": date,
     }
@@ -31,7 +31,7 @@ async def generate_match(
     session: AsyncSession, match_in: dict[str, Any]
 ) -> dict[str, Any]:
     match_generated = MatchCreate(
-        court_id=match_in["court_id"],
+        court_name=match_in["court_name"],
         time=match_in["time"],
         date=datetime.date.fromisoformat(match_in["date"]),
     )

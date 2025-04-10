@@ -110,7 +110,7 @@ async def test_generate_matches_given_one_avail_time(
     # assert match_extended["business_public_id"] == business_public_id
     # TODO: In Match, rename court_id to court_public_id
     # assert match_extended["court_public_id"] == court_public_id
-    assert match_extended["court_id"] == court_name
+    assert match_extended["court_name"] == court_name
     assert match_extended["date"] == date
     assert match_extended["time"] == time
 
@@ -242,7 +242,7 @@ async def test_generate_matches_given_three_avail_time(
         # TODO: In Match, add business_public_id
         # assert match_extended["business_public_id"] == business_public_id
         # assert match_extended["court_public_id"] == court_public_id
-        assert match_extended["court_id"] == court_name
+        assert match_extended["court_name"] == court_name
         assert match_extended["date"] == date
         assert match_extended["time"] in times
         time = match_extended["time"]
