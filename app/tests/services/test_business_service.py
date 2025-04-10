@@ -3,8 +3,6 @@ import uuid
 from typing import Any
 
 from app.services.business_service import (
-    PROVISIONAL_LATITUDE,
-    PROVISIONAL_LONGITUDE,
     BusinessService,
 )
 
@@ -12,8 +10,8 @@ from app.services.business_service import (
 async def test_get_matches_for_business_court_and_date(monkeypatch: Any) -> None:
     business_public_id = uuid.uuid4()
     court_public_id = "1"
-    latitude = PROVISIONAL_LATITUDE
-    longitude = PROVISIONAL_LONGITUDE
+    latitude = -27.4249569
+    longitude = -57.3342325
     date = datetime.date(2025, 3, 3)
     times = [8, 9, 10]
 

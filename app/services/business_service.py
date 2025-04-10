@@ -7,9 +7,6 @@ from app.models.available_time import AvailableTime
 
 from .base_service import BaseService
 
-PROVISIONAL_LATITUDE = -27.4249569
-PROVISIONAL_LONGITUDE = -57.3342325
-
 
 class BusinessService(BaseService):
     def __init__(self) -> None:
@@ -42,10 +39,8 @@ class BusinessService(BaseService):
             avail_time = AvailableTime(
                 business_public_id=datum["business_public_id"],
                 court_public_id=datum["court_name"],
-                latitude=PROVISIONAL_LATITUDE,
-                longitude=PROVISIONAL_LONGITUDE,
-                # latitude=datum["latitude"],
-                # longitude=datum["longitude"],
+                latitude=datum["latitude"],
+                longitude=datum["longitude"],
                 date=datum["date"],
                 time=datum["initial_hour"],
                 is_reserved=datum["reserve"],
