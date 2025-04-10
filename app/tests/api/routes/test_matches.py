@@ -24,6 +24,7 @@ async def test_create_match(
     assert len(public_id) == len(str(uuid.uuid4()))
     assert content["status"] == MatchStatus.provisional
     content.pop("status")
+    data["court_public_id"] = None
     assert content == data
 
 
@@ -45,6 +46,7 @@ async def test_create_multiple_matches_returns_all(
     for item in content:
         item.pop("public_id")
         item.pop("status")
+        item.pop("court_public_id")
     assert len(content) == 3
     assert all(item in content for item in data)
 
@@ -53,6 +55,7 @@ async def test_create_matches_on_multiple_raises_not_unique_exception(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
+    data["court_public_id"] = str(uuid.uuid4())
     first_response = await create_match(async_client, x_api_key_header, data)
     assert first_response.status_code == 201
     first_content = first_response.json()
@@ -158,6 +161,7 @@ async def test_get_multiple_match(
     for item in content["data"]:
         item.pop("public_id")
         item.pop("status")
+        item.pop("court_public_id")
     assert content["count"] == 3
     assert matches_in[0] in content["data"]
     assert matches_in[1] in content["data"]

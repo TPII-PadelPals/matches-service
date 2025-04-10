@@ -1,4 +1,5 @@
 import datetime
+import uuid
 from enum import Enum
 from uuid import UUID, uuid4
 
@@ -16,6 +17,7 @@ class MatchStatus(str, Enum):
 
 class MatchBase(SQLModel):
     court_name: str | None = Field(default=None)
+    court_public_id: uuid.UUID | None = Field(default=None)
     time: int | None = Field(default=None)
     date: datetime.date | None = Field(default=None)
     status: str | None = Field(default=MatchStatus.provisional)
@@ -42,6 +44,7 @@ class Match(MatchBase, MatchInmutable, table=True):
     __table_args__ = (
         UniqueConstraint(
             "court_name",
+            "court_public_id",
             "time",
             "date",
             name="uq_match_constraints",
@@ -77,6 +80,7 @@ class MatchFilters(MatchBase):
     id: int | None = None
     public_id: UUID | None = None
     court_name: str | None = None
+    court_public_id: uuid.UUID | None = None
     time: int | None = None
     date: datetime.date | None = None
     status: str | None = None
