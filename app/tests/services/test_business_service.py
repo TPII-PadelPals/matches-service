@@ -9,7 +9,8 @@ from app.services.business_service import (
 
 async def test_get_matches_for_business_court_and_date(monkeypatch: Any) -> None:
     business_public_id = uuid.uuid4()
-    court_public_id = "1"
+    court_public_id = uuid.uuid4()
+    court_name = "1"
     latitude = -27.4249569
     longitude = -57.3342325
     date = datetime.date(2025, 3, 3)
@@ -20,7 +21,8 @@ async def test_get_matches_for_business_court_and_date(monkeypatch: Any) -> None
         expected_avail_times["data"].append(
             {
                 "business_public_id": business_public_id,
-                "court_name": court_public_id,
+                "court_public_id": court_public_id,
+                "court_name": court_name,
                 "latitude": latitude,
                 "longitude": longitude,
                 "date": date,
@@ -32,19 +34,20 @@ async def test_get_matches_for_business_court_and_date(monkeypatch: Any) -> None
     async def mock_get(self: Any, url: str, params: Any) -> Any:  # noqa: ARG001
         assert (
             url
-            == f"/api/v1/businesses/{business_public_id}/padel-courts/{court_public_id}/available-matches/"
+            == f"/api/v1/businesses/{business_public_id}/padel-courts/{court_name}/available-matches/"
         )
         return expected_avail_times
 
     monkeypatch.setattr(BusinessService, "get", mock_get)
 
     avail_times = await BusinessService().get_available_times(
-        business_public_id, court_public_id, date
+        business_public_id, court_name, date
     )
 
     for avail_time in avail_times:
         assert avail_time.business_public_id == business_public_id
         assert avail_time.court_public_id == court_public_id
+        assert avail_time.court_name == court_name
         assert avail_time.latitude == latitude
         assert avail_time.longitude == longitude
         assert avail_time.date == date
