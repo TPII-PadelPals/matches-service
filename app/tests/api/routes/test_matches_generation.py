@@ -44,7 +44,7 @@ async def test_generate_matches_given_one_avail_time(
     async def mock_get_available_times(
         self: Any,  # noqa: ARG001
         business_public_id: uuid.UUID,  # noqa: ARG001
-            court_name: str,  # noqa: ARG001
+        court_name: str,  # noqa: ARG001
         date: datetime.date,  # noqa: ARG001
     ) -> Any:
         return avail_times
@@ -168,7 +168,7 @@ async def test_generate_matches_given_three_avail_time(
     async def mock_get_available_times(
         self: Any,  # noqa: ARG001
         business_public_id: uuid.UUID,  # noqa: ARG001
-            court_name: str,  # noqa: ARG001
+        court_name: str,  # noqa: ARG001
         date: datetime.date,  # noqa: ARG001
     ) -> Any:
         return avail_times

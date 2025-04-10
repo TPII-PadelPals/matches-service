@@ -81,7 +81,7 @@ class MatchGeneratorService:
 
         match_players = await self._generate_match_players(
             session,
-            match_public_id,  # type: ignore
+            match_public_id,
             assigned_player,
             similar_players,
         )
