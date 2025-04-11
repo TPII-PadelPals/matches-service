@@ -30,7 +30,7 @@ class MatchInmutable(SQLModel):
 class MatchCreate(MatchBase):
     @classmethod
     def from_available_time(cls, avail_time: AvailableTime) -> "MatchCreate":
-        return cls(court_id=avail_time.court_name, **(avail_time.model_dump()))
+        return cls(**(avail_time.model_dump()))
 
 
 class MatchUpdate(MatchBase):
