@@ -18,7 +18,8 @@ async def test_generate_matches_given_one_avail_time(
 ) -> None:
     # Test ctes
     business_public_id = str(uuid.uuid4())
-    court_public_id = "1"
+    court_name = "1"
+    court_public_id = str(uuid.uuid4())
     date = "2025-03-19"
     time = 9
     latitude = 0.0
@@ -31,6 +32,7 @@ async def test_generate_matches_given_one_avail_time(
         AvailableTime(
             business_public_id=business_public_id,
             court_public_id=court_public_id,
+            court_name=court_name,
             latitude=latitude,
             longitude=longitude,
             date=date,
@@ -42,7 +44,7 @@ async def test_generate_matches_given_one_avail_time(
     async def mock_get_available_times(
         self: Any,  # noqa: ARG001
         business_public_id: uuid.UUID,  # noqa: ARG001
-        court_public_id: str,  # noqa: ARG001
+        court_name: str,  # noqa: ARG001
         date: datetime.date,  # noqa: ARG001
     ) -> Any:
         return avail_times
@@ -87,7 +89,7 @@ async def test_generate_matches_given_one_avail_time(
     # Main request
     data = {
         "business_public_id": business_public_id,
-        "court_public_id": court_public_id,
+        "court_name": court_name,
         "date": date,
     }
     response = await async_client.post(
@@ -107,7 +109,8 @@ async def test_generate_matches_given_one_avail_time(
     # TODO: In Match, add business_public_id
     # assert match_extended["business_public_id"] == business_public_id
     # TODO: In Match, rename court_id to court_public_id
-    assert match_extended["court_id"] == court_public_id
+    # assert match_extended["court_public_id"] == court_public_id
+    assert match_extended["court_name"] == court_name
     assert match_extended["date"] == date
     assert match_extended["time"] == time
 
@@ -139,7 +142,8 @@ async def test_generate_matches_given_three_avail_time(
 ) -> None:
     # Test ctes
     business_public_id = str(uuid.uuid4())
-    court_public_id = "1"
+    court_public_id = str(uuid.uuid4())
+    court_name = "1"
     date = "2025-03-19"
     times = [8, 9, 10]
     latitude = 0.0
@@ -151,6 +155,7 @@ async def test_generate_matches_given_three_avail_time(
         AvailableTime(
             business_public_id=business_public_id,
             court_public_id=court_public_id,
+            court_name=court_name,
             latitude=latitude,
             longitude=longitude,
             date=date,
@@ -163,7 +168,7 @@ async def test_generate_matches_given_three_avail_time(
     async def mock_get_available_times(
         self: Any,  # noqa: ARG001
         business_public_id: uuid.UUID,  # noqa: ARG001
-        court_public_id: str,  # noqa: ARG001
+        court_name: str,  # noqa: ARG001
         date: datetime.date,  # noqa: ARG001
     ) -> Any:
         return avail_times
@@ -217,7 +222,7 @@ async def test_generate_matches_given_three_avail_time(
     # Main request
     data = {
         "business_public_id": business_public_id,
-        "court_public_id": court_public_id,
+        "court_name": court_name,
         "date": date,
     }
     response = await async_client.post(
@@ -236,8 +241,8 @@ async def test_generate_matches_given_three_avail_time(
     for match_extended in matches:
         # TODO: In Match, add business_public_id
         # assert match_extended["business_public_id"] == business_public_id
-        # TODO: In Match, rename court_id to court_public_id
-        assert match_extended["court_id"] == court_public_id
+        # assert match_extended["court_public_id"] == court_public_id
+        assert match_extended["court_name"] == court_name
         assert match_extended["date"] == date
         assert match_extended["time"] in times
         time = match_extended["time"]

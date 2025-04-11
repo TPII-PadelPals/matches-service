@@ -18,7 +18,7 @@ async def test_add_one_player_to_match_reserve_is_provisional(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
@@ -40,7 +40,7 @@ async def test_add_same_player_to_match_raises_exception(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
@@ -61,7 +61,7 @@ async def test_add_many_players_to_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    _data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    _data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     _response = await create_match(async_client, x_api_key_header, _data)
     _content = _response.json()
     match_public_id = _content["public_id"]
@@ -86,7 +86,7 @@ async def test_get_one_match_player(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
@@ -113,7 +113,7 @@ async def test_get_match_players_returns_all_players_associated_to_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    _data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    _data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     _response = await create_match(async_client, x_api_key_header, _data)
     _content = _response.json()
     match_public_id = _content["public_id"]
@@ -144,7 +144,7 @@ async def test_update_one_player_reserve_to_inside(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
@@ -182,7 +182,7 @@ async def test_update_one_player_reserve_to_reject(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
@@ -230,7 +230,7 @@ async def test_one_player_reserve_to_inside(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
 
@@ -266,7 +266,7 @@ async def test_one_player_reserve_to_accept_not_assigned_is_rejected(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
@@ -297,7 +297,7 @@ async def test_one_player_reserve_to_accept_not_provisional_is_rejected(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     # Create match
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]

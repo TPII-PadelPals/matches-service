@@ -16,7 +16,7 @@ from app.utilities.exceptions import NotUniqueException
 async def test_create_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     assert response.status_code == 201
     content = response.json()
@@ -24,6 +24,7 @@ async def test_create_match(
     assert len(public_id) == len(str(uuid.uuid4()))
     assert content["status"] == MatchStatus.provisional
     content.pop("status")
+    data["court_public_id"] = None
     assert content == data
 
 
@@ -31,9 +32,9 @@ async def test_create_multiple_matches_returns_all(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
     data = [
-        serialize_match_data(court_id="0", time=8, date="2024-11-25"),
-        serialize_match_data(court_id="1", time=8, date="2024-11-25"),
-        serialize_match_data(court_id="1", time=9, date="2024-11-25"),
+        serialize_match_data(court_name="0", time=8, date="2024-11-25"),
+        serialize_match_data(court_name="1", time=8, date="2024-11-25"),
+        serialize_match_data(court_name="1", time=9, date="2024-11-25"),
     ]
     response = await async_client.post(
         f"{settings.API_V1_STR}/matches/bulk",
@@ -45,6 +46,7 @@ async def test_create_multiple_matches_returns_all(
     for item in content:
         item.pop("public_id")
         item.pop("status")
+        item.pop("court_public_id")
     assert len(content) == 3
     assert all(item in content for item in data)
 
@@ -52,7 +54,8 @@ async def test_create_multiple_matches_returns_all(
 async def test_create_matches_on_multiple_raises_not_unique_exception(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
+    data["court_public_id"] = str(uuid.uuid4())
     first_response = await create_match(async_client, x_api_key_header, data)
     assert first_response.status_code == 201
     first_content = first_response.json()
@@ -73,7 +76,7 @@ async def test_create_matches_on_multiple_raises_not_unique_exception(
 async def test_get_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     prov_match_created = response.json()
     response = await async_client.get(
@@ -99,7 +102,7 @@ async def test_get_match_raises_exception_when_match_not_exists(
 async def test_get_matches_by_match_public_id(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     prov_match_created = await generate_match(session, data)
     response = await async_client.get(
         f"{settings.API_V1_STR}/matches/",
@@ -117,13 +120,13 @@ async def test_get_matches_by_match_public_id(
 async def test_get_matches_by_unique_attributes(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     prov_match_created = await generate_match(session, data)
     response = await async_client.get(
         f"{settings.API_V1_STR}/matches/",
         headers=x_api_key_header,
         params={
-            "court_id": prov_match_created["court_id"],
+            "court_name": prov_match_created["court_name"],
             "time": prov_match_created["time"],
             "date": prov_match_created["date"],
         },
@@ -140,11 +143,11 @@ async def test_get_multiple_match(
     async_client: AsyncClient, x_api_key_header: dict[str, str], session: AsyncSession
 ) -> None:
     matches_in = [
-        serialize_match_data(court_id="0", time=8, date="2024-11-25"),
-        serialize_match_data(court_id="1", time=8, date="2024-11-25"),
-        serialize_match_data(court_id="5", time=9, date="2024-11-25"),
-        serialize_match_data(court_id="0", time=12, date="2024-11-25"),
-        serialize_match_data(court_id="4", time=8, date="2024-01-05"),
+        serialize_match_data(court_name="0", time=8, date="2024-11-25"),
+        serialize_match_data(court_name="1", time=8, date="2024-11-25"),
+        serialize_match_data(court_name="5", time=9, date="2024-11-25"),
+        serialize_match_data(court_name="0", time=12, date="2024-11-25"),
+        serialize_match_data(court_name="4", time=8, date="2024-01-05"),
     ]
     for match_in in matches_in:
         await generate_match(session, match_in)
@@ -158,6 +161,7 @@ async def test_get_multiple_match(
     for item in content["data"]:
         item.pop("public_id")
         item.pop("status")
+        item.pop("court_public_id")
     assert content["count"] == 3
     assert matches_in[0] in content["data"]
     assert matches_in[1] in content["data"]
@@ -167,7 +171,7 @@ async def test_get_multiple_match(
 async def test_update_match_status_to_reserved(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
-    data = serialize_match_data(court_id="0", time=8, date="2024-11-25")
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     match_created = response.json()
 

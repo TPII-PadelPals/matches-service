@@ -17,7 +17,7 @@ async def test_get_player_matches_returns_all_matches_associated_to_player(
     n_matches = 4
     match_public_ids = []
     for i in range(n_matches):
-        _data = serialize_match_data(court_id="0", time=i, date="2024-11-25")
+        _data = serialize_match_data(court_name="0", time=i, date="2024-11-25")
         _response = await create_match(async_client, x_api_key_header, _data)
         _content = _response.json()
         match_public_ids.append(_content["public_id"])
@@ -40,7 +40,7 @@ async def test_get_player_matches_returns_all_matches_associated_to_player(
     assert content["count"] == n_matches
     for response_data in content["data"]:
         assert response_data["public_id"] in match_public_ids
-        assert response_data["court_id"] == "0"
+        assert response_data["court_name"] == "0"
         assert response_data["time"] >= 0 and response_data["time"] < n_matches
         assert response_data["date"] == "2024-11-25"
         assert response_data["status"] == ReserveStatus.PROVISIONAL
@@ -58,19 +58,19 @@ async def test_get_player_matches_returns_all_matches_associated_to_player_multi
     n_matches = 2
     match_public_ids = []
     for i in range(n_matches):
-        _data = serialize_match_data(court_id="0", time=i, date="2024-11-25")
+        _data = serialize_match_data(court_name="0", time=i, date="2024-11-25")
         _response = await create_match(async_client, x_api_key_header, _data)
         _content = _response.json()
         match_public_ids.append(_content["public_id"])
 
     for i in range(n_matches):
-        _data = serialize_match_data(court_id="1", time=i, date="2024-11-26")
+        _data = serialize_match_data(court_name="1", time=i, date="2024-11-26")
         _response = await create_match(async_client, x_api_key_header, _data)
         _content = _response.json()
         match_public_ids.append(_content["public_id"])
 
     for i in range(n_matches):
-        _data = serialize_match_data(court_id="2", time=i, date="2024-11-27")
+        _data = serialize_match_data(court_name="2", time=i, date="2024-11-27")
         _response = await create_match(async_client, x_api_key_header, _data)
         _content = _response.json()
         match_public_ids.append(_content["public_id"])
@@ -94,11 +94,11 @@ async def test_get_player_matches_returns_all_matches_associated_to_player_multi
     for response_data in content["data"]:
         assert response_data["public_id"] in match_public_ids
         # assert response_data["court_id"] >= 0 and response_data["court_id"] <= 2
-        if response_data["court_id"] == "0":
+        if response_data["court_name"] == "0":
             assert response_data["date"] == "2024-11-25"
-        elif response_data["court_id"] == "1":
+        elif response_data["court_name"] == "1":
             assert response_data["date"] == "2024-11-26"
-        elif response_data["court_id"] == "2":
+        elif response_data["court_name"] == "2":
             assert response_data["date"] == "2024-11-27"
         assert response_data["time"] >= 0 and response_data["time"] < n_matches
         assert response_data["status"] == ReserveStatus.PROVISIONAL
@@ -116,7 +116,7 @@ async def test_get_player_matches_returns_all_matches_associated_to_multiple_pla
     n_matches = 4
     match_public_ids = []
     for i in range(n_matches):
-        _data = serialize_match_data(court_id="0", time=i, date="2024-11-25")
+        _data = serialize_match_data(court_name="0", time=i, date="2024-11-25")
         _response = await create_match(async_client, x_api_key_header, _data)
         _content = _response.json()
         match_public_ids.append(_content["public_id"])
@@ -140,7 +140,7 @@ async def test_get_player_matches_returns_all_matches_associated_to_multiple_pla
     assert content["count"] == n_matches
     for response_data in content["data"]:
         assert response_data["public_id"] in match_public_ids
-        assert response_data["court_id"] == "0"
+        assert response_data["court_name"] == "0"
         assert response_data["time"] >= 0 and response_data["time"] < n_matches
         assert response_data["date"] == "2024-11-25"
         assert response_data["status"] == ReserveStatus.PROVISIONAL
