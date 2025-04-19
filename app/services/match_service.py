@@ -48,3 +48,12 @@ class MatchService:
     ) -> Match:
         repo_match = MatchRepository(session)
         return await repo_match.update_match(public_id, match_in)
+
+    async def is_match_create_valid(
+        self, session: SessionDep, match_in: MatchCreate
+    ) -> bool:
+        filters = match_in.model_dump()
+        filters["status"] = None
+        match_filter = MatchFilters(**filters)
+        list = await self.get_matches(session, match_filter)
+        return len(list) == 0

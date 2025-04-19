@@ -69,12 +69,16 @@ class MatchGeneratorService:
         self, session: SessionDep, avail_time: AvailableTime
     ) -> MatchExtended | None:
         match_create = MatchCreate.from_available_time(avail_time)
+        match_service = MatchService()
+
+        if not await match_service.is_match_create_valid(session, match_create):
+            return None
 
         assigned_player, similar_players = await self._choose_match_players(avail_time)
         if not assigned_player or len(similar_players) == 0:
             return None
 
-        match = await MatchService().create_match(
+        match = await match_service.create_match(
             session, match_create, should_commit=False
         )
         match_public_id = match.public_id
