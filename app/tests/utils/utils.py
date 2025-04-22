@@ -21,11 +21,9 @@ def get_x_api_key_header() -> dict[str, str]:
     return headers
 
 
-def get_mock_get_players_by_filters(
-    list_range: list[int], n_similar_players: int
-) -> Any:
+def get_mock_get_players_by_filters(times: list[int], n_similar_players: int) -> Any:
     assigned_players = {}
-    for time in list_range:
+    for time in times:
         time_availability = PlayerFilters.to_time_availability(time)
 
         assigned_players[time_availability] = {
