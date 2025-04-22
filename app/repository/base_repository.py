@@ -1,6 +1,7 @@
 from typing import TypeVar
 from uuid import UUID
 
+from sqlalchemy import asc, desc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
 from sqlalchemy.sql.expression import and_, or_
@@ -52,9 +53,15 @@ class BaseRepository:
         await self._commit_refresh_or_flush(should_commit, records)
         return records
 
-    async def get_records(self, model: type[M], filters: list[F]) -> list[M]:
+    async def get_records(
+        self,
+        model: type[M],
+        filters: list[F],
+        orders: list[tuple[str, str]] | None = None,
+        limit: int | None = None,
+    ) -> list[M]:
+        # Filters
         or_conditions = []
-
         for filter in filters:
             and_conditions = [
                 getattr(model, attr) == value
@@ -62,8 +69,21 @@ class BaseRepository:
                 if value is not None
             ]
             or_conditions.append(and_(*and_conditions))
-
         query = select(model).where(or_(*or_conditions))
+
+        # Order
+        if orders is None:
+            orders = []
+        for attr, order in orders:
+            column = getattr(model, attr, None)
+            order_func = desc if order.lower() == "desc" else asc
+            if column:
+                query = query.order_by(order_func(column))
+
+        # Limit
+        if limit is not None:
+            query = query.limit(limit)
+
         result = await self.session.exec(query)  # type: ignore
         return list(result.scalars().all())
 

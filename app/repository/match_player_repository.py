@@ -30,9 +30,12 @@ class MatchPlayerRepository(BaseRepository):
         return await self.create_records(MatchPlayer, match_players_in, should_commit)
 
     async def get_matches_players(
-        self, filters: list[MatchPlayerFilter]
+        self,
+        filters: list[MatchPlayerFilter],
+        orders: list[tuple[str, str]] | None = None,
+        limit: int | None = None,
     ) -> list[MatchPlayer]:
-        return await self.get_records(MatchPlayer, filters)
+        return await self.get_records(MatchPlayer, filters, orders, limit)
 
     async def get_match_player(
         self, match_public_id: UUID, user_public_id: UUID

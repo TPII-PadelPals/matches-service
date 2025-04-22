@@ -24,7 +24,7 @@ async def test_add_one_player_to_match_reserve_is_provisional(
     content = response.json()
     match_public_id = content["public_id"]
     # Add player to match
-    data = {"user_public_id": str(uuid.uuid4())}
+    data = {"user_public_id": str(uuid.uuid4()), "distance": 0.0}
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
         headers=x_api_key_header,
@@ -396,7 +396,6 @@ async def test_only_one_player_inside_then_only_three_similar_are_assigned(
             MatchPlayerCreate(
                 match_public_id=match.public_id,
                 user_public_id=similar_uuid,
-                distance=0,
                 reserve=ReserveStatus.SIMILAR,
             ),
         )
@@ -432,7 +431,6 @@ async def test_four_players_inside_then_no_more_assigned(
             MatchPlayerCreate(
                 match_public_id=match.public_id,
                 user_public_id=uuid.uuid4(),
-                distance=0,
                 reserve=ReserveStatus.INSIDE,
             ),
         )
@@ -456,7 +454,6 @@ async def test_four_players_inside_then_no_more_assigned(
             MatchPlayerCreate(
                 match_public_id=match.public_id,
                 user_public_id=similar_uuid,
-                distance=0,
                 reserve=ReserveStatus.SIMILAR,
             ),
         )
@@ -503,7 +500,6 @@ async def test_two_players_inside_two_players_assigned_then_no_more_assigned(
             MatchPlayerCreate(
                 match_public_id=match.public_id,
                 user_public_id=assigned_uuid,
-                distance=0,
                 reserve=ReserveStatus.ASSIGNED,
             ),
         )
@@ -516,7 +512,6 @@ async def test_two_players_inside_two_players_assigned_then_no_more_assigned(
             MatchPlayerCreate(
                 match_public_id=match.public_id,
                 user_public_id=similar_uuid,
-                distance=0,
                 reserve=ReserveStatus.SIMILAR,
             ),
         )
@@ -546,7 +541,7 @@ async def test_three_players_inside_two_players_similar_then_the_closest_one_is_
     )
     # === PRE ===
     # Create two players INSIDE
-    inside_uuids = [uuid.uuid4() for _ in range(3)]
+    inside_uuids = [uuid.uuid4() for _ in range(2)]
     for inside_uuid in inside_uuids:
         await MatchPlayerService().create_match_player(
             session,
