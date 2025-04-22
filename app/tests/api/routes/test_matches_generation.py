@@ -11,7 +11,10 @@ from app.models.player import Player, PlayerFilters
 from app.services.business_service import BusinessService
 from app.services.match_generator_service import MatchGeneratorService
 from app.services.players_service import PlayersService
-from app.tests.utils.utils import get_mock_get_players_by_filters
+from app.tests.utils.utils import (
+    get_mock_get_available_times,
+    get_mock_get_players_by_filters,
+)
 
 
 async def test_generate_matches_given_one_avail_time(
@@ -151,28 +154,15 @@ async def test_generate_matches_given_three_avail_time(
     n_similar_players = 6
 
     # Mock BusinessService
-    avail_times = [
-        AvailableTime(
-            business_public_id=business_public_id,
-            court_public_id=court_public_id,
-            court_name=court_name,
-            latitude=latitude,
-            longitude=longitude,
-            date=date,
-            time=time,
-            is_reserved=False,
-        )
-        for time in times
-    ]
-
-    async def mock_get_available_times(
-        self: Any,  # noqa: ARG001
-        business_public_id: uuid.UUID,  # noqa: ARG001
-        court_name: str,  # noqa: ARG001
-        date: datetime.date,  # noqa: ARG001
-    ) -> Any:
-        return avail_times
-
+    mock_get_available_times = get_mock_get_available_times(
+        business_public_id,
+        court_public_id,
+        court_name,
+        date,
+        times,
+        latitude,
+        longitude,
+    )
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times
     )
@@ -268,28 +258,15 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
     n_similar_players = 6
 
     # Mock BusinessService
-    avail_times = [
-        AvailableTime(
-            business_public_id=business_public_id,
-            court_public_id=court_public_id,
-            court_name=court_name,
-            latitude=latitude,
-            longitude=longitude,
-            date=date,
-            time=time,
-            is_reserved=False,
-        )
-        for time in times
-    ]
-
-    async def mock_get_available_times(
-        self: Any,  # noqa: ARG001
-        business_public_id: uuid.UUID,  # noqa: ARG001
-        court_name: str,  # noqa: ARG001
-        date: datetime.date,  # noqa: ARG001
-    ) -> Any:
-        return avail_times
-
+    mock_get_available_times = get_mock_get_available_times(
+        business_public_id,
+        court_public_id,
+        court_name,
+        date,
+        times,
+        latitude,
+        longitude,
+    )
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times
     )
@@ -357,30 +334,19 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
     latitude = 0.0
     longitude = 0.0
     n_similar_players = 6
+    # add times
+    new_times = [6, 7, 8, 9, 10, 11, 12]
 
     # Mock BusinessService
-    avail_times = [
-        AvailableTime(
-            business_public_id=business_public_id,
-            court_public_id=court_public_id,
-            court_name=court_name,
-            latitude=latitude,
-            longitude=longitude,
-            date=date,
-            time=time,
-            is_reserved=False,
-        )
-        for time in times
-    ]
-
-    async def mock_get_available_times(
-        self: Any,  # noqa: ARG001
-        business_public_id: uuid.UUID,  # noqa: ARG001
-        court_name: str,  # noqa: ARG001
-        date: datetime.date,  # noqa: ARG001
-    ) -> Any:
-        return avail_times
-
+    mock_get_available_times = get_mock_get_available_times(
+        business_public_id,
+        court_public_id,
+        court_name,
+        date,
+        times,
+        latitude,
+        longitude,
+    )
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times
     )
@@ -423,30 +389,16 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
     matches = matches_list["data"]
     assert len(matches) == 3
 
-    # add times
-    new_times = [6, 7, 8, 9, 10, 11, 12]
     # Mock BusinessService
-    new_avail_times = [
-        AvailableTime(
-            business_public_id=business_public_id,
-            court_public_id=court_public_id,
-            court_name=court_name,
-            latitude=latitude,
-            longitude=longitude,
-            date=date,
-            time=time,
-            is_reserved=False,
-        )
-        for time in new_times
-    ]
-
-    async def mock_get_available_times_new(
-        self: Any,  # noqa: ARG001
-        business_public_id: uuid.UUID,  # noqa: ARG001
-        court_name: str,  # noqa: ARG001
-        date: datetime.date,  # noqa: ARG001
-    ) -> Any:
-        return new_avail_times
+    mock_get_available_times_new = get_mock_get_available_times(
+        business_public_id,
+        court_public_id,
+        court_name,
+        date,
+        new_times,
+        latitude,
+        longitude,
+    )
 
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times_new
@@ -525,28 +477,15 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
     new_times = [6, 7, 8, 9, 10, 11, 12]
 
     # Mock BusinessService
-    avail_times = [
-        AvailableTime(
-            business_public_id=business_public_id,
-            court_public_id=court_public_id,
-            court_name=court_name,
-            latitude=latitude,
-            longitude=longitude,
-            date=date,
-            time=time,
-            is_reserved=False,
-        )
-        for time in times
-    ]
-
-    async def mock_get_available_times(
-        self: Any,  # noqa: ARG001
-        business_public_id: uuid.UUID,  # noqa: ARG001
-        court_name: str,  # noqa: ARG001
-        date: datetime.date,  # noqa: ARG001
-    ) -> Any:
-        return avail_times
-
+    mock_get_available_times = get_mock_get_available_times(
+        business_public_id,
+        court_public_id,
+        court_name,
+        date,
+        times,
+        latitude,
+        longitude,
+    )
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times
     )
@@ -590,28 +529,15 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
     assert len(matches) == 3
 
     # Mock BusinessService
-    new_avail_times = [
-        AvailableTime(
-            business_public_id=business_public_id,
-            court_public_id=court_public_id,
-            court_name=court_name,
-            latitude=latitude,
-            longitude=longitude,
-            date=date,
-            time=time,
-            is_reserved=False,
-        )
-        for time in new_times
-    ]
-
-    async def mock_get_available_times_new(
-        self: Any,  # noqa: ARG001
-        business_public_id: uuid.UUID,  # noqa: ARG001
-        court_name: str,  # noqa: ARG001
-        date: datetime.date,  # noqa: ARG001
-    ) -> Any:
-        return new_avail_times
-
+    mock_get_available_times_new = get_mock_get_available_times(
+        business_public_id,
+        court_public_id,
+        court_name,
+        date,
+        new_times,
+        latitude,
+        longitude,
+    )
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times_new
     )
@@ -653,28 +579,15 @@ async def test_generate_matches_multiple_for_the_same_day(
     n_similar_players = 6
 
     # Mock BusinessService
-    avail_times = [
-        AvailableTime(
-            business_public_id=business_public_id,
-            court_public_id=court_public_id,
-            court_name=court_name,
-            latitude=latitude,
-            longitude=longitude,
-            date=date,
-            time=time,
-            is_reserved=False,
-        )
-        for time in times
-    ]
-
-    async def mock_get_available_times(
-        self: Any,  # noqa: ARG001
-        business_public_id: uuid.UUID,  # noqa: ARG001
-        court_name: str,  # noqa: ARG001
-        date: datetime.date,  # noqa: ARG001
-    ) -> Any:
-        return avail_times
-
+    mock_get_available_times = get_mock_get_available_times(
+        business_public_id,
+        court_public_id,
+        court_name,
+        date,
+        times,
+        latitude,
+        longitude,
+    )
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times
     )
@@ -722,26 +635,15 @@ async def test_generate_matches_multiple_for_the_same_day(
         times.append(new_hour)
 
         # Mock BusinessService
-        async def mock_get_available_times_new(
-            self: Any,  # noqa: ARG001
-            business_public_id: uuid.UUID,  # noqa: ARG001
-            court_name: str,  # noqa: ARG001
-            date: datetime.date,  # noqa: ARG001
-        ) -> Any:
-            return [
-                AvailableTime(
-                    business_public_id=business_public_id,
-                    court_public_id=court_public_id,
-                    court_name=court_name,
-                    latitude=latitude,
-                    longitude=longitude,
-                    date=date,
-                    time=time,
-                    is_reserved=False,
-                )
-                for time in times
-            ]
-
+        mock_get_available_times_new = get_mock_get_available_times(
+            business_public_id,
+            court_public_id,
+            court_name,
+            date,
+            times,
+            latitude,
+            longitude,
+        )
         monkeypatch.setattr(
             BusinessService, "get_available_times", mock_get_available_times_new
         )
@@ -806,28 +708,15 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
     n_similar_players = 6
 
     # Mock BusinessService
-    avail_times = [
-        AvailableTime(
-            business_public_id=business_public_id,
-            court_public_id=court_public_id,
-            court_name=court_name,
-            latitude=latitude,
-            longitude=longitude,
-            date=date,
-            time=time,
-            is_reserved=False,
-        )
-        for time in times
-    ]
-
-    async def mock_get_available_times(
-        self: Any,  # noqa: ARG001
-        business_public_id: uuid.UUID,  # noqa: ARG001
-        court_name: str,  # noqa: ARG001
-        date: datetime.date,  # noqa: ARG001
-    ) -> Any:
-        return avail_times
-
+    mock_get_available_times = get_mock_get_available_times(
+        business_public_id,
+        court_public_id,
+        court_name,
+        date,
+        times,
+        latitude,
+        longitude,
+    )
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times
     )
@@ -875,26 +764,15 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
         times.append(new_hour)
 
         # Mock BusinessService
-        async def mock_get_available_times_new(
-            self: Any,  # noqa: ARG001
-            business_public_id: uuid.UUID,  # noqa: ARG001
-            court_name: str,  # noqa: ARG001
-            date: datetime.date,  # noqa: ARG001
-        ) -> Any:
-            return [
-                AvailableTime(
-                    business_public_id=business_public_id,
-                    court_public_id=court_public_id,
-                    court_name=court_name,
-                    latitude=latitude,
-                    longitude=longitude,
-                    date=date,
-                    time=time,
-                    is_reserved=False,
-                )
-                for time in times
-            ]
-
+        mock_get_available_times_new = get_mock_get_available_times(
+            business_public_id,
+            court_public_id,
+            court_name,
+            date,
+            times,
+            latitude,
+            longitude,
+        )
         monkeypatch.setattr(
             BusinessService, "get_available_times", mock_get_available_times_new
         )
