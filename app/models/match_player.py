@@ -14,6 +14,7 @@ class ReserveStatus(str, Enum):
 
 
 class MatchPlayerBase(SQLModel):
+    distance: float = Field()
     reserve: str | None = Field(default=ReserveStatus.PROVISIONAL)
 
 
