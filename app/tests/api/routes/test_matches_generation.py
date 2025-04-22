@@ -11,6 +11,7 @@ from app.models.player import Player, PlayerFilters
 from app.services.business_service import BusinessService
 from app.services.match_generator_service import MatchGeneratorService
 from app.services.players_service import PlayersService
+from app.tests.utils.utils import get_mock_get_players_by_filters
 
 
 async def test_generate_matches_given_one_avail_time(
@@ -177,33 +178,9 @@ async def test_generate_matches_given_three_avail_time(
     )
 
     # Mock PlayersService
-    assigned_players = {}
-    for time in times:
-        time_availability = PlayerFilters.to_time_availability(time)
-
-        assigned_players[time_availability] = {
-            "assigned": Player(
-                user_public_id=uuid.uuid4(), time_availability=time_availability
-            ),
-            "similar": [
-                Player(user_public_id=uuid.uuid4(), time_availability=time_availability)
-                for _ in range(n_similar_players)
-            ],
-        }
-
-    async def mock_get_players_by_filters(
-        self: Any,  # noqa: ARG001
-        player_filters: PlayerFilters,  # noqa: ARG001
-    ) -> Any:
-        time_availability = player_filters.time_availability
-        # type: ignore
-        assigned_player = assigned_players[time_availability]["assigned"]
-        # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]
-        if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
-            return similar_players
-        return [assigned_player] + similar_players  # type: ignore
-
+    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
+        times, n_similar_players
+    )
     monkeypatch.setattr(
         PlayersService, "get_players_by_filters", mock_get_players_by_filters
     )
@@ -251,8 +228,7 @@ async def test_generate_matches_given_three_avail_time(
         assigned_player = assigned_players[time_availability]["assigned"]
         similar_players = assigned_players[time_availability]["similar"]
         similar_players_user_public_ids = [
-            str(player.user_public_id)
-            for player in similar_players  # type: ignore
+            str(player.user_public_id) for player in similar_players
         ]
 
         match_players = match_extended["match_players"]
@@ -265,7 +241,7 @@ async def test_generate_matches_given_three_avail_time(
 
         match_assigned_player = match_assigned_players[0]
         assert match_assigned_player["user_public_id"] == str(
-            assigned_player.user_public_id  # type: ignore
+            assigned_player.user_public_id
         )
 
         match_similar_players_user_public_ids = [
@@ -319,33 +295,9 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
     )
 
     # Mock PlayersService
-    assigned_players = {}
-    for time in times:
-        time_availability = PlayerFilters.to_time_availability(time)
-
-        assigned_players[time_availability] = {
-            "assigned": Player(
-                user_public_id=uuid.uuid4(), time_availability=time_availability
-            ),
-            "similar": [
-                Player(user_public_id=uuid.uuid4(), time_availability=time_availability)
-                for _ in range(n_similar_players)
-            ],
-        }
-
-    async def mock_get_players_by_filters(
-        self: Any,  # noqa: ARG001
-        player_filters: PlayerFilters,  # noqa: ARG001
-    ) -> Any:
-        time_availability = player_filters.time_availability
-        # type: ignore
-        assigned_player = assigned_players[time_availability]["assigned"]
-        # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]
-        if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
-            return similar_players
-        return [assigned_player] + similar_players  # type: ignore
-
+    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
+        times, n_similar_players
+    )
     monkeypatch.setattr(
         PlayersService, "get_players_by_filters", mock_get_players_by_filters
     )
@@ -434,33 +386,9 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
     )
 
     # Mock PlayersService
-    assigned_players = {}
-    for time in times:
-        time_availability = PlayerFilters.to_time_availability(time)
-
-        assigned_players[time_availability] = {
-            "assigned": Player(
-                user_public_id=uuid.uuid4(), time_availability=time_availability
-            ),
-            "similar": [
-                Player(user_public_id=uuid.uuid4(), time_availability=time_availability)
-                for _ in range(n_similar_players)
-            ],
-        }
-
-    async def mock_get_players_by_filters(
-        self: Any,  # noqa: ARG001
-        player_filters: PlayerFilters,  # noqa: ARG001
-    ) -> Any:
-        time_availability = player_filters.time_availability
-        # type: ignore
-        assigned_player = assigned_players[time_availability]["assigned"]
-        # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]
-        if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
-            return similar_players
-        return [assigned_player] + similar_players  # type: ignore
-
+    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
+        times, n_similar_players
+    )
     monkeypatch.setattr(
         PlayersService, "get_players_by_filters", mock_get_players_by_filters
     )
@@ -524,33 +452,9 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
         BusinessService, "get_available_times", mock_get_available_times_new
     )
     # Mock PlayersService
-    assigned_players = {}
-    for time in new_times:
-        time_availability = PlayerFilters.to_time_availability(time)
-
-        assigned_players[time_availability] = {
-            "assigned": Player(
-                user_public_id=uuid.uuid4(), time_availability=time_availability
-            ),
-            "similar": [
-                Player(user_public_id=uuid.uuid4(), time_availability=time_availability)
-                for _ in range(n_similar_players)
-            ],
-        }
-
-    async def mock_get_players_by_filters_new(
-        self: Any,  # noqa: ARG001
-        player_filters: PlayerFilters,  # noqa: ARG001
-    ) -> Any:
-        time_availability = player_filters.time_availability
-        # type: ignore
-        assigned_player = assigned_players[time_availability]["assigned"]
-        # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]
-        if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
-            return similar_players
-        return [assigned_player] + similar_players  # type: ignore
-
+    mock_get_players_by_filters_new, assigned_players = get_mock_get_players_by_filters(
+        new_times, n_similar_players
+    )
     monkeypatch.setattr(
         PlayersService, "get_players_by_filters", mock_get_players_by_filters_new
     )
@@ -578,8 +482,7 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
         assigned_player = assigned_players[time_availability]["assigned"]
         similar_players = assigned_players[time_availability]["similar"]
         similar_players_user_public_ids = [
-            str(player.user_public_id)
-            for player in similar_players  # type: ignore
+            str(player.user_public_id) for player in similar_players
         ]
 
         match_players = match_extended["match_players"]
@@ -592,7 +495,7 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
 
         match_assigned_player = match_assigned_players[0]
         assert match_assigned_player["user_public_id"] == str(
-            assigned_player.user_public_id  # type: ignore
+            assigned_player.user_public_id
         )
 
         match_similar_players_user_public_ids = [
@@ -649,33 +552,9 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
     )
 
     # Mock PlayersService
-    assigned_players = {}
-    for time in new_times:
-        time_availability = PlayerFilters.to_time_availability(time)
-
-        assigned_players[time_availability] = {
-            "assigned": Player(
-                user_public_id=uuid.uuid4(), time_availability=time_availability
-            ),
-            "similar": [
-                Player(user_public_id=uuid.uuid4(), time_availability=time_availability)
-                for _ in range(n_similar_players)
-            ],
-        }
-
-    async def mock_get_players_by_filters(
-        self: Any,  # noqa: ARG001
-        player_filters: PlayerFilters,  # noqa: ARG001
-    ) -> Any:
-        time_availability = player_filters.time_availability
-        # type: ignore
-        assigned_player = assigned_players[time_availability]["assigned"]
-        # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]
-        if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
-            return similar_players
-        return [assigned_player] + similar_players  # type: ignore
-
+    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
+        new_times, n_similar_players
+    )
     monkeypatch.setattr(
         PlayersService, "get_players_by_filters", mock_get_players_by_filters
     )
@@ -736,35 +615,6 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times_new
     )
-    # Mock PlayersService
-    # assigned_players = {}
-    # for time in new_times:
-    #     time_availability = PlayerFilters.to_time_availability(time)
-    #
-    #     assigned_players[time_availability] = {
-    #         "assigned": Player(
-    #             user_public_id=uuid.uuid4(), time_availability=time_availability
-    #         ),
-    #         "similar": [
-    #             Player(user_public_id=uuid.uuid4(), time_availability=time_availability)
-    #             for _ in range(n_similar_players)
-    #         ],
-    #     }
-    #
-    # async def mock_get_players_by_filters_new(
-    #     self: Any,  # noqa: ARG001
-    #     player_filters: PlayerFilters,  # noqa: ARG001
-    # ) -> Any:
-    #     time_availability = player_filters.time_availability
-    #     assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
-    #     similar_players = assigned_players[time_availability]["similar"]  # type: ignore
-    #     if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
-    #         return similar_players
-    #     return [assigned_player] + similar_players  # type: ignore
-    #
-    # monkeypatch.setattr(
-    #     PlayersService, "get_players_by_filters", mock_get_players_by_filters_new
-    # )
 
     response_for_new_generate = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/generation",
@@ -830,33 +680,9 @@ async def test_generate_matches_multiple_for_the_same_day(
     )
 
     # Mock PlayersService
-    assigned_players = {}
-    for time in range(8, 20):
-        time_availability = PlayerFilters.to_time_availability(time)
-
-        assigned_players[time_availability] = {
-            "assigned": Player(
-                user_public_id=uuid.uuid4(), time_availability=time_availability
-            ),
-            "similar": [
-                Player(user_public_id=uuid.uuid4(), time_availability=time_availability)
-                for _ in range(n_similar_players)
-            ],
-        }
-
-    async def mock_get_players_by_filters(
-        self: Any,  # noqa: ARG001
-        player_filters: PlayerFilters,  # noqa: ARG001
-    ) -> Any:
-        time_availability = player_filters.time_availability
-        # type: ignore
-        assigned_player = assigned_players[time_availability]["assigned"]
-        # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]
-        if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
-            return similar_players
-        return [assigned_player] + similar_players  # type: ignore
-
+    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
+        list(range(8, 20)), n_similar_players
+    )
     monkeypatch.setattr(
         PlayersService, "get_players_by_filters", mock_get_players_by_filters
     )
@@ -940,8 +766,7 @@ async def test_generate_matches_multiple_for_the_same_day(
         assigned_player = assigned_players[time_availability]["assigned"]
         similar_players = assigned_players[time_availability]["similar"]
         similar_players_user_public_ids = [
-            str(player.user_public_id)
-            for player in similar_players  # type: ignore
+            str(player.user_public_id) for player in similar_players
         ]
 
         match_players = match_extended["match_players"]
@@ -954,7 +779,7 @@ async def test_generate_matches_multiple_for_the_same_day(
 
         match_assigned_player = match_assigned_players[0]
         assert match_assigned_player["user_public_id"] == str(
-            assigned_player.user_public_id  # type: ignore
+            assigned_player.user_public_id
         )
 
         match_similar_players_user_public_ids = [
@@ -1008,33 +833,9 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
     )
 
     # Mock PlayersService
-    assigned_players = {}
-    for time in range(8, 20):
-        time_availability = PlayerFilters.to_time_availability(time)
-
-        assigned_players[time_availability] = {
-            "assigned": Player(
-                user_public_id=uuid.uuid4(), time_availability=time_availability
-            ),
-            "similar": [
-                Player(user_public_id=uuid.uuid4(), time_availability=time_availability)
-                for _ in range(n_similar_players)
-            ],
-        }
-
-    async def mock_get_players_by_filters(
-        self: Any,  # noqa: ARG001
-        player_filters: PlayerFilters,  # noqa: ARG001
-    ) -> Any:
-        time_availability = player_filters.time_availability
-        # type: ignore
-        assigned_player = assigned_players[time_availability]["assigned"]
-        # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]
-        if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
-            return similar_players
-        return [assigned_player] + similar_players  # type: ignore
-
+    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
+        list(range(8, 20)), n_similar_players
+    )
     monkeypatch.setattr(
         PlayersService, "get_players_by_filters", mock_get_players_by_filters
     )
@@ -1118,8 +919,7 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
         assigned_player = assigned_players[time_availability]["assigned"]
         similar_players = assigned_players[time_availability]["similar"]
         similar_players_user_public_ids = [
-            str(player.user_public_id)
-            for player in similar_players  # type: ignore
+            str(player.user_public_id) for player in similar_players
         ]
 
         match_players = match_extended["match_players"]
@@ -1132,7 +932,7 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
 
         match_assigned_player = match_assigned_players[0]
         assert match_assigned_player["user_public_id"] == str(
-            assigned_player.user_public_id  # type: ignore
+            assigned_player.user_public_id
         )
 
         match_similar_players_user_public_ids = [
