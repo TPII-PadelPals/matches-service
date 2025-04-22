@@ -13,7 +13,7 @@ from app.services.match_generator_service import MatchGeneratorService
 from app.services.players_service import PlayersService
 from app.tests.utils.utils import (
     get_mock_get_available_times,
-    get_mock_get_players_by_filters,
+    initial_apply_mocks_for_generate_matches,
 )
 
 
@@ -153,38 +153,17 @@ async def test_generate_matches_given_three_avail_time(
     longitude = 0.0
     n_similar_players = 6
 
-    # Mock BusinessService
-    mock_get_available_times = get_mock_get_available_times(
+    assigned_players = initial_apply_mocks_for_generate_matches(
+        monkeypatch,
         business_public_id,
         court_public_id,
         court_name,
         date,
         times,
+        times,
         latitude,
         longitude,
-    )
-    monkeypatch.setattr(
-        BusinessService, "get_available_times", mock_get_available_times
-    )
-
-    # Mock PlayersService
-    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
-        times, n_similar_players
-    )
-    monkeypatch.setattr(
-        PlayersService, "get_players_by_filters", mock_get_players_by_filters
-    )
-
-    # Mock MatchGeneratorService
-    def mock_choose_priority_player(
-        self: Any,  # noqa: ARG001
-        players: list[Player],  # noqa: ARG001
-    ) -> Player:
-        time_availability = players[0].time_availability
-        return assigned_players[time_availability]["assigned"]  # type: ignore
-
-    monkeypatch.setattr(
-        MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
+        n_similar_players,
     )
 
     # Main request
@@ -257,38 +236,17 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
     longitude = 0.0
     n_similar_players = 6
 
-    # Mock BusinessService
-    mock_get_available_times = get_mock_get_available_times(
+    _ = initial_apply_mocks_for_generate_matches(
+        monkeypatch,
         business_public_id,
         court_public_id,
         court_name,
         date,
         times,
+        times,
         latitude,
         longitude,
-    )
-    monkeypatch.setattr(
-        BusinessService, "get_available_times", mock_get_available_times
-    )
-
-    # Mock PlayersService
-    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
-        times, n_similar_players
-    )
-    monkeypatch.setattr(
-        PlayersService, "get_players_by_filters", mock_get_players_by_filters
-    )
-
-    # Mock MatchGeneratorService
-    def mock_choose_priority_player(
-        self: Any,  # noqa: ARG001
-        players: list[Player],  # noqa: ARG001
-    ) -> Player:
-        time_availability = players[0].time_availability
-        return assigned_players[time_availability]["assigned"]  # type: ignore
-
-    monkeypatch.setattr(
-        MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
+        n_similar_players,
     )
 
     # Main request
@@ -337,40 +295,18 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
     # add times
     new_times = [6, 7, 8, 9, 10, 11, 12]
 
-    # Mock BusinessService
-    mock_get_available_times = get_mock_get_available_times(
+    assigned_players = initial_apply_mocks_for_generate_matches(
+        monkeypatch,
         business_public_id,
         court_public_id,
         court_name,
         date,
         times,
+        new_times,
         latitude,
         longitude,
+        n_similar_players,
     )
-    monkeypatch.setattr(
-        BusinessService, "get_available_times", mock_get_available_times
-    )
-
-    # Mock PlayersService
-    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
-        times, n_similar_players
-    )
-    monkeypatch.setattr(
-        PlayersService, "get_players_by_filters", mock_get_players_by_filters
-    )
-
-    # Mock MatchGeneratorService
-    def mock_choose_priority_player(
-        self: Any,  # noqa: ARG001
-        players: list[Player],  # noqa: ARG001
-    ) -> Player:
-        time_availability = players[0].time_availability
-        return assigned_players[time_availability]["assigned"]  # type: ignore
-
-    monkeypatch.setattr(
-        MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
-    )
-
     # Main request
     data = {
         "business_public_id": business_public_id,
@@ -402,13 +338,6 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
 
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times_new
-    )
-    # Mock PlayersService
-    mock_get_players_by_filters_new, assigned_players = get_mock_get_players_by_filters(
-        new_times, n_similar_players
-    )
-    monkeypatch.setattr(
-        PlayersService, "get_players_by_filters", mock_get_players_by_filters_new
     )
     # TEST
     response_for_new_generate = await async_client.post(
@@ -476,40 +405,18 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
     # add times
     new_times = [6, 7, 8, 9, 10, 11, 12]
 
-    # Mock BusinessService
-    mock_get_available_times = get_mock_get_available_times(
+    _ = initial_apply_mocks_for_generate_matches(
+        monkeypatch,
         business_public_id,
         court_public_id,
         court_name,
         date,
         times,
+        new_times,
         latitude,
         longitude,
+        n_similar_players,
     )
-    monkeypatch.setattr(
-        BusinessService, "get_available_times", mock_get_available_times
-    )
-
-    # Mock PlayersService
-    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
-        new_times, n_similar_players
-    )
-    monkeypatch.setattr(
-        PlayersService, "get_players_by_filters", mock_get_players_by_filters
-    )
-
-    # Mock MatchGeneratorService
-    def mock_choose_priority_player(
-        self: Any,  # noqa: ARG001
-        players: list[Player],  # noqa: ARG001
-    ) -> Player:
-        time_availability = players[0].time_availability
-        return assigned_players[time_availability]["assigned"]  # type: ignore
-
-    monkeypatch.setattr(
-        MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
-    )
-
     # Main request
     data = {
         "business_public_id": business_public_id,
@@ -578,40 +485,18 @@ async def test_generate_matches_multiple_for_the_same_day(
     longitude = 0.0
     n_similar_players = 6
 
-    # Mock BusinessService
-    mock_get_available_times = get_mock_get_available_times(
+    assigned_players = initial_apply_mocks_for_generate_matches(
+        monkeypatch,
         business_public_id,
         court_public_id,
         court_name,
         date,
         times,
+        list(range(8, 20)),
         latitude,
         longitude,
+        n_similar_players,
     )
-    monkeypatch.setattr(
-        BusinessService, "get_available_times", mock_get_available_times
-    )
-
-    # Mock PlayersService
-    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
-        list(range(8, 20)), n_similar_players
-    )
-    monkeypatch.setattr(
-        PlayersService, "get_players_by_filters", mock_get_players_by_filters
-    )
-
-    # Mock MatchGeneratorService
-    def mock_choose_priority_player(
-        self: Any,  # noqa: ARG001
-        players: list[Player],  # noqa: ARG001
-    ) -> Player:
-        time_availability = players[0].time_availability
-        return assigned_players[time_availability]["assigned"]  # type: ignore
-
-    monkeypatch.setattr(
-        MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
-    )
-
     # Main request
     data = {
         "business_public_id": business_public_id,
@@ -706,41 +591,18 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
     latitude = 0.0
     longitude = 0.0
     n_similar_players = 6
-
-    # Mock BusinessService
-    mock_get_available_times = get_mock_get_available_times(
+    assigned_players = initial_apply_mocks_for_generate_matches(
+        monkeypatch,
         business_public_id,
         court_public_id,
         court_name,
         date,
         times,
+        list(range(8, 20)),
         latitude,
         longitude,
+        n_similar_players,
     )
-    monkeypatch.setattr(
-        BusinessService, "get_available_times", mock_get_available_times
-    )
-
-    # Mock PlayersService
-    mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
-        list(range(8, 20)), n_similar_players
-    )
-    monkeypatch.setattr(
-        PlayersService, "get_players_by_filters", mock_get_players_by_filters
-    )
-
-    # Mock MatchGeneratorService
-    def mock_choose_priority_player(
-        self: Any,  # noqa: ARG001
-        players: list[Player],  # noqa: ARG001
-    ) -> Player:
-        time_availability = players[0].time_availability
-        return assigned_players[time_availability]["assigned"]  # type: ignore
-
-    monkeypatch.setattr(
-        MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
-    )
-
     # Main request
     data = {
         "business_public_id": business_public_id,
