@@ -196,8 +196,10 @@ async def test_generate_matches_given_three_avail_time(
         player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
         time_availability = player_filters.time_availability
-        assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]  # type: ignore
+        # type: ignore
+        assigned_player = assigned_players[time_availability]["assigned"]
+        # type: ignore
+        similar_players = assigned_players[time_availability]["similar"]
         if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
             return similar_players
         return [assigned_player] + similar_players  # type: ignore
@@ -336,8 +338,10 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
         player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
         time_availability = player_filters.time_availability
-        assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]  # type: ignore
+        # type: ignore
+        assigned_player = assigned_players[time_availability]["assigned"]
+        # type: ignore
+        similar_players = assigned_players[time_availability]["similar"]
         if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
             return similar_players
         return [assigned_player] + similar_players  # type: ignore
@@ -449,8 +453,10 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
         player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
         time_availability = player_filters.time_availability
-        assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]  # type: ignore
+        # type: ignore
+        assigned_player = assigned_players[time_availability]["assigned"]
+        # type: ignore
+        similar_players = assigned_players[time_availability]["similar"]
         if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
             return similar_players
         return [assigned_player] + similar_players  # type: ignore
@@ -537,8 +543,10 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
         player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
         time_availability = player_filters.time_availability
-        assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]  # type: ignore
+        # type: ignore
+        assigned_player = assigned_players[time_availability]["assigned"]
+        # type: ignore
+        similar_players = assigned_players[time_availability]["similar"]
         if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
             return similar_players
         return [assigned_player] + similar_players  # type: ignore
@@ -547,7 +555,6 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
         PlayersService, "get_players_by_filters", mock_get_players_by_filters_new
     )
     # TEST
-
     response_for_new_generate = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/generation",
         headers=x_api_key_header,
@@ -661,8 +668,10 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
         player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
         time_availability = player_filters.time_availability
-        assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]  # type: ignore
+        # type: ignore
+        assigned_player = assigned_players[time_availability]["assigned"]
+        # type: ignore
+        similar_players = assigned_players[time_availability]["similar"]
         if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
             return similar_players
         return [assigned_player] + similar_players  # type: ignore
@@ -840,8 +849,10 @@ async def test_generate_matches_multiple_for_the_same_day(
         player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
         time_availability = player_filters.time_availability
-        assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]  # type: ignore
+        # type: ignore
+        assigned_player = assigned_players[time_availability]["assigned"]
+        # type: ignore
+        similar_players = assigned_players[time_availability]["similar"]
         if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
             return similar_players
         return [assigned_player] + similar_players  # type: ignore
@@ -1016,8 +1027,10 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
         player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
         time_availability = player_filters.time_availability
-        assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]  # type: ignore
+        # type: ignore
+        assigned_player = assigned_players[time_availability]["assigned"]
+        # type: ignore
+        similar_players = assigned_players[time_availability]["similar"]
         if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
             return similar_players
         return [assigned_player] + similar_players  # type: ignore

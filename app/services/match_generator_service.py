@@ -8,10 +8,12 @@ from app.models.match_generation import MatchGenerationCreate
 from app.models.match_player import MatchPlayer, MatchPlayerCreate, ReserveStatus
 from app.models.player import Player, PlayerFilters
 from app.services.business_service import BusinessService
+from app.services.match_extended_service import MatchExtendedService
 from app.services.match_player_service import MatchPlayerService
 from app.services.match_service import MatchService
 from app.services.players_service import PlayersService
 from app.utilities.dependencies import SessionDep
+from app.utilities.exceptions import NotUniqueException
 
 
 class MatchGeneratorService:
@@ -71,9 +73,6 @@ class MatchGeneratorService:
         match_create = MatchCreate.from_available_time(avail_time)
         match_service = MatchService()
 
-        if not await match_service.is_match_create_valid(session, match_create):
-            return None
-
         assigned_player, similar_players = await self._choose_match_players(avail_time)
         if not assigned_player or len(similar_players) == 0:
             return None
@@ -95,21 +94,25 @@ class MatchGeneratorService:
     async def generate_matches(
         self, session: SessionDep, match_gen_create: MatchGenerationCreate
     ) -> list[MatchExtended]:
-        try:
-            matches_extended = []
+        matches_public_ids = []
 
-            avail_times = await BusinessService().get_available_times(
-                **match_gen_create.model_dump()
-            )
-            for avail_time in avail_times:
+        avail_times = await BusinessService().get_available_times(
+            **match_gen_create.model_dump()
+        )
+        for avail_time in avail_times:
+            try:
                 match_extended = await self._generate_match(session, avail_time)
                 if not match_extended:
                     continue
-                matches_extended.append(match_extended)
+                await session.commit()
+            except NotUniqueException:
+                await session.rollback()
+                continue
+            matches_public_ids.append(match_extended.match.public_id)
 
-            await session.commit()
+        matches_extended = [
+            await MatchExtendedService().get_match(session, match_public_id)
+            for match_public_id in matches_public_ids
+        ]
 
-            return matches_extended
-        except Exception as e:
-            await session.rollback()
-            raise e
+        return matches_extended
