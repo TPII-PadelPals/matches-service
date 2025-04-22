@@ -3,8 +3,8 @@ import uuid
 from typing import Any
 
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from app.models.available_time import AvailableTime
-from app.models.match_extended import MatchesExtendedListPublic
 from app.models.match_generation import MatchGenerationCreate
 from app.models.player import Player, PlayerFilters
 from app.services.business_service import BusinessService
@@ -13,7 +13,7 @@ from app.services.players_service import PlayersService
 
 
 async def test_generate_matches_twice_for_the_same_day_and_same_times(
-        session: AsyncSession, x_api_key_header: dict[str, str], monkeypatch: Any
+    session: AsyncSession, monkeypatch: Any
 ) -> None:
     # Test ctes
     business_public_id = str(uuid.uuid4())
@@ -41,10 +41,10 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
     ]
 
     async def mock_get_available_times(
-            self: Any,  # noqa: ARG001
-            business_public_id: uuid.UUID,  # noqa: ARG001
-            court_name: str,  # noqa: ARG001
-            date: datetime.date,  # noqa: ARG001
+        self: Any,  # noqa: ARG001
+        business_public_id: uuid.UUID,  # noqa: ARG001
+        court_name: str,  # noqa: ARG001
+        date: datetime.date,  # noqa: ARG001
     ) -> Any:
         return avail_times
 
@@ -68,8 +68,8 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
         }
 
     async def mock_get_players_by_filters(
-            self: Any,  # noqa: ARG001
-            player_filters: PlayerFilters,  # noqa: ARG001
+        self: Any,  # noqa: ARG001
+        player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
         time_availability = player_filters.time_availability
         assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
@@ -84,8 +84,8 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
 
     # Mock MatchGeneratorService
     def mock_choose_priority_player(
-            self: Any,  # noqa: ARG001
-            players: list[Player],  # noqa: ARG001
+        self: Any,  # noqa: ARG001
+        players: list[Player],  # noqa: ARG001
     ) -> Player:
         time_availability = players[0].time_availability
         return assigned_players[time_availability]["assigned"]  # type: ignore
@@ -107,13 +107,15 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
 
     assert response is not None
     # TEST
-    response_for_new_generate = await service.generate_matches(session, match_gen_create)
+    response_for_new_generate = await service.generate_matches(
+        session, match_gen_create
+    )
     # ASSERT
     assert response_for_new_generate is not None
 
 
 async def test_generate_matches_for_the_same_with_new_times_twice(
-        session: AsyncSession, x_api_key_header: dict[str, str], monkeypatch: Any
+    session: AsyncSession, monkeypatch: Any
 ) -> None:
     # Test ctes
     business_public_id = str(uuid.uuid4())
@@ -143,10 +145,10 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
     ]
 
     async def mock_get_available_times(
-            self: Any,  # noqa: ARG001
-            business_public_id: uuid.UUID,  # noqa: ARG001
-            court_name: str,  # noqa: ARG001
-            date: datetime.date,  # noqa: ARG001
+        self: Any,  # noqa: ARG001
+        business_public_id: uuid.UUID,  # noqa: ARG001
+        court_name: str,  # noqa: ARG001
+        date: datetime.date,  # noqa: ARG001
     ) -> Any:
         return avail_times
 
@@ -170,8 +172,8 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
         }
 
     async def mock_get_players_by_filters(
-            self: Any,  # noqa: ARG001
-            player_filters: PlayerFilters,  # noqa: ARG001
+        self: Any,  # noqa: ARG001
+        player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
         time_availability = player_filters.time_availability
         assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
@@ -186,8 +188,8 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
 
     # Mock MatchGeneratorService
     def mock_choose_priority_player(
-            self: Any,  # noqa: ARG001
-            players: list[Player],  # noqa: ARG001
+        self: Any,  # noqa: ARG001
+        players: list[Player],  # noqa: ARG001
     ) -> Player:
         time_availability = players[0].time_availability
         return assigned_players[time_availability]["assigned"]  # type: ignore
@@ -224,10 +226,10 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
     ]
 
     async def mock_get_available_times_new(
-            self: Any,  # noqa: ARG001
-            business_public_id: uuid.UUID,  # noqa: ARG001
-            court_name: str,  # noqa: ARG001
-            date: datetime.date,  # noqa: ARG001
+        self: Any,  # noqa: ARG001
+        business_public_id: uuid.UUID,  # noqa: ARG001
+        court_name: str,  # noqa: ARG001
+        date: datetime.date,  # noqa: ARG001
     ) -> Any:
         return new_avail_times
 
@@ -236,11 +238,15 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
     )
 
     match_gen_create_new = MatchGenerationCreate(**data)
-    response_for_new_generate = await service.generate_matches(session, match_gen_create_new)
+    response_for_new_generate = await service.generate_matches(
+        session, match_gen_create_new
+    )
 
     assert len(response_for_new_generate) == 4
     # TEST
 
-    response_for_new_generate_double = await service.generate_matches(session, match_gen_create_new)
+    response_for_new_generate_double = await service.generate_matches(
+        session, match_gen_create_new
+    )
     # ASSERT
     assert len(response_for_new_generate_double) == 0

@@ -956,9 +956,8 @@ async def test_generate_matches_multiple_for_the_same_day(
         )
 
 
-
 async def test_generate_matches_multiple_for_the_same_day_inverse_time(
-        async_client: AsyncClient, x_api_key_header: dict[str, str], monkeypatch: Any
+    async_client: AsyncClient, x_api_key_header: dict[str, str], monkeypatch: Any
 ) -> None:
     # Test ctes
     business_public_id = str(uuid.uuid4())
@@ -986,10 +985,10 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
     ]
 
     async def mock_get_available_times(
-            self: Any,  # noqa: ARG001
-            business_public_id: uuid.UUID,  # noqa: ARG001
-            court_name: str,  # noqa: ARG001
-            date: datetime.date,  # noqa: ARG001
+        self: Any,  # noqa: ARG001
+        business_public_id: uuid.UUID,  # noqa: ARG001
+        court_name: str,  # noqa: ARG001
+        date: datetime.date,  # noqa: ARG001
     ) -> Any:
         return avail_times
 
@@ -1013,8 +1012,8 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
         }
 
     async def mock_get_players_by_filters(
-            self: Any,  # noqa: ARG001
-            player_filters: PlayerFilters,  # noqa: ARG001
+        self: Any,  # noqa: ARG001
+        player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
         time_availability = player_filters.time_availability
         assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
@@ -1029,8 +1028,8 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
 
     # Mock MatchGeneratorService
     def mock_choose_priority_player(
-            self: Any,  # noqa: ARG001
-            players: list[Player],  # noqa: ARG001
+        self: Any,  # noqa: ARG001
+        players: list[Player],  # noqa: ARG001
     ) -> Player:
         time_availability = players[0].time_availability
         return assigned_players[time_availability]["assigned"]  # type: ignore
@@ -1063,10 +1062,10 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
 
         # Mock BusinessService
         async def mock_get_available_times_new(
-                self: Any,  # noqa: ARG001
-                business_public_id: uuid.UUID,  # noqa: ARG001
-                court_name: str,  # noqa: ARG001
-                date: datetime.date,  # noqa: ARG001
+            self: Any,  # noqa: ARG001
+            business_public_id: uuid.UUID,  # noqa: ARG001
+            court_name: str,  # noqa: ARG001
+            date: datetime.date,  # noqa: ARG001
         ) -> Any:
             return [
                 AvailableTime(
