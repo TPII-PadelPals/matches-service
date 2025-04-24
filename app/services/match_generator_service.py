@@ -48,8 +48,9 @@ class MatchGeneratorService:
         assigned_player: Player,
         similar_players: list[Player],
     ) -> list[MatchPlayer]:
+        avail_players = [assigned_player] + similar_players
         match_players = []
-        for player in [assigned_player] + similar_players:
+        for distance, player in enumerate(avail_players):
             reserve_status = ReserveStatus.SIMILAR
             if player.user_public_id == assigned_player.user_public_id:
                 reserve_status = ReserveStatus.ASSIGNED
@@ -57,7 +58,7 @@ class MatchGeneratorService:
             match_player_create = MatchPlayerCreate(
                 user_public_id=player.user_public_id,
                 match_public_id=match_public_id,
-                distance=0.0,
+                distance=distance,
                 reserve=reserve_status,
             )
             match_player = await MatchPlayerService().create_match_player(

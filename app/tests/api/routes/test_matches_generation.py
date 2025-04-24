@@ -615,9 +615,7 @@ async def test_generate_matches_creates_match_players_with_distance_equal_to_arr
     time_avail = PlayerFilters.to_time_availability(time)
     assigned_player = assigned_players[time_avail]["assigned"]
     similar_players = assigned_players[time_avail]["similar"]
-    similar_players_user_public_ids = [
-        str(player.user_public_id) for player in similar_players
-    ]
+    similar_players_uuids = [str(player.user_public_id) for player in similar_players]
 
     match_players = match_extended["match_players"]
     match_assigned_players = [
@@ -632,11 +630,13 @@ async def test_generate_matches_creates_match_players_with_distance_equal_to_arr
         assigned_player.user_public_id
     )
 
-    match_similar_players_user_public_ids = [
-        player["user_public_id"]
-        for player in match_players
-        if player["reserve"] == ReserveStatus.SIMILAR
+    match_similar_players = [
+        player for player in match_players if player["reserve"] == ReserveStatus.SIMILAR
     ]
-    assert set(match_similar_players_user_public_ids) == set(
-        similar_players_user_public_ids
+    match_similar_players_sorted = sorted(
+        match_similar_players, key=lambda player: player["distance"]
     )
+    match_similar_players_uuids = [
+        player["user_public_id"] for player in match_similar_players_sorted
+    ]
+    assert match_similar_players_uuids == similar_players_uuids
