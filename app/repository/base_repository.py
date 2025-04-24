@@ -57,9 +57,14 @@ class BaseRepository:
         self,
         model: type[M],
         filters: list[F],
-        orders: list[tuple[str, str]] | None = None,
+        order_by: list[tuple[str, bool]] | None = None,
         limit: int | None = None,
     ) -> list[M]:
+        """
+        order_by: List of tuples(M.attribute, is_ascending)
+        to order the result.
+        limit: Max number of records to get.
+        """
         # Filters
         or_conditions = []
         for filter in filters:
@@ -72,11 +77,11 @@ class BaseRepository:
         query = select(model).where(or_(*or_conditions))
 
         # Order
-        if orders is None:
-            orders = []
-        for attr, order in orders:
+        if order_by is None:
+            order_by = []
+        for attr, is_ascending in order_by:
             column = getattr(model, attr, None)
-            order_func = desc if order.lower() == "desc" else asc
+            order_func = asc if is_ascending else desc
             if column:
                 query = query.order_by(order_func(column))
 
