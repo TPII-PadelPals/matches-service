@@ -36,8 +36,6 @@ class MatchGeneratorService:
 
         assigned_player = self._choose_priority_player(avail_players)
 
-        # Por qué se asigna un user_public_id aca?
-        # Porque al filtro si le ponés el user_public_id te trae todos menos el del filtro.
         players_filters.user_public_id = assigned_player.user_public_id
         players_filters.n_players = self.N_SIM_PLAYERS
         similar_players = await PlayersService().get_players_by_filters(players_filters)
@@ -59,6 +57,7 @@ class MatchGeneratorService:
             match_player_create = MatchPlayerCreate(
                 user_public_id=player.user_public_id,
                 match_public_id=match_public_id,
+                distance=0.0,
                 reserve=reserve_status,
             )
             match_player = await MatchPlayerService().create_match_player(

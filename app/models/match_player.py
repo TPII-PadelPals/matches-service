@@ -14,7 +14,7 @@ class ReserveStatus(str, Enum):
 
 
 class MatchPlayerBase(SQLModel):
-    distance: float = Field(default=0.0)
+    # distance: float | None = Field()
     reserve: str | None = Field(default=ReserveStatus.PROVISIONAL)
 
 
@@ -24,19 +24,28 @@ class MatchPlayerMatchPublicID(SQLModel):
     )
 
 
-class MatchPlayerUserPublicID(SQLModel):
+# class MatchPlayerUserPublicID(SQLModel):
+#     user_public_id: UUID = Field()
+
+
+class MatchPlayerInmmutable(SQLModel):
     user_public_id: UUID = Field()
+    distance: float = Field()
 
 
-class MatchPlayerCreatePublic(MatchPlayerBase, MatchPlayerUserPublicID):
+class MatchPlayerInmmutableExtended(MatchPlayerInmmutable, MatchPlayerMatchPublicID):
     pass
 
 
-class MatchPlayerInmmutable(MatchPlayerMatchPublicID, MatchPlayerUserPublicID):
+class MatchPlayerCreatePublic(MatchPlayerBase, MatchPlayerInmmutable):
     pass
 
 
-class MatchPlayerCreate(MatchPlayerBase, MatchPlayerInmmutable):
+# class MatchPlayerInmmutable(MatchPlayerMatchPublicID, MatchPlayerUserPublicID):
+#     pass
+
+
+class MatchPlayerCreate(MatchPlayerBase, MatchPlayerInmmutableExtended):
     @classmethod
     def from_public(
         cls, match_public_id: UUID, match_player_public_in: MatchPlayerCreatePublic
@@ -51,7 +60,7 @@ class MatchPlayerUpdate(MatchPlayerBase):
         return self.reserve == ReserveStatus.INSIDE
 
 
-class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
+class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutableExtended, table=True):
     id: int = Field(default=None, primary_key=True)
 
     __tablename__ = "matches_players"
@@ -71,7 +80,7 @@ class MatchPlayer(MatchPlayerBase, MatchPlayerInmmutable, table=True):
         return self.reserve == ReserveStatus.ASSIGNED
 
 
-class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutable):
+class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutableExtended):
     @classmethod
     def from_private(cls, match_player: MatchPlayer) -> "MatchPlayerPublic":
         data = match_player.model_dump()

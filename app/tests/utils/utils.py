@@ -21,18 +21,18 @@ def get_x_api_key_header() -> dict[str, str]:
     return headers
 
 
-def get_mock_get_players_by_filters(times: list[int], n_similar_players: int) -> Any:
+def get_mock_get_players_by_filters(**match_data: Any) -> Any:
     assigned_players = {}
-    for time in times:
-        time_availability = PlayerFilters.to_time_availability(time)
+    for time in match_data["all_times"]:
+        time_avail = PlayerFilters.to_time_availability(time)
 
-        assigned_players[time_availability] = {
+        assigned_players[time_avail] = {
             "assigned": Player(
-                user_public_id=uuid.uuid4(), time_availability=time_availability
+                user_public_id=uuid.uuid4(), time_availability=time_avail
             ),
             "similar": [
-                Player(user_public_id=uuid.uuid4(), time_availability=time_availability)
-                for _ in range(n_similar_players)
+                Player(user_public_id=uuid.uuid4(), time_availability=time_avail)
+                for _ in range(match_data["n_similar_players"])  # type: ignore
             ],
         }
 
@@ -40,9 +40,11 @@ def get_mock_get_players_by_filters(times: list[int], n_similar_players: int) ->
         self: Any,  # noqa: ARG001
         player_filters: PlayerFilters,  # noqa: ARG001
     ) -> Any:
-        time_availability = player_filters.time_availability
-        assigned_player = assigned_players[time_availability]["assigned"]  # type: ignore
-        similar_players = assigned_players[time_availability]["similar"]  # type: ignore
+        time_avail = player_filters.time_availability
+        if time_avail is None:
+            raise ValueError()
+        assigned_player = assigned_players[time_avail]["assigned"]
+        similar_players = assigned_players[time_avail]["similar"]
         if player_filters.user_public_id == assigned_player.user_public_id:  # type: ignore
             return similar_players
         return [assigned_player] + similar_players  # type: ignore
@@ -50,27 +52,9 @@ def get_mock_get_players_by_filters(times: list[int], n_similar_players: int) ->
     return mock_get_players_by_filters, assigned_players
 
 
-def get_mock_get_available_times(
-    business_public_id: str,
-    court_public_id: str,
-    court_name: str,
-    date: str,
-    times: list[int],
-    latitude: float,
-    longitude: float,
-) -> Any:
+def get_mock_get_available_times(**match_data: Any) -> Any:
     avail_times = [
-        AvailableTime(
-            business_public_id=business_public_id,
-            court_public_id=court_public_id,
-            court_name=court_name,
-            latitude=latitude,
-            longitude=longitude,
-            date=date,
-            time=time,
-            is_reserved=False,
-        )
-        for time in times
+        AvailableTime(time=time, **match_data) for time in match_data["times"]
     ]
 
     async def mock_get_available_times(
@@ -85,34 +69,17 @@ def get_mock_get_available_times(
 
 
 def initial_apply_mocks_for_generate_matches(
-    monkeypatch: Any,
-    business_public_id: str,
-    court_public_id: str,
-    court_name: str,
-    date: str,
-    times: list[int],
-    all_times: list[int],
-    latitude: float,
-    longitude: float,
-    n_similar_players: int,
+    monkeypatch: Any, **match_data: Any
 ) -> dict[int, dict[str, Any]]:
     # Mock BusinessService
-    mock_get_available_times = get_mock_get_available_times(
-        business_public_id,
-        court_public_id,
-        court_name,
-        date,
-        times,
-        latitude,
-        longitude,
-    )
+    mock_get_available_times = get_mock_get_available_times(**match_data)
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times
     )
 
     # Mock PlayersService
     mock_get_players_by_filters, assigned_players = get_mock_get_players_by_filters(
-        all_times, n_similar_players
+        **match_data
     )
     monkeypatch.setattr(
         PlayersService, "get_players_by_filters", mock_get_players_by_filters
@@ -123,8 +90,8 @@ def initial_apply_mocks_for_generate_matches(
         self: Any,  # noqa: ARG001
         players: list[Player],  # noqa: ARG001
     ) -> Player:
-        time_availability = players[0].time_availability
-        return assigned_players[time_availability]["assigned"]  # type: ignore
+        time_avail = players[0].time_availability
+        return assigned_players[time_avail]["assigned"]  # type: ignore
 
     monkeypatch.setattr(
         MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
