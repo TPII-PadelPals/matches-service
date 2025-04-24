@@ -619,3 +619,67 @@ async def test_three_players_inside_two_players_similar_then_the_closest_one_is_
         session, match.public_id, farthest_uuid
     )
     assert similar_player.reserve == ReserveStatus.SIMILAR
+
+
+async def test_only_one_player_inside_more_than_three_players_similar_then_the_closest_three_are_assigned(
+    async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
+) -> None:
+    match = await MatchService().create_match(
+        session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
+    )
+    # === PRE ===
+    # Create one player ASSIGNED (future INSIDE)
+    assigned_uuid = uuid.uuid4()
+    await MatchPlayerService().create_match_player(
+        session,
+        MatchPlayerCreate(
+            match_public_id=match.public_id,
+            user_public_id=assigned_uuid,
+            distance=0.0,
+            reserve=ReserveStatus.ASSIGNED,
+        ),
+    )
+
+    # Create two players SIMILAR
+    similar_uuids = [uuid.uuid4() for _ in range(6)]
+    for distance, similar_uuid in enumerate(similar_uuids):
+        await MatchPlayerService().create_match_player(
+            session,
+            MatchPlayerCreate(
+                match_public_id=match.public_id,
+                user_public_id=similar_uuid,
+                distance=distance,
+                reserve=ReserveStatus.SIMILAR,
+            ),
+        )
+
+    # === Action ===
+    # Update player ASSIGNED -> INSIDE
+    await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match.public_id}/players/{assigned_uuid}/",
+        headers=x_api_key_header,
+        json={"reserve": ReserveStatus.INSIDE},
+    )
+
+    # === POST ===
+    # Verify closest player SIMILAR -> ASSIGNED
+    max_closest_distance = -1e6
+    for closest_uuid in similar_uuids[:3]:
+        closest_player = await MatchPlayerService().get_match_player(
+            session, match.public_id, closest_uuid
+        )
+        assert closest_player.reserve == ReserveStatus.ASSIGNED
+        if closest_player.distance > max_closest_distance:  # type: ignore
+            max_closest_distance = closest_player.distance
+
+    # Verify not-closest player SIMILAR -> SIMILAR
+    min_farthest_distance = 1e6
+    for farthest_uuid in similar_uuids[3:]:
+        farthest_player = await MatchPlayerService().get_match_player(
+            session, match.public_id, farthest_uuid
+        )
+        assert farthest_player.reserve == ReserveStatus.SIMILAR
+        if farthest_player.distance < min_farthest_distance:  # type: ignore
+            min_farthest_distance = farthest_player.distance
+
+    assert max_closest_distance <= min_farthest_distance  # type: ignore
