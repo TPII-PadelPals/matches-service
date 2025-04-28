@@ -14,7 +14,6 @@ class ReserveStatus(str, Enum):
 
 
 class MatchPlayerBase(SQLModel):
-    # distance: float | None = Field()
     reserve: str | None = Field(default=ReserveStatus.PROVISIONAL)
 
 
@@ -22,10 +21,6 @@ class MatchPlayerMatchPublicID(SQLModel):
     match_public_id: UUID | None = Field(
         foreign_key="matches.public_id", ondelete="CASCADE"
     )
-
-
-# class MatchPlayerUserPublicID(SQLModel):
-#     user_public_id: UUID = Field()
 
 
 class MatchPlayerInmmutable(SQLModel):
@@ -39,10 +34,6 @@ class MatchPlayerInmmutableExtended(MatchPlayerInmmutable, MatchPlayerMatchPubli
 
 class MatchPlayerCreatePublic(MatchPlayerBase, MatchPlayerInmmutable):
     pass
-
-
-# class MatchPlayerInmmutable(MatchPlayerMatchPublicID, MatchPlayerUserPublicID):
-#     pass
 
 
 class MatchPlayerCreate(MatchPlayerBase, MatchPlayerInmmutableExtended):
