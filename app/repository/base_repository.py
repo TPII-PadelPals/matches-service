@@ -1,6 +1,7 @@
 from typing import TypeVar
 from uuid import UUID
 
+from sqlalchemy import asc, desc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
 from sqlalchemy.sql.expression import and_, or_
@@ -52,9 +53,20 @@ class BaseRepository:
         await self._commit_refresh_or_flush(should_commit, records)
         return records
 
-    async def get_records(self, model: type[M], filters: list[F]) -> list[M]:
+    async def get_records(
+        self,
+        model: type[M],
+        filters: list[F],
+        order_by: list[tuple[str, bool]] | None = None,
+        limit: int | None = None,
+    ) -> list[M]:
+        """
+        order_by: List of tuples(M.attribute, is_ascending)
+        to order the result.
+        limit: Max number of records to get.
+        """
+        # Filters
         or_conditions = []
-
         for filter in filters:
             and_conditions = [
                 getattr(model, attr) == value
@@ -62,8 +74,21 @@ class BaseRepository:
                 if value is not None
             ]
             or_conditions.append(and_(*and_conditions))
-
         query = select(model).where(or_(*or_conditions))
+
+        # Order
+        if order_by is None:
+            order_by = []
+        for attr, is_ascending in order_by:
+            column = getattr(model, attr, None)
+            order_func = asc if is_ascending else desc
+            if column:
+                query = query.order_by(order_func(column))
+
+        # Limit
+        if limit is not None:
+            query = query.limit(limit)
+
         result = await self.session.exec(query)  # type: ignore
         return list(result.scalars().all())
 

@@ -30,9 +30,17 @@ class MatchPlayerRepository(BaseRepository):
         return await self.create_records(MatchPlayer, match_players_in, should_commit)
 
     async def get_matches_players(
-        self, filters: list[MatchPlayerFilter]
+        self,
+        filters: list[MatchPlayerFilter],
+        order_by: list[tuple[str, bool]] | None = None,
+        limit: int | None = None,
     ) -> list[MatchPlayer]:
-        return await self.get_records(MatchPlayer, filters)
+        """
+        order_by: List of tuples(Player.attribute, is_ascending)
+        to order the result.
+        limit: Max number of players to get.
+        """
+        return await self.get_records(MatchPlayer, filters, order_by, limit)
 
     async def get_match_player(
         self, match_public_id: UUID, user_public_id: UUID

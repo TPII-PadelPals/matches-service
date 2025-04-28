@@ -46,12 +46,21 @@ class MatchPlayerService:
         session: SessionDep,
         match_public_id: UUID,
         status: ReserveStatus | None = None,
+        order_by: list[tuple[str, bool]] | None = None,
+        limit: int | None = None,
     ) -> list[MatchPlayer]:
+        """
+        order_by: List of tuples(Player.attribute, is_ascending)
+        to order the result.
+        limit: Max number of players to get.
+        """
         repo_match_player = MatchPlayerRepository(session)
         match_player_filter = MatchPlayerFilter(match_public_id=match_public_id)
         if status:
             match_player_filter.reserve = status
-        return await repo_match_player.get_matches_players([match_player_filter])
+        return await repo_match_player.get_matches_players(
+            [match_player_filter], order_by, limit
+        )
 
     async def get_player_matches(
         self,
@@ -122,11 +131,15 @@ class MatchPlayerService:
             self.MAX_MATCH_PLAYERS - len(assigned_players) - len(inside_players)
         )
 
-        similar_players = await self.get_match_players(
-            session, match_public_id, status=ReserveStatus.SIMILAR
-        )
-
-        next_assign_players = similar_players[:n_missing_players]
+        next_assign_players = []
+        if n_missing_players > 0:
+            next_assign_players = await self.get_match_players(
+                session,
+                match_public_id,
+                status=ReserveStatus.SIMILAR,
+                order_by=[("distance", True)],
+                limit=n_missing_players,
+            )
 
         for player in next_assign_players:
             await self._update_match_player(

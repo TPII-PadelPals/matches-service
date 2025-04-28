@@ -1,3 +1,4 @@
+import copy
 import uuid
 from typing import Any
 
@@ -16,32 +17,27 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
     session: AsyncSession, monkeypatch: Any
 ) -> None:
     # Test ctes
-    business_public_id = str(uuid.uuid4())
-    court_public_id = str(uuid.uuid4())
-    court_name = "1"
-    date = "2025-03-19"
     times = [8, 9, 10]
-    latitude = 0.0
-    longitude = 0.0
-    n_similar_players = 6
+    test_data = {
+        "business_public_id": str(uuid.uuid4()),
+        "court_name": "1",
+        "court_public_id": str(uuid.uuid4()),
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "date": "2025-03-19",
+        "times": times,
+        "all_times": times,
+        "is_reserved": False,
+        "n_similar_players": 6,
+    }
 
-    _ = initial_apply_mocks_for_generate_matches(
-        monkeypatch,
-        business_public_id,
-        court_public_id,
-        court_name,
-        date,
-        times,
-        times,
-        latitude,
-        longitude,
-        n_similar_players,
-    )
+    _ = initial_apply_mocks_for_generate_matches(monkeypatch, **test_data)
+
     # Main request
     data = {
-        "business_public_id": business_public_id,
-        "court_name": court_name,
-        "date": date,
+        k: v
+        for k, v in test_data.items()
+        if k in ["business_public_id", "court_name", "date"]
     }
     match_gen_create = MatchGenerationCreate(**data)
     service = MatchGeneratorService()
@@ -49,10 +45,12 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
     response = await service.generate_matches(session, match_gen_create)
 
     assert response is not None
+
     # TEST
     response_for_new_generate = await service.generate_matches(
         session, match_gen_create
     )
+
     # ASSERT
     assert response_for_new_generate is not None
 
@@ -61,36 +59,28 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
     session: AsyncSession, monkeypatch: Any
 ) -> None:
     # Test ctes
-    business_public_id = str(uuid.uuid4())
-    court_public_id = str(uuid.uuid4())
-    court_name = "1"
-    date = "2025-03-19"
     times = [11, 7, 8, 9, 10]
-    latitude = 0.0
-    longitude = 0.0
-    n_similar_players = 6
-
-    # add times
     new_times = [6, 7, 8, 9, 10, 11, 12, 13, 14]
+    test_data = {
+        "business_public_id": str(uuid.uuid4()),
+        "court_name": "1",
+        "court_public_id": str(uuid.uuid4()),
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "date": "2025-03-19",
+        "times": times,
+        "all_times": new_times,
+        "is_reserved": False,
+        "n_similar_players": 6,
+    }
 
-    _ = initial_apply_mocks_for_generate_matches(
-        monkeypatch,
-        business_public_id,
-        court_public_id,
-        court_name,
-        date,
-        times,
-        new_times,
-        latitude,
-        longitude,
-        n_similar_players,
-    )
+    _ = initial_apply_mocks_for_generate_matches(monkeypatch, **test_data)
     # Main request
     service = MatchGeneratorService()
     data = {
-        "business_public_id": business_public_id,
-        "court_name": court_name,
-        "date": date,
+        k: v
+        for k, v in test_data.items()
+        if k in ["business_public_id", "court_name", "date"]
     }
     match_gen_create = MatchGenerationCreate(**data)
     response = await service.generate_matches(session, match_gen_create)
@@ -98,15 +88,9 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
     assert len(response) == 5
 
     # Mock BusinessService
-    mock_get_available_times_new = get_mock_get_available_times(
-        business_public_id,
-        court_public_id,
-        court_name,
-        date,
-        new_times,
-        latitude,
-        longitude,
-    )
+    new_test_data = copy.deepcopy(test_data)
+    new_test_data["times"] = new_times
+    mock_get_available_times_new = get_mock_get_available_times(**new_test_data)
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times_new
     )
