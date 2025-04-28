@@ -32,7 +32,7 @@ def get_mock_get_players_by_filters(**match_data: Any) -> Any:
             ),
             "similar": [
                 Player(user_public_id=uuid.uuid4(), time_availability=time_avail)
-                for _ in range(match_data["n_similar_players"])  # type: ignore
+                for _ in range(match_data["n_similar_players"])
             ],
         }
 

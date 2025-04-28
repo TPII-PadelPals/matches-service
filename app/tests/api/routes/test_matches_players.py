@@ -669,7 +669,7 @@ async def test_only_one_player_inside_more_than_three_players_similar_then_the_c
             session, match.public_id, closest_uuid
         )
         assert closest_player.reserve == ReserveStatus.ASSIGNED
-        if closest_player.distance > max_closest_distance:  # type: ignore
+        if closest_player.distance > max_closest_distance:
             max_closest_distance = closest_player.distance
 
     # Verify not-closest player SIMILAR -> SIMILAR
@@ -679,7 +679,7 @@ async def test_only_one_player_inside_more_than_three_players_similar_then_the_c
             session, match.public_id, farthest_uuid
         )
         assert farthest_player.reserve == ReserveStatus.SIMILAR
-        if farthest_player.distance < min_farthest_distance:  # type: ignore
+        if farthest_player.distance < min_farthest_distance:
             min_farthest_distance = farthest_player.distance
 
-    assert max_closest_distance <= min_farthest_distance  # type: ignore
+    assert max_closest_distance <= min_farthest_distance
