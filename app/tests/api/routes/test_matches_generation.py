@@ -21,8 +21,8 @@ async def test_generate_matches_given_one_avail_time(
     times = [9]
     test_data = {
         "business_public_id": str(uuid.uuid4()),
-        "court_name": "1",
-        "court_public_id": str(uuid.uuid4()),
+        "court_names": ["1"],
+        "court_public_ids": [str(uuid.uuid4())],
         "latitude": 0.0,
         "longitude": 0.0,
         "date": "2025-03-19",
@@ -37,11 +37,8 @@ async def test_generate_matches_given_one_avail_time(
     )
 
     # Main request
-    data = {
-        k: v
-        for k, v in test_data.items()
-        if k in ["business_public_id", "court_name", "date"]
-    }
+    data = {k: v for k, v in test_data.items() if k in ["business_public_id", "date"]}
+    data["court_name"] = test_data["court_names"][0]  # type: ignore
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/generation",
         headers=x_api_key_header,
@@ -56,8 +53,9 @@ async def test_generate_matches_given_one_avail_time(
     assert len(matches) == 1
 
     match_extended = matches[0]
-    for k in ["court_public_id", "court_name", "date"]:
-        assert match_extended[k] == test_data[k]
+    for k in ["court_public_id", "court_name"]:
+        assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+    assert match_extended["date"] == test_data["date"]
     assert match_extended["time"] == test_data["times"][0]  # type: ignore
     match_time = match_extended["time"]
     time_avail = PlayerFilters.to_time_availability(match_time)
@@ -96,8 +94,8 @@ async def test_generate_matches_given_three_avail_time(
     times = [8, 9, 10]
     test_data = {
         "business_public_id": str(uuid.uuid4()),
-        "court_name": "1",
-        "court_public_id": str(uuid.uuid4()),
+        "court_names": ["1"],
+        "court_public_ids": [str(uuid.uuid4())],
         "latitude": 0.0,
         "longitude": 0.0,
         "date": "2025-03-19",
@@ -112,11 +110,8 @@ async def test_generate_matches_given_three_avail_time(
     )
 
     # Main request
-    data = {
-        k: v
-        for k, v in test_data.items()
-        if k in ["business_public_id", "court_name", "date"]
-    }
+    data = {k: v for k, v in test_data.items() if k in ["business_public_id", "date"]}
+    data["court_name"] = test_data["court_names"][0]  # type: ignore
 
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/generation",
@@ -132,8 +127,9 @@ async def test_generate_matches_given_three_avail_time(
     assert len(matches) == 3
 
     for match_extended in matches:
-        for k in ["court_public_id", "court_name", "date"]:
-            assert match_extended[k] == test_data[k]
+        for k in ["court_public_id", "court_name"]:
+            assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["date"] == test_data["date"]
         time = match_extended["time"]
         time_avail = PlayerFilters.to_time_availability(time)
         assigned_player = assigned_players[time_avail]["assigned"]
@@ -172,8 +168,8 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
     times = [8, 9, 10]
     test_data = {
         "business_public_id": str(uuid.uuid4()),
-        "court_name": "1",
-        "court_public_id": str(uuid.uuid4()),
+        "court_names": ["1"],
+        "court_public_ids": [str(uuid.uuid4())],
         "latitude": 0.0,
         "longitude": 0.0,
         "date": "2025-03-19",
@@ -185,11 +181,8 @@ async def test_generate_matches_twice_for_the_same_day_and_same_times(
 
     _ = initial_apply_mocks_for_generate_matches(monkeypatch, **test_data)
 
-    data = {
-        k: v
-        for k, v in test_data.items()
-        if k in ["business_public_id", "court_name", "date"]
-    }
+    data = {k: v for k, v in test_data.items() if k in ["business_public_id", "date"]}
+    data["court_name"] = test_data["court_names"][0]  # type: ignore
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/generation",
         headers=x_api_key_header,
@@ -222,8 +215,8 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
     new_times = [6, 7, 8, 9, 10, 11, 12]
     test_data = {
         "business_public_id": str(uuid.uuid4()),
-        "court_name": "1",
-        "court_public_id": str(uuid.uuid4()),
+        "court_names": ["1"],
+        "court_public_ids": [str(uuid.uuid4())],
         "latitude": 0.0,
         "longitude": 0.0,
         "date": "2025-03-19",
@@ -237,11 +230,8 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
         monkeypatch, **test_data
     )
     # Main request
-    data = {
-        k: v
-        for k, v in test_data.items()
-        if k in ["business_public_id", "court_name", "date"]
-    }
+    data = {k: v for k, v in test_data.items() if k in ["business_public_id", "date"]}
+    data["court_name"] = test_data["court_names"][0]  # type: ignore
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/generation",
         headers=x_api_key_header,
@@ -277,8 +267,9 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
     new_matches = new_matches_list["data"]
     assert len(new_matches) == 4
     for match_extended in new_matches:
-        for k in ["court_public_id", "court_name", "date"]:
-            assert match_extended[k] == test_data[k]
+        for k in ["court_public_id", "court_name"]:
+            assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["date"] == test_data["date"]
         assert match_extended["time"] in diff_times
         time = match_extended["time"]
         time_avail = PlayerFilters.to_time_availability(time)
@@ -319,8 +310,8 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
     new_times = [6, 7, 8, 9, 10, 11, 12]
     test_data = {
         "business_public_id": str(uuid.uuid4()),
-        "court_public_id": str(uuid.uuid4()),
-        "court_name": "1",
+        "court_public_ids": [str(uuid.uuid4())],
+        "court_names": ["1"],
         "latitude": 0.0,
         "longitude": 0.0,
         "date": "2025-03-19",
@@ -332,11 +323,8 @@ async def test_generate_matches_for_the_same_with_new_times_twice(
 
     _ = initial_apply_mocks_for_generate_matches(monkeypatch, **test_data)
 
-    data = {
-        k: v
-        for k, v in test_data.items()
-        if k in ["business_public_id", "court_name", "date"]
-    }
+    data = {k: v for k, v in test_data.items() if k in ["business_public_id", "date"]}
+    data["court_name"] = test_data["court_names"][0]  # type: ignore
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/generation",
         headers=x_api_key_header,
@@ -387,8 +375,8 @@ async def test_generate_matches_multiple_for_the_same_day(
     # Test ctes
     test_data = {
         "business_public_id": str(uuid.uuid4()),
-        "court_public_id": str(uuid.uuid4()),
-        "court_name": "1",
+        "court_public_ids": [str(uuid.uuid4())],
+        "court_names": ["1"],
         "latitude": 0.0,
         "longitude": 0.0,
         "date": "2025-03-19",
@@ -402,11 +390,8 @@ async def test_generate_matches_multiple_for_the_same_day(
         monkeypatch, **test_data
     )
     # Main request
-    data = {
-        k: v
-        for k, v in test_data.items()
-        if k in ["business_public_id", "court_name", "date"]
-    }
+    data = {k: v for k, v in test_data.items() if k in ["business_public_id", "date"]}
+    data["court_name"] = test_data["court_names"][0]  # type: ignore
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/generation",
         headers=x_api_key_header,
@@ -440,8 +425,9 @@ async def test_generate_matches_multiple_for_the_same_day(
         new_matches = new_matches_list["data"]
         assert len(new_matches) == 1
         match_extended = new_matches[0]
-        for k in ["court_public_id", "court_name", "date"]:
-            assert match_extended[k] == test_data[k]
+        for k in ["court_public_id", "court_name"]:
+            assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["date"] == test_data["date"]
         assert match_extended["time"] == new_hour
         time = match_extended["time"]
         time_avail = PlayerFilters.to_time_availability(time)
@@ -480,8 +466,8 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
     # Test ctes
     test_data = {
         "business_public_id": str(uuid.uuid4()),
-        "court_public_id": str(uuid.uuid4()),
-        "court_name": "1",
+        "court_public_ids": [str(uuid.uuid4())],
+        "court_names": ["1"],
         "latitude": 0.0,
         "longitude": 0.0,
         "date": "2025-03-19",
@@ -494,11 +480,8 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
         monkeypatch, **test_data
     )
     # Main request
-    data = {
-        k: v
-        for k, v in test_data.items()
-        if k in ["business_public_id", "court_name", "date"]
-    }
+    data = {k: v for k, v in test_data.items() if k in ["business_public_id", "date"]}
+    data["court_name"] = test_data["court_names"][0]  # type: ignore
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/generation",
         headers=x_api_key_header,
@@ -532,8 +515,9 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
         new_matches = new_matches_list["data"]
         assert len(new_matches) == 1
         match_extended = new_matches[0]
-        for k in ["court_public_id", "court_name", "date"]:
-            assert match_extended[k] == test_data[k]
+        for k in ["court_public_id", "court_name"]:
+            assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["date"] == test_data["date"]
         assert match_extended["time"] == new_hour
         time = match_extended["time"]
         time_avail = PlayerFilters.to_time_availability(time)
@@ -573,8 +557,8 @@ async def test_generate_matches_creates_match_players_with_distance_equal_to_arr
     times = [9]
     test_data = {
         "business_public_id": str(uuid.uuid4()),
-        "court_public_id": str(uuid.uuid4()),
-        "court_name": "1",
+        "court_public_ids": [str(uuid.uuid4())],
+        "court_names": ["1"],
         "latitude": 0.0,
         "longitude": 0.0,
         "date": "2025-03-19",
@@ -588,11 +572,8 @@ async def test_generate_matches_creates_match_players_with_distance_equal_to_arr
     )
 
     # Main request
-    data = {
-        k: v
-        for k, v in test_data.items()
-        if k in ["business_public_id", "court_name", "date"]
-    }
+    data = {k: v for k, v in test_data.items() if k in ["business_public_id", "date"]}
+    data["court_name"] = test_data["court_names"][0]  # type: ignore
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/generation",
         headers=x_api_key_header,
@@ -607,8 +588,9 @@ async def test_generate_matches_creates_match_players_with_distance_equal_to_arr
     assert len(matches) == 1
 
     match_extended = matches[0]
-    for k in ["court_public_id", "court_name", "date"]:
-        assert match_extended[k] == test_data[k]
+    for k in ["court_public_id", "court_name"]:
+        assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+    assert match_extended["date"] == test_data["date"]
 
     assert match_extended["time"] == test_data["times"][0]  # type: ignore
     time = match_extended["time"]

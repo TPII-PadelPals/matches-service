@@ -4,6 +4,7 @@ from typing import Any
 
 from app.core.config import settings
 from app.models.available_time import AvailableTime
+from app.models.court import Court
 
 from .base_service import BaseService
 
@@ -19,6 +20,25 @@ class BusinessService(BaseService):
         )
         if settings.BUSINESS_SERVICE_API_KEY:
             self.set_base_headers({"x-api-key": settings.BUSINESS_SERVICE_API_KEY})
+
+    async def get_courts(self, business_public_id: uuid.UUID) -> list[Court]:
+        content = await self.get("/api/v1/padel-courts/")
+        data = content["data"]
+        business_data = []
+        for datum in data:
+            if datum["business_public_id"] == str(business_public_id):
+                business_data.append(datum)
+
+        courts = []
+        for datum in business_data:
+            avail_time = Court(
+                business_public_id=datum["business_public_id"],
+                court_public_id=datum["court_public_id"],
+                court_name=datum["court_name"],
+                price_per_hour=datum["price_per_hour"],
+            )
+            courts.append(avail_time)
+        return courts
 
     async def get_available_times(
         self, business_public_id: uuid.UUID, court_name: str, date: date
