@@ -9,12 +9,6 @@
 
 #### Dependencies are managed with **uv**.
 
-Create `tpii-network` if not already created
-
-```bash
-docker network create tpii-network
-```
-
 Install it by running:
 
 ```bash
@@ -48,6 +42,12 @@ fastapi dev --reload app/main.py
 ```
 
 ### With docker
+
+Create `tpii-network` if not already created
+
+```bash
+docker network create tpii-network
+```
 
 Start the local stack with Docker Compose (API + Postgres):
 
