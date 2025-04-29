@@ -22,8 +22,6 @@ services:
   matches-service:
     build: .
     restart: always
-    networks:
-      - default
     depends_on:
       db:
         condition: service_healthy

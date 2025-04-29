@@ -9,6 +9,12 @@
 
 #### Dependencies are managed with **uv**.
 
+Create `tpii-network` if not already created
+
+```bash
+docker network create tpii-network
+```
+
 Install it by running:
 
 ```bash
