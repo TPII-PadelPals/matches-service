@@ -6,6 +6,7 @@ from typing import Any
 
 from app.core.config import settings
 from app.models.available_time import AvailableTime
+from app.models.court import Court
 from app.models.player import Player, PlayerFilters
 from app.services.business_service import BusinessService
 from app.services.match_generator_service import MatchGeneratorService
@@ -52,18 +53,51 @@ def get_mock_get_players_by_filters(**match_data: Any) -> Any:
     return mock_get_players_by_filters, assigned_players
 
 
+def get_mock_get_courts(**match_data: Any) -> Any:
+    courts = []
+    for court_public_id, court_name in zip(
+        match_data["court_public_ids"], match_data["court_names"], strict=False
+    ):
+        courts.append(
+            Court(
+                business_public_id=match_data["business_public_id"],
+                court_public_id=court_public_id,
+                court_name=court_name,
+                price_per_hour=0.0,
+            )
+        )
+
+    async def mock_get_courts(
+        self: Any,  # noqa: ARG001
+        business_public_id: uuid.UUID,  # noqa: ARG001
+    ) -> Any:
+        return courts
+
+    return mock_get_courts
+
+
 def get_mock_get_available_times(**match_data: Any) -> Any:
-    avail_times = [
-        AvailableTime(time=time, **match_data) for time in match_data["times"]
-    ]
+    avail_times = {}
+    for court_public_id, court_name in zip(
+        match_data["court_public_ids"], match_data["court_names"], strict=False
+    ):
+        avail_times[court_name] = [
+            AvailableTime(
+                court_public_id=court_public_id,
+                court_name=court_name,
+                time=time,
+                **match_data,
+            )
+            for time in match_data["times"]
+        ]
 
     async def mock_get_available_times(
         self: Any,  # noqa: ARG001
         business_public_id: uuid.UUID,  # noqa: ARG001
-        court_name: str,  # noqa: ARG001
+        court_name: str,
         date: datetime.date,  # noqa: ARG001
     ) -> Any:
-        return avail_times
+        return avail_times[court_name]
 
     return mock_get_available_times
 
@@ -71,7 +105,11 @@ def get_mock_get_available_times(**match_data: Any) -> Any:
 def initial_apply_mocks_for_generate_matches(
     monkeypatch: Any, **match_data: Any
 ) -> dict[int, dict[str, Any]]:
-    # Mock BusinessService
+    # Mock BusinessService Courts
+    mock_get_courts = get_mock_get_courts(**match_data)
+    monkeypatch.setattr(BusinessService, "get_courts", mock_get_courts)
+
+    # Mock BusinessService AvailableTimes
     mock_get_available_times = get_mock_get_available_times(**match_data)
     monkeypatch.setattr(
         BusinessService, "get_available_times", mock_get_available_times

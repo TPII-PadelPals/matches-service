@@ -4,7 +4,10 @@ from uuid import UUID
 from app.models.available_time import AvailableTime
 from app.models.match import MatchCreate
 from app.models.match_extended import MatchExtended
-from app.models.match_generation import MatchGenerationCreate
+from app.models.match_generation import (
+    MatchGenerationCreate,
+    MatchGenerationCreateExtended,
+)
 from app.models.match_player import MatchPlayer, MatchPlayerCreate, ReserveStatus
 from app.models.player import Player, PlayerFilters
 from app.services.business_service import BusinessService
@@ -91,9 +94,19 @@ class MatchGeneratorService:
 
         return MatchExtended(match, match_players)
 
-    async def generate_matches(
-        self, session: SessionDep, match_gen_create: MatchGenerationCreate
+    async def get_matches(
+        self, session: SessionDep, matches_public_ids: list[UUID]
     ) -> list[MatchExtended]:
+        matches_extended = [
+            await MatchExtendedService().get_match(session, match_public_id)
+            for match_public_id in matches_public_ids
+        ]
+
+        return matches_extended
+
+    async def generate_matches(
+        self, session: SessionDep, match_gen_create: MatchGenerationCreateExtended
+    ) -> list[UUID]:
         matches_public_ids = []
 
         avail_times = await BusinessService().get_available_times(
@@ -110,9 +123,22 @@ class MatchGeneratorService:
                 continue
             matches_public_ids.append(match_extended.match.public_id)
 
-        matches_extended = [
-            await MatchExtendedService().get_match(session, match_public_id)
-            for match_public_id in matches_public_ids
-        ]
+        return matches_public_ids
 
-        return matches_extended
+    async def generate_matches_all(
+        self, session: SessionDep, match_gen_create: MatchGenerationCreate
+    ) -> list[UUID]:
+        matches_public_ids = []
+
+        courts = await BusinessService().get_courts(match_gen_create.business_public_id)
+
+        for court in courts:
+            match_gen_create_ext = MatchGenerationCreateExtended(
+                court_name=court.court_name, **match_gen_create.model_dump()
+            )
+            _matches_public_ids = await self.generate_matches(
+                session, match_gen_create_ext
+            )
+            matches_public_ids += _matches_public_ids
+
+        return matches_public_ids
