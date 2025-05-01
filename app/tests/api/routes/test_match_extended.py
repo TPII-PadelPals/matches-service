@@ -24,7 +24,7 @@ async def test_get_player_matches_returns_all_matches_associated_to_player(
 
     # Add players to match
     user_public_id = str(uuid.uuid4())
-    data = {"user_public_id": user_public_id}
+    data = {"user_public_id": user_public_id, "distance": 0}
     for match_public_id in match_public_ids:
         await async_client.post(
             f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
@@ -77,7 +77,7 @@ async def test_get_player_matches_returns_all_matches_associated_to_player_multi
 
     # Add players to match
     user_public_id = str(uuid.uuid4())
-    data = {"user_public_id": user_public_id}
+    data = {"user_public_id": user_public_id, "distance": 0}
     for match_public_id in match_public_ids:
         await async_client.post(
             f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
@@ -129,7 +129,7 @@ async def test_get_player_matches_returns_all_matches_associated_to_multiple_pla
             await async_client.post(
                 f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
                 headers=x_api_key_header,
-                json={"user_public_id": user_id},
+                json={"user_public_id": user_id, "distance": 0},
             )
     response = await async_client.get(
         f"{test_settings.API_V1_STR}/players/{user_public_id}/matches/",

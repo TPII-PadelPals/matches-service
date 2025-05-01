@@ -4,14 +4,19 @@ from uuid import UUID
 from app.models.available_time import AvailableTime
 from app.models.match import MatchCreate
 from app.models.match_extended import MatchExtended
-from app.models.match_generation import MatchGenerationCreate
+from app.models.match_generation import (
+    MatchGenerationCreate,
+    MatchGenerationCreateExtended,
+)
 from app.models.match_player import MatchPlayer, MatchPlayerCreate, ReserveStatus
 from app.models.player import Player, PlayerFilters
 from app.services.business_service import BusinessService
+from app.services.match_extended_service import MatchExtendedService
 from app.services.match_player_service import MatchPlayerService
 from app.services.match_service import MatchService
 from app.services.players_service import PlayersService
 from app.utilities.dependencies import SessionDep
+from app.utilities.exceptions import NotUniqueException
 
 
 class MatchGeneratorService:
@@ -34,8 +39,6 @@ class MatchGeneratorService:
 
         assigned_player = self._choose_priority_player(avail_players)
 
-        # Por qué se asigna un user_public_id aca?
-        # Porque al filtro si le ponés el user_public_id te trae todos menos el del filtro.
         players_filters.user_public_id = assigned_player.user_public_id
         players_filters.n_players = self.N_SIM_PLAYERS
         similar_players = await PlayersService().get_players_by_filters(players_filters)
@@ -48,8 +51,9 @@ class MatchGeneratorService:
         assigned_player: Player,
         similar_players: list[Player],
     ) -> list[MatchPlayer]:
+        avail_players = [assigned_player] + similar_players
         match_players = []
-        for player in [assigned_player] + similar_players:
+        for distance, player in enumerate(avail_players):
             reserve_status = ReserveStatus.SIMILAR
             if player.user_public_id == assigned_player.user_public_id:
                 reserve_status = ReserveStatus.ASSIGNED
@@ -57,6 +61,7 @@ class MatchGeneratorService:
             match_player_create = MatchPlayerCreate(
                 user_public_id=player.user_public_id,
                 match_public_id=match_public_id,
+                distance=distance,
                 reserve=reserve_status,
             )
             match_player = await MatchPlayerService().create_match_player(
@@ -69,12 +74,13 @@ class MatchGeneratorService:
         self, session: SessionDep, avail_time: AvailableTime
     ) -> MatchExtended | None:
         match_create = MatchCreate.from_available_time(avail_time)
+        match_service = MatchService()
 
         assigned_player, similar_players = await self._choose_match_players(avail_time)
         if not assigned_player or len(similar_players) == 0:
             return None
 
-        match = await MatchService().create_match(
+        match = await match_service.create_match(
             session, match_create, should_commit=False
         )
         match_public_id = match.public_id
@@ -88,24 +94,51 @@ class MatchGeneratorService:
 
         return MatchExtended(match, match_players)
 
-    async def generate_matches(
-        self, session: SessionDep, match_gen_create: MatchGenerationCreate
+    async def get_matches(
+        self, session: SessionDep, matches_public_ids: list[UUID]
     ) -> list[MatchExtended]:
-        try:
-            matches_extended = []
+        matches_extended = [
+            await MatchExtendedService().get_match(session, match_public_id)
+            for match_public_id in matches_public_ids
+        ]
 
-            avail_times = await BusinessService().get_available_times(
-                **match_gen_create.model_dump()
-            )
-            for avail_time in avail_times:
+        return matches_extended
+
+    async def generate_matches(
+        self, session: SessionDep, match_gen_create: MatchGenerationCreateExtended
+    ) -> list[UUID]:
+        matches_public_ids = []
+
+        avail_times = await BusinessService().get_available_times(
+            **match_gen_create.model_dump()
+        )
+        for avail_time in avail_times:
+            try:
                 match_extended = await self._generate_match(session, avail_time)
                 if not match_extended:
                     continue
-                matches_extended.append(match_extended)
+                await session.commit()
+            except NotUniqueException:
+                await session.rollback()
+                continue
+            matches_public_ids.append(match_extended.match.public_id)
 
-            await session.commit()
+        return matches_public_ids
 
-            return matches_extended
-        except Exception as e:
-            await session.rollback()
-            raise e
+    async def generate_matches_all(
+        self, session: SessionDep, match_gen_create: MatchGenerationCreate
+    ) -> list[UUID]:
+        matches_public_ids = []
+
+        courts = await BusinessService().get_courts(match_gen_create.business_public_id)
+
+        for court in courts:
+            match_gen_create_ext = MatchGenerationCreateExtended(
+                court_name=court.court_name, **match_gen_create.model_dump()
+            )
+            _matches_public_ids = await self.generate_matches(
+                session, match_gen_create_ext
+            )
+            matches_public_ids += _matches_public_ids
+
+        return matches_public_ids

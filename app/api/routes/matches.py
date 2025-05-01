@@ -12,7 +12,10 @@ from app.models.match import (
     MatchUpdate,
 )
 from app.models.match_extended import MatchesExtendedListPublic
-from app.models.match_generation import MatchGenerationCreate
+from app.models.match_generation import (
+    MatchGenerationCreate,
+    MatchGenerationCreateExtended,
+)
 from app.services.match_generator_service import MatchGeneratorService
 from app.services.match_service import MatchService
 from app.utilities.dependencies import SessionDep
@@ -54,12 +57,35 @@ async def create_matches(
     status_code=status.HTTP_201_CREATED,
 )
 async def generate_matches(
+    *, session: SessionDep, match_gen_create: MatchGenerationCreateExtended
+) -> Any:
+    """
+    Generate matches given business, court and date
+    """
+    match_gen_service = MatchGeneratorService()
+    matches_public_ids = await match_gen_service.generate_matches(
+        session, match_gen_create
+    )
+    matches = await match_gen_service.get_matches(session, matches_public_ids)
+    return MatchesExtendedListPublic.from_private(matches)
+
+
+@router.post(
+    "/generation/all",
+    response_model=MatchesExtendedListPublic,
+    status_code=status.HTTP_201_CREATED,
+)
+async def generate_matches_all(
     *, session: SessionDep, match_gen_create: MatchGenerationCreate
 ) -> Any:
     """
     Generate matches given business, court and date
     """
-    matches = await MatchGeneratorService().generate_matches(session, match_gen_create)
+    match_gen_service = MatchGeneratorService()
+    matches_public_ids = await match_gen_service.generate_matches_all(
+        session, match_gen_create
+    )
+    matches = await match_gen_service.get_matches(session, matches_public_ids)
     return MatchesExtendedListPublic.from_private(matches)
 
 

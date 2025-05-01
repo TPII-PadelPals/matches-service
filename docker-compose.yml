@@ -1,5 +1,5 @@
 services:
-  db:
+  matches-db:
     image: postgres:12
     restart: always
     healthcheck:
@@ -9,7 +9,7 @@ services:
       start_period: 30s
       timeout: 10s
     volumes:
-      - db-data:/var/lib/postgresql/data/pgdata
+      - matches-db-data:/var/lib/postgresql/data/pgdata
       - ./scripts/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
     env_file:
       - .env
@@ -22,17 +22,15 @@ services:
   matches-service:
     build: .
     restart: always
-    networks:
-      - default
     depends_on:
-      db:
+      matches-db:
         condition: service_healthy
         restart: true
     env_file:
       - .env
     environment:
       - ENVIRONMENT=${ENVIRONMENT?Variable not set}
-      - POSTGRES_SERVER=db
+      - POSTGRES_SERVER=matches-db
       - POSTGRES_PORT=${POSTGRES_PORT?Variable not set}
       - POSTGRES_PORT_EXT=${POSTGRES_PORT_EXT?Variable not set}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
@@ -41,4 +39,4 @@ services:
       - POSTGRES_DB_TESTING=${POSTGRES_DB_TESTING?Variable not set}
 
 volumes:
-  db-data:
+  matches-db-data:

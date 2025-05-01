@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Service Template FastAPI: Python Debugger",
+      "name": "Matches Service FastAPI: Python Debugger",
       "type": "debugpy",
       "request": "launch",
       "module": "uvicorn",

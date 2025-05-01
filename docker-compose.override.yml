@@ -1,8 +1,10 @@
 services:
-  db:
+  matches-db:
     restart: "no"
     ports:
       - "${POSTGRES_PORT_EXT?Variable not set}:${POSTGRES_PORT?Variable not set}"
+    networks:
+      - tpii-network
 
   matches-service:
     restart: "no"
@@ -25,3 +27,11 @@ services:
           action: rebuild
     volumes:
       - ./htmlcov:/app/htmlcov
+    labels:
+      - "traefik.http.routers.matches.rule=PathPrefix(`/api/v1/matches`)"
+    networks:
+      - tpii-network
+
+networks:
+  tpii-network:
+    external: true
