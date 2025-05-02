@@ -105,6 +105,10 @@ To run test manually:
 bash scripts/test.sh
 ```
 
+## Seeding DB
+
+Refer to [Seeds README.md](app/seeds/README.md) .
+
 ## VS Code compatibility
 
 There are already configurations in place to run the backend through the VS Code debugger, so that you can use breakpoints, pause and explore variables, etc. File with config located at `.vscode/launch.json`. If this repo is in within a workspace, move this config to the workspace root.
