@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.models.available_time import AvailableTime
 from app.models.court import Court
 from app.models.player import Player, PlayerFilters
+from app.services.bot_service import BotService
 from app.services.business_service import BusinessService
 from app.services.match_generator_service import MatchGeneratorService
 from app.services.players_service import PlayersService
@@ -102,6 +103,16 @@ def get_mock_get_available_times(**match_data: Any) -> Any:
     return mock_get_available_times
 
 
+def get_mock_send_messages_disable() -> Any:
+    async def send_new_matches(
+        self: Any,  # noqa: ARG001
+        user_public_ids: list[uuid.UUID],  # noqa: ARG001
+    ) -> Any:
+        return None
+
+    return send_new_matches
+
+
 def initial_apply_mocks_for_generate_matches(
     monkeypatch: Any, **match_data: Any
 ) -> dict[int, dict[str, Any]]:
@@ -134,5 +145,8 @@ def initial_apply_mocks_for_generate_matches(
     monkeypatch.setattr(
         MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
     )
+
+    mock_send_messages = get_mock_send_messages_disable()
+    monkeypatch.setattr(BotService, "send_new_matches", mock_send_messages)
 
     return assigned_players  # type: ignore
