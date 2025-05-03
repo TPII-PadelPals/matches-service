@@ -18,8 +18,6 @@ class BotService(BaseService):
             host=settings.BOT_SERVICE_HOST,
             port=settings.BOT_SERVICE_PORT,
         )
-        if settings.BOT_SERVICE_API_KEY:
-            self.set_base_headers({"x-api-key": settings.BOT_SERVICE_API_KEY})
 
     async def send_message(self, message: BotMessage) -> Any:
         """Send message with the bot."""
