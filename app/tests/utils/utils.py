@@ -3,15 +3,18 @@ import random
 import string
 import uuid
 from typing import Any
+from unittest.mock import Mock
 
 from app.core.config import settings
 from app.models.available_time import AvailableTime
 from app.models.court import Court
+from app.models.message import BotMessage
 from app.models.player import Player, PlayerFilters
 from app.services.bot_service import BotService
 from app.services.business_service import BusinessService
 from app.services.match_generator_service import MatchGeneratorService
 from app.services.players_service import PlayersService
+from app.services.users_service import UserService
 
 
 def random_lower_string() -> str:
@@ -113,6 +116,30 @@ def get_mock_send_messages_disable() -> Any:
     return send_new_matches
 
 
+def set_mock_send_messages(monkeypatch: Any) -> Any:
+    mock_get_telegram_id = Mock(return_value=0)
+
+    async def get_telegram_id(
+        self: Any,  # noqa: ARG001
+        user_public_id: uuid.UUID,  # noqa: ARG001
+    ) -> Any:
+        return mock_get_telegram_id()
+
+    monkeypatch.setattr(UserService, "get_telegram_id", get_telegram_id)
+
+    mock_send_messages = Mock()
+
+    async def send_messages(
+        self: Any,  # noqa: ARG001
+        messages: list[BotMessage],  # noqa: ARG001
+    ) -> Any:
+        """Send messages with the bot."""
+        return mock_send_messages()
+
+    monkeypatch.setattr(BotService, "send_messages", send_messages)
+    return mock_get_telegram_id, mock_send_messages
+
+
 def initial_apply_mocks_for_generate_matches(
     monkeypatch: Any, **match_data: Any
 ) -> dict[int, dict[str, Any]]:
@@ -146,7 +173,11 @@ def initial_apply_mocks_for_generate_matches(
         MatchGeneratorService, "_choose_priority_player", mock_choose_priority_player
     )
 
-    mock_send_messages = get_mock_send_messages_disable()
-    monkeypatch.setattr(BotService, "send_new_matches", mock_send_messages)
+    if (
+        not match_data.get("WHITOUT_MESSAGE")
+        and match_data.get("WHITOUT_MESSAGE") is None
+    ):
+        mock_send_messages = get_mock_send_messages_disable()
+        monkeypatch.setattr(BotService, "send_new_matches", mock_send_messages)
 
     return assigned_players  # type: ignore
