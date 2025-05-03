@@ -67,7 +67,8 @@ async def generate_matches(
         session, match_gen_create
     )
     matches = await match_gen_service.get_matches(session, matches_public_ids)
-    return MatchesExtendedListPublic.from_private(matches)
+    list_of_matches = MatchesExtendedListPublic.from_private(matches)
+    return list_of_matches
 
 
 @router.post(
@@ -86,7 +87,8 @@ async def generate_matches_all(
         session, match_gen_create
     )
     matches = await match_gen_service.get_matches(session, matches_public_ids)
-    return MatchesExtendedListPublic.from_private(matches)
+    list_of_matches = MatchesExtendedListPublic.from_private(matches)
+    return list_of_matches
 
 
 @router.get("/{public_id}", status_code=status.HTTP_200_OK)

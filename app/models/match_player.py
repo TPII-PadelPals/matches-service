@@ -77,6 +77,11 @@ class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutableExtended):
         data = match_player.model_dump()
         return cls(**data)
 
+    def get_user_public_id_of_player_assigned(self) -> UUID | None:
+        if self.reserve is ReserveStatus.ASSIGNED:
+            return self.user_public_id
+        return None
+
 
 class MatchPlayerListPublic(SQLModel):
     data: list[MatchPlayerPublic]
