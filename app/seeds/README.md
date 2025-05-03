@@ -2,7 +2,7 @@
 Seeds are created in Python files which offer flexibility to changes in the code and IDE typing.
 
 ## Creating new seed files
-To create new seeds, use `seed_records_1.py` as example.
+To create new seeds, use `seed_records_sample.py` as example.
 
 ## Setting up a seed file
 To configure a seed file, set the constant `RECORDS` of `seed_config.py` as the constant `RECORDS` of the desirable seed file.
