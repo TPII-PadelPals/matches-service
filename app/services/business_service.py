@@ -34,7 +34,7 @@ class BusinessService(BaseService):
             avail_time = Court(
                 business_public_id=datum["business_public_id"],
                 court_public_id=datum["court_public_id"],
-                court_name=datum["court_name"],
+                court_name=datum["name"],
                 price_per_hour=datum["price_per_hour"],
             )
             courts.append(avail_time)

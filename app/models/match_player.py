@@ -9,7 +9,7 @@ class ReserveStatus(str, Enum):
     ASSIGNED = "assigned"
     SIMILAR = "similar"
     PROVISIONAL = "Provisional"
-    INSIDE = "Inside"
+    INSIDE = "inside"
     REJECTED = "Rejected"
 
 
