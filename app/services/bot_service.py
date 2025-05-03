@@ -34,9 +34,10 @@ class BotService(BaseService):
     async def send_new_matches(self, user_public_ids: list[uuid.UUID]) -> Any:
         if not user_public_ids:
             return None
+        unique_user_public_ids = list(set(user_public_ids))
         messages: list[BotMessage] = []
         user_service = UserService()
-        for user_public_id in user_public_ids:
+        for user_public_id in unique_user_public_ids:
             telegram_id = await user_service.get_telegram_id(user_public_id)
             message = BotMessage(
                 chat_id=telegram_id,
