@@ -1,3 +1,5 @@
+import uuid
+
 from sqlmodel import SQLModel
 
 from app.models.match import Match, MatchBase, MatchInmutable
@@ -6,6 +8,17 @@ from app.models.match_player import MatchPlayer, MatchPlayerPublic
 
 class MatchExtendedPublic(MatchBase, MatchInmutable):
     match_players: list[MatchPlayerPublic]
+
+    def get_assigned_players(self) -> list[uuid.UUID]:
+        result = []
+        for match_player in self.match_players:
+            list_public_id_player_assigned_in_match = (
+                match_player.get_assigned_players_uuids()
+            )
+            if not list_public_id_player_assigned_in_match:
+                continue
+            result.append(list_public_id_player_assigned_in_match)
+        return result
 
 
 class MatchExtended:
@@ -34,3 +47,10 @@ class MatchesExtendedListPublic(SQLModel):
         data = data
         count = len(data)
         return cls(data=data, count=count)
+
+    def get_list_player_assigned(self) -> list[uuid.UUID]:
+        result = []
+        for match_extended in self.data:
+            list_player_assigned_in_match = match_extended.get_assigned_players()
+            result += list_player_assigned_in_match
+        return result

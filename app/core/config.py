@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     PLAYERS_SERVICE_PORT: int | None = None
     PLAYERS_SERVICE_API_KEY: str | None = None
 
+    BOT_SERVICE_HOST: str
+    BOT_SERVICE_PORT: int | None = None
+
+    USER_SERVICE_HOST: str
+    USER_SERVICE_PORT: int | None = None
+    USER_SERVICE_API_KEY: str | None = None
+
     # Testing
     POSTGRES_DB_TESTING: str
 
