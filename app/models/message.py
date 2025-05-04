@@ -6,6 +6,5 @@ class Message(SQLModel):
     message: str
 
 
-class BotMessage(SQLModel):
+class BotMessage(Message):
     chat_id: int
-    message: str

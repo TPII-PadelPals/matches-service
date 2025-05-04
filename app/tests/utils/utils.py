@@ -117,27 +117,27 @@ def get_mock_send_messages_disable() -> Any:
 
 
 def set_mock_send_messages(monkeypatch: Any) -> Any:
-    mock_get_telegram_id = Mock(return_value=0)
+    mock_telegram_id = Mock(return_value=0)
 
-    async def get_telegram_id(
+    async def mock_get_telegram_id(
         self: Any,  # noqa: ARG001
         user_public_id: uuid.UUID,  # noqa: ARG001
     ) -> Any:
-        return mock_get_telegram_id()
+        return mock_telegram_id()
 
-    monkeypatch.setattr(UserService, "get_telegram_id", get_telegram_id)
+    monkeypatch.setattr(UserService, "get_telegram_id", mock_get_telegram_id)
 
-    mock_send_messages = Mock()
+    mock_messages = Mock()
 
-    async def send_messages(
+    async def mock_send_messages(
         self: Any,  # noqa: ARG001
         messages: list[BotMessage],  # noqa: ARG001
     ) -> Any:
         """Send messages with the bot."""
-        return mock_send_messages()
+        return mock_messages()
 
-    monkeypatch.setattr(BotService, "send_messages", send_messages)
-    return mock_get_telegram_id, mock_send_messages
+    monkeypatch.setattr(BotService, "send_messages", mock_send_messages)
+    return mock_telegram_id, mock_messages
 
 
 def initial_apply_mocks_for_generate_matches(
@@ -174,8 +174,8 @@ def initial_apply_mocks_for_generate_matches(
     )
 
     if (
-        not match_data.get("WHITOUT_MESSAGE")
-        and match_data.get("WHITOUT_MESSAGE") is None
+        not match_data.get("WITHOUT_MESSAGE")
+        and match_data.get("WITHOUT_MESSAGE") is None
     ):
         mock_send_messages = get_mock_send_messages_disable()
         monkeypatch.setattr(BotService, "send_new_matches", mock_send_messages)

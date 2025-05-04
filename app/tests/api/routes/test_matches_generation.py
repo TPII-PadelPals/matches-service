@@ -640,7 +640,7 @@ async def test_generate_matches_and_send_message(
         "all_times": times,
         "is_reserved": False,
         "n_similar_players": 6,
-        "WHITOUT_MESSAGE": False,
+        "WITHOUT_MESSAGE": False,
     }
 
     assigned_players = initial_apply_mocks_for_generate_matches(
