@@ -11,6 +11,7 @@ class ReserveStatus(str, Enum):
     PROVISIONAL = "Provisional"
     INSIDE = "inside"
     REJECTED = "Rejected"
+    OUTSIDE = "outside"
 
 
 class MatchPlayerBase(SQLModel):

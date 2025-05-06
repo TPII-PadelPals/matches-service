@@ -683,3 +683,38 @@ async def test_only_one_player_inside_more_than_three_players_similar_then_the_c
             min_farthest_distance = farthest_player.distance
 
     assert max_closest_distance <= min_farthest_distance
+
+async def test_one_player_reserve_to_outside(
+    async_client: AsyncClient, x_api_key_header: dict[str, str]
+) -> None:
+    # Create match
+    data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
+    response = await create_match(async_client, x_api_key_header, data)
+    content = response.json()
+
+    match_public_id = content["public_id"]
+    # Add player to match
+    data = {"user_public_id": str(uuid.uuid4()), "distance": 0.0}
+    response = await async_client.post(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
+        headers=x_api_key_header,
+        json=data,
+    )
+    content = response.json()
+    user_public_id = content["user_public_id"]
+    _response = await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
+        headers=x_api_key_header,
+        json={"reserve": ReserveStatus.ASSIGNED},
+    )
+    # Update match player
+    response = await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
+        headers=x_api_key_header,
+        json={"reserve": ReserveStatus.OUTSIDE},
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert content["match_public_id"] == match_public_id
+    assert content["user_public_id"] == user_public_id
+    assert content["reserve"] == ReserveStatus.OUTSIDE
