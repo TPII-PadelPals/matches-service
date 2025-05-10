@@ -14,7 +14,7 @@ class MatchExtendedService:
     ) -> MatchExtended:
         match = await MatchService().get_match(session, match_public_id)
         match_players = await MatchPlayerService().get_match_players(
-            session, match_public_id
+            session, match_public_id=match_public_id
         )
         return MatchExtended(match, match_players)
 
@@ -35,7 +35,7 @@ class MatchExtendedService:
                 continue
             match: Match = await match_service.get_match(session, match_id)
             match_players = await match_player_service.get_match_players(
-                session, match_id
+                session, match_public_id=match_id
             )
             if match_players is None:
                 continue
