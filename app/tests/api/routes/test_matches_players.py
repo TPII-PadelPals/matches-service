@@ -848,3 +848,4 @@ async def test_one_player_reserve_to_outside(
     assert content["match_public_id"] == match_public_id
     assert content["user_public_id"] == user_public_id
     assert content["reserve"] == ReserveStatus.OUTSIDE
+    assert content["pay_url"] is None
