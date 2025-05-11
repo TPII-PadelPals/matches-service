@@ -21,7 +21,9 @@ class PaymentsService(BaseService):
         match_player_extended_public = match_player_extended.to_public()
 
         content = await self.post(
-            "/api/v1/payments", json=match_player_extended_public.model_dump_json()
+            "/api/v1/payments/",
+            data=match_player_extended_public.model_dump_json(),  # type: ignore
+            headers={"Content-Type": "application/json"},
         )
 
         payment = Payment(
