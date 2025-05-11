@@ -151,7 +151,7 @@ async def test_get_match_players_returns_all_players_associated_to_match(
         assert match_player["reserve"] == ReserveStatus.PROVISIONAL
 
 
-async def test_update_one_player_reserve_to_inside(
+async def test_update_one_player_reserve_to_inside_creates_payment(
     async_client: AsyncClient, x_api_key_header: dict[str, str], monkeypatch: Any
 ) -> None:
     # Create match
