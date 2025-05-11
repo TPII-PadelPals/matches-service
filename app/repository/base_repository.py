@@ -64,20 +64,11 @@ class BaseRepository:
         limit: Max number of records to get.
         """
         query = select(model)
-        # Filters
 
+        # Filters
         for key, value in filters.items():
             attr = getattr(model, key)
             query = query.where(attr == value)
-        # or_conditions = []
-        # for filter in filters:
-        #     and_conditions = [
-        #         getattr(model, attr) == value
-        #         for attr, value in vars(filter).items()
-        #         if value is not None
-        #     ]
-        #     or_conditions.append(and_(*and_conditions))
-        # query = select(model).where(or_(*or_conditions))
 
         # Order
         if order_by is None:
