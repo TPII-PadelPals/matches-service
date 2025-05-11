@@ -1,13 +1,17 @@
+from typing import Any
 from uuid import UUID
 
+from app.models.match_extended import MatchExtended
 from app.models.match_player import (
     MatchPlayer,
     MatchPlayerCreate,
-    MatchPlayerFilter,
+    MatchPlayerPay,
     MatchPlayerUpdate,
     ReserveStatus,
 )
 from app.repository.match_player_repository import MatchPlayerRepository
+from app.services.match_service import MatchService
+from app.services.payment_service import PaymentsService
 from app.utilities.dependencies import SessionDep
 from app.utilities.exceptions import NotAuthorizedException
 
@@ -39,15 +43,25 @@ class MatchPlayerService:
         user_public_id: UUID,
     ) -> MatchPlayer:
         repo_match_player = MatchPlayerRepository(session)
-        return await repo_match_player.get_match_player(match_public_id, user_public_id)
+        return await repo_match_player.get_match_player(
+            match_public_id=match_public_id, user_public_id=user_public_id
+        )
+
+    async def get_match_player_extended(
+        self, session: SessionDep, match_public_id: UUID, user_public_id: UUID
+    ) -> MatchExtended:
+        match = await MatchService().get_match(session, match_public_id)
+        match_player = await self.get_match_players(
+            session, match_public_id=match_public_id, user_public_id=user_public_id
+        )
+        return MatchExtended(match, match_player)
 
     async def get_match_players(
         self,
         session: SessionDep,
-        match_public_id: UUID,
-        status: ReserveStatus | None = None,
         order_by: list[tuple[str, bool]] | None = None,
         limit: int | None = None,
+        **filters: Any,
     ) -> list[MatchPlayer]:
         """
         order_by: List of tuples(Player.attribute, is_ascending)
@@ -55,12 +69,7 @@ class MatchPlayerService:
         limit: Max number of players to get.
         """
         repo_match_player = MatchPlayerRepository(session)
-        match_player_filter = MatchPlayerFilter(match_public_id=match_public_id)
-        if status:
-            match_player_filter.reserve = status
-        return await repo_match_player.get_matches_players(
-            [match_player_filter], order_by, limit
-        )
+        return await repo_match_player.get_matches_players(order_by, limit, **filters)
 
     async def get_player_matches(
         self,
@@ -69,7 +78,7 @@ class MatchPlayerService:
     ) -> list[MatchPlayer]:
         repo_match_player = MatchPlayerRepository(session)
         return await repo_match_player.get_matches_players(
-            [MatchPlayerFilter(user_public_id=user_public_id)]
+            user_public_id=user_public_id
         )
 
     async def update_match_player(
@@ -78,11 +87,17 @@ class MatchPlayerService:
         match_public_id: UUID,
         user_public_id: UUID,
         match_player_in: MatchPlayerUpdate,
-    ) -> MatchPlayer:
+    ) -> MatchPlayerPay:
+        pay_url = None
         if match_player_in.is_inside():
             await self._validate_accept_match_player(
                 session, match_public_id, user_public_id
             )
+            match_player_extended = await self.get_match_player_extended(
+                session, match_public_id, user_public_id
+            )
+            payment = await PaymentsService().create_payment(match_player_extended)
+            pay_url = payment.pay_url
 
         match_player = await self._update_match_player(
             session, match_public_id, user_public_id, match_player_in
@@ -90,7 +105,7 @@ class MatchPlayerService:
 
         await self._update_match_similars(session, match_public_id)
 
-        return match_player
+        return MatchPlayerPay.from_match_player(match_player, pay_url)
 
     async def _update_match_player(
         self,
@@ -101,7 +116,9 @@ class MatchPlayerService:
     ) -> MatchPlayer:
         repo_match_player = MatchPlayerRepository(session)
         match_player = await repo_match_player.update_match_player(
-            match_public_id, user_public_id, match_player_in
+            match_player_in,
+            match_public_id=match_public_id,
+            user_public_id=user_public_id,
         )
         return match_player
 
@@ -121,10 +138,10 @@ class MatchPlayerService:
         self, session: SessionDep, match_public_id: UUID
     ) -> None:
         assigned_players = await self.get_match_players(
-            session, match_public_id, status=ReserveStatus.ASSIGNED
+            session, match_public_id=match_public_id, reserve=ReserveStatus.ASSIGNED
         )
         inside_players = await self.get_match_players(
-            session, match_public_id, status=ReserveStatus.INSIDE
+            session, match_public_id=match_public_id, reserve=ReserveStatus.INSIDE
         )
 
         n_missing_players = (
@@ -135,10 +152,10 @@ class MatchPlayerService:
         if n_missing_players > 0:
             next_assign_players = await self.get_match_players(
                 session,
-                match_public_id,
-                status=ReserveStatus.SIMILAR,
                 order_by=[("distance", True)],
                 limit=n_missing_players,
+                match_public_id=match_public_id,
+                reserve=ReserveStatus.SIMILAR,
             )
 
         for player in next_assign_players:

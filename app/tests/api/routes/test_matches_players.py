@@ -1,14 +1,18 @@
 import uuid
 from operator import itemgetter
+from typing import Any
 
 from httpx import AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import test_settings
 from app.models.match import MatchCreate
+from app.models.match_extended import MatchExtended
 from app.models.match_player import MatchPlayerCreate, ReserveStatus
+from app.models.payment import Payment
 from app.services.match_player_service import MatchPlayerService
 from app.services.match_service import MatchService
+from app.services.payment_service import PaymentsService
 from app.tests.utils.matches import (
     create_match,
     serialize_match_data,
@@ -147,42 +151,55 @@ async def test_get_match_players_returns_all_players_associated_to_match(
         assert match_player["reserve"] == ReserveStatus.PROVISIONAL
 
 
-async def test_update_one_player_reserve_to_inside(
-    async_client: AsyncClient, x_api_key_header: dict[str, str]
+async def test_update_one_player_reserve_to_inside_creates_payment(
+    async_client: AsyncClient, x_api_key_header: dict[str, str], monkeypatch: Any
 ) -> None:
     # Create match
     data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
     match_public_id = content["public_id"]
+    user_public_id = str(uuid.uuid4())
+    pay_url = "https://www.mercadopago.com/mla/checkout/start?pref_id=123456"
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=user_public_id,
+            pay_url=pay_url,
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
+
     # Add player to match
-    data = {"user_public_id": str(uuid.uuid4()), "distance": 0.0}
     response = await async_client.post(
         f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/",
         headers=x_api_key_header,
-        json=data,
+        json={"user_public_id": str(user_public_id), "distance": 0.0},
     )
     content = response.json()
-    user_public_id = content["user_public_id"]
-    _response = await async_client.patch(
-        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
+    await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{str(user_public_id)}/",
         headers=x_api_key_header,
         json={"reserve": ReserveStatus.ASSIGNED},
     )
+
     # Update match player
-
-    data = {"reserve": ReserveStatus.INSIDE}
-
     response = await async_client.patch(
         f"{test_settings.API_V1_STR}/matches/{match_public_id}/players/{user_public_id}/",
         headers=x_api_key_header,
-        json=data,
+        json={"reserve": ReserveStatus.INSIDE},
     )
     assert response.status_code == 200
     content = response.json()
     assert content["match_public_id"] == match_public_id
     assert content["user_public_id"] == user_public_id
-    assert content["reserve"] == data["reserve"]
+    assert content["reserve"] == ReserveStatus.INSIDE
+    assert content["pay_url"] == pay_url
 
 
 async def test_update_one_player_reserve_to_reject(
@@ -234,14 +251,29 @@ async def test_update_one_player_raises_exception_when_match_player_not_exists(
 
 
 async def test_one_player_reserve_to_inside(
-    async_client: AsyncClient, x_api_key_header: dict[str, str]
+    async_client: AsyncClient, x_api_key_header: dict[str, str], monkeypatch: Any
 ) -> None:
     # Create match
     data = serialize_match_data(court_name="0", time=8, date="2024-11-25")
     response = await create_match(async_client, x_api_key_header, data)
     content = response.json()
-
     match_public_id = content["public_id"]
+    user_public_id = str(uuid.uuid4())
+    pay_url = "https://www.mercadopago.com/mla/checkout/start?pref_id=123456"
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=user_public_id,
+            pay_url=pay_url,
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
+
     # Add player to match
     data = {"user_public_id": str(uuid.uuid4()), "distance": 0.0}
     response = await async_client.post(
@@ -267,6 +299,7 @@ async def test_one_player_reserve_to_inside(
     assert content["match_public_id"] == match_public_id
     assert content["user_public_id"] == user_public_id
     assert content["reserve"] == ReserveStatus.INSIDE
+    assert content["pay_url"] == pay_url
 
 
 async def test_one_player_reserve_to_accept_not_assigned_is_rejected(
@@ -332,7 +365,10 @@ async def test_one_player_reserve_to_accept_not_provisional_is_rejected(
 
 
 async def test_only_one_player_inside_then_only_one_similar_is_assigned(
-    async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
+    async_client: AsyncClient,
+    session: AsyncSession,
+    x_api_key_header: dict[str, str],
+    monkeypatch: Any,
 ) -> None:
     match = await MatchService().create_match(
         session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
@@ -349,6 +385,19 @@ async def test_only_one_player_inside_then_only_one_similar_is_assigned(
             reserve=ReserveStatus.ASSIGNED,
         ),
     )
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
     # Create one player SIMILAR
     similar_uuid = uuid.uuid4()
@@ -379,7 +428,10 @@ async def test_only_one_player_inside_then_only_one_similar_is_assigned(
 
 
 async def test_only_one_player_inside_then_only_three_similar_are_assigned(
-    async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
+    async_client: AsyncClient,
+    session: AsyncSession,
+    x_api_key_header: dict[str, str],
+    monkeypatch: Any,
 ) -> None:
     match = await MatchService().create_match(
         session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
@@ -396,6 +448,19 @@ async def test_only_one_player_inside_then_only_three_similar_are_assigned(
             reserve=ReserveStatus.ASSIGNED,
         ),
     )
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
     # Create three players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(3)]
@@ -428,7 +493,10 @@ async def test_only_one_player_inside_then_only_three_similar_are_assigned(
 
 
 async def test_four_players_inside_then_no_more_assigned(
-    async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
+    async_client: AsyncClient,
+    session: AsyncSession,
+    x_api_key_header: dict[str, str],
+    monkeypatch: Any,
 ) -> None:
     match = await MatchService().create_match(
         session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
@@ -457,6 +525,19 @@ async def test_four_players_inside_then_no_more_assigned(
             reserve=ReserveStatus.ASSIGNED,
         ),
     )
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
     # Create three players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(3)]
@@ -489,7 +570,10 @@ async def test_four_players_inside_then_no_more_assigned(
 
 
 async def test_two_players_inside_two_players_assigned_then_no_more_assigned(
-    async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
+    async_client: AsyncClient,
+    session: AsyncSession,
+    x_api_key_header: dict[str, str],
+    monkeypatch: Any,
 ) -> None:
     match = await MatchService().create_match(
         session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
@@ -518,6 +602,19 @@ async def test_two_players_inside_two_players_assigned_then_no_more_assigned(
                 reserve=ReserveStatus.ASSIGNED,
             ),
         )
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
     # Create three players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(3)]
@@ -550,7 +647,10 @@ async def test_two_players_inside_two_players_assigned_then_no_more_assigned(
 
 
 async def test_three_players_inside_two_players_similar_then_the_closest_one_is_assigned(
-    async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
+    async_client: AsyncClient,
+    session: AsyncSession,
+    x_api_key_header: dict[str, str],
+    monkeypatch: Any,
 ) -> None:
     match = await MatchService().create_match(
         session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
@@ -580,6 +680,19 @@ async def test_three_players_inside_two_players_similar_then_the_closest_one_is_
             reserve=ReserveStatus.ASSIGNED,
         ),
     )
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
     # Create two players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(2)]
@@ -622,7 +735,10 @@ async def test_three_players_inside_two_players_similar_then_the_closest_one_is_
 
 
 async def test_only_one_player_inside_more_than_three_players_similar_then_the_closest_three_are_assigned(
-    async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
+    async_client: AsyncClient,
+    session: AsyncSession,
+    x_api_key_header: dict[str, str],
+    monkeypatch: Any,
 ) -> None:
     match = await MatchService().create_match(
         session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
@@ -639,6 +755,19 @@ async def test_only_one_player_inside_more_than_three_players_similar_then_the_c
             reserve=ReserveStatus.ASSIGNED,
         ),
     )
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
     # Create two players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(6)]
@@ -684,6 +813,7 @@ async def test_only_one_player_inside_more_than_three_players_similar_then_the_c
 
     assert max_closest_distance <= min_farthest_distance
 
+
 async def test_one_player_reserve_to_outside(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
@@ -718,3 +848,4 @@ async def test_one_player_reserve_to_outside(
     assert content["match_public_id"] == match_public_id
     assert content["user_public_id"] == user_public_id
     assert content["reserve"] == ReserveStatus.OUTSIDE
+    assert content["pay_url"] is None

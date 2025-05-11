@@ -1,11 +1,10 @@
-from uuid import UUID
+from typing import Any
 
 from sqlalchemy.exc import IntegrityError
 
 from app.models.match_player import (
     MatchPlayer,
     MatchPlayerCreate,
-    MatchPlayerFilter,
     MatchPlayerUpdate,
 )
 from app.repository.base_repository import BaseRepository
@@ -31,37 +30,26 @@ class MatchPlayerRepository(BaseRepository):
 
     async def get_matches_players(
         self,
-        filters: list[MatchPlayerFilter],
         order_by: list[tuple[str, bool]] | None = None,
         limit: int | None = None,
+        **filters: Any,
     ) -> list[MatchPlayer]:
         """
         order_by: List of tuples(Player.attribute, is_ascending)
         to order the result.
         limit: Max number of players to get.
         """
-        return await self.get_records(MatchPlayer, filters, order_by, limit)
+        return await self.get_records(MatchPlayer, order_by, limit, **filters)
 
-    async def get_match_player(
-        self, match_public_id: UUID, user_public_id: UUID
-    ) -> MatchPlayer:
-        return await self.get_record(
-            MatchPlayer,
-            MatchPlayerFilter,
-            {"match_public_id": match_public_id, "user_public_id": user_public_id},
-        )
+    async def get_match_player(self, **filters: Any) -> MatchPlayer:
+        return await self.get_record(MatchPlayer, **filters)
 
     async def update_match_player(
         self,
-        match_public_id: UUID,
-        user_public_id: UUID,
         match_player_in: MatchPlayerUpdate,
         should_commit: bool = True,
+        **filters: Any,
     ) -> MatchPlayer:
         return await self.update_record(
-            MatchPlayer,
-            MatchPlayerFilter,
-            {"match_public_id": match_public_id, "user_public_id": user_public_id},
-            match_player_in,
-            should_commit,
+            MatchPlayer, match_player_in, should_commit, **filters
         )

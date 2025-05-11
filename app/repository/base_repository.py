@@ -1,10 +1,8 @@
-from typing import TypeVar
-from uuid import UUID
+from typing import Any, TypeVar
 
 from sqlalchemy import asc, desc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
-from sqlalchemy.sql.expression import and_, or_
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -56,25 +54,21 @@ class BaseRepository:
     async def get_records(
         self,
         model: type[M],
-        filters: list[F],
         order_by: list[tuple[str, bool]] | None = None,
         limit: int | None = None,
+        **filters: Any,
     ) -> list[M]:
         """
         order_by: List of tuples(M.attribute, is_ascending)
         to order the result.
         limit: Max number of records to get.
         """
+        query = select(model)
+
         # Filters
-        or_conditions = []
-        for filter in filters:
-            and_conditions = [
-                getattr(model, attr) == value
-                for attr, value in vars(filter).items()
-                if value is not None
-            ]
-            or_conditions.append(and_(*and_conditions))
-        query = select(model).where(or_(*or_conditions))
+        for key, value in filters.items():
+            attr = getattr(model, key)
+            query = query.where(attr == value)
 
         # Order
         if order_by is None:
@@ -92,25 +86,20 @@ class BaseRepository:
         result = await self.session.exec(query)  # type: ignore
         return list(result.scalars().all())
 
-    async def get_record(
-        self, model: type[M], model_filter: type[F], ids: dict[str, UUID]
-    ) -> M:
-        filters = [model_filter(**ids)]
-        result = await self.get_records(model, filters)
-        record = result[0] if result else None
-        if record is None:
+    async def get_record(self, model: type[M], **filters: Any) -> M:
+        result = await self.get_records(model, **filters)
+        if not result:
             raise NotFoundException(model.name())  # type: ignore
-        return record
+        return result[0]
 
     async def update_record(
         self,
         model: type[M],
-        model_filter: type[F],
-        ids: dict[str, UUID],
         record_update: U,
         should_commit: bool = True,
+        **filters: Any,
     ) -> M:
-        record = await self.get_record(model, model_filter, ids)
+        record = await self.get_record(model, **filters)
         update_dict = record_update.model_dump(exclude_none=True)
         record.sqlmodel_update(update_dict)
         self.session.add(record)

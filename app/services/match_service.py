@@ -31,14 +31,14 @@ class MatchService:
         public_id: UUID,
     ) -> Match:
         repo_match = MatchRepository(session)
-        return await repo_match.get_match(public_id)
+        return await repo_match.get_match(public_id=public_id)
 
     async def get_matches(
         self, session: SessionDep, prov_match_opt: MatchFilters = Depends()
     ) -> list[Match]:
         repo_match = MatchRepository(session)
-        info_to_filter = [prov_match_opt]
-        return await repo_match.get_matches(info_to_filter)
+        filters = prov_match_opt.model_dump(exclude_unset=True, exclude_none=True)
+        return await repo_match.get_matches(**filters)
 
     async def update_match(
         self,
@@ -47,7 +47,7 @@ class MatchService:
         match_in: MatchUpdate,
     ) -> Match:
         repo_match = MatchRepository(session)
-        return await repo_match.update_match(public_id, match_in)
+        return await repo_match.update_match(match_in, public_id=public_id)
 
     async def is_match_create_valid(
         self, session: SessionDep, match_in: MatchCreate
