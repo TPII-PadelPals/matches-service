@@ -56,6 +56,7 @@ async def test_generate_matches_given_one_avail_time(
     match_extended = matches[0]
     for k in ["court_public_id", "court_name"]:
         assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+    assert match_extended["business_public_id"] == test_data["business_public_id"]
     assert match_extended["date"] == test_data["date"]
     assert match_extended["time"] == test_data["times"][0]  # type: ignore
     match_time = match_extended["time"]
@@ -130,6 +131,7 @@ async def test_generate_matches_given_three_avail_time(
     for match_extended in matches:
         for k in ["court_public_id", "court_name"]:
             assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["business_public_id"] == test_data["business_public_id"]
         assert match_extended["date"] == test_data["date"]
         time = match_extended["time"]
         time_avail = PlayerFilters.to_time_availability(time)
@@ -270,6 +272,7 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
     for match_extended in new_matches:
         for k in ["court_public_id", "court_name"]:
             assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["business_public_id"] == test_data["business_public_id"]
         assert match_extended["date"] == test_data["date"]
         assert match_extended["time"] in diff_times
         time = match_extended["time"]
@@ -428,6 +431,7 @@ async def test_generate_matches_multiple_for_the_same_day(
         match_extended = new_matches[0]
         for k in ["court_public_id", "court_name"]:
             assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["business_public_id"] == test_data["business_public_id"]
         assert match_extended["date"] == test_data["date"]
         assert match_extended["time"] == new_hour
         time = match_extended["time"]
@@ -518,6 +522,7 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
         match_extended = new_matches[0]
         for k in ["court_public_id", "court_name"]:
             assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["business_public_id"] == test_data["business_public_id"]
         assert match_extended["date"] == test_data["date"]
         assert match_extended["time"] == new_hour
         time = match_extended["time"]
@@ -591,6 +596,7 @@ async def test_generate_matches_creates_match_players_with_distance_equal_to_arr
     match_extended = matches[0]
     for k in ["court_public_id", "court_name"]:
         assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+    assert match_extended["business_public_id"] == test_data["business_public_id"]
     assert match_extended["date"] == test_data["date"]
 
     assert match_extended["time"] == test_data["times"][0]  # type: ignore
@@ -669,6 +675,7 @@ async def test_generate_matches_and_send_message(
     for match_extended in matches:
         for k in ["court_public_id", "court_name"]:
             assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["business_public_id"] == test_data["business_public_id"]
         assert match_extended["date"] == test_data["date"]
         time = match_extended["time"]
         time_avail = PlayerFilters.to_time_availability(time)
@@ -700,4 +707,5 @@ async def test_generate_matches_and_send_message(
             similar_players_user_public_ids
         )
     mock_message.assert_called_once()
-    mock_id.assert_called_once()  # se llama solo una vez en vez de 3 por que el test repite el mismo user public ID en el assigned
+    # se llama solo una vez en vez de 3 por que el test repite el mismo user public ID en el assigned
+    mock_id.assert_called_once()

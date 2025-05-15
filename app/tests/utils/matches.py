@@ -1,4 +1,3 @@
-import datetime
 from typing import Any
 
 from httpx import AsyncClient, Response
@@ -30,11 +29,7 @@ async def create_match(
 async def generate_match(
     session: AsyncSession, match_in: dict[str, Any]
 ) -> dict[str, Any]:
-    match_generated = MatchCreate(
-        court_name=match_in["court_name"],
-        time=match_in["time"],
-        date=datetime.date.fromisoformat(match_in["date"]),
-    )
+    match_generated = MatchCreate(**match_in)
     service = MatchService()
     prov_match = await service.create_match(session, match_generated)
     return prov_match.model_dump(mode="json")

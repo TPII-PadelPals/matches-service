@@ -12,6 +12,7 @@ from app.models.match_player import (
     MatchPlayerUpdate,
 )
 from app.services.match_player_service import MatchPlayerService
+from app.services.match_player_update_service import MatchPlayerUpdateService
 from app.utilities.dependencies import SessionDep
 from app.utilities.messages import PATCH_MATCHES_PLAYERS
 
@@ -123,7 +124,7 @@ async def update_match_player(
     """
     Update match player.
     """
-    match_player = await match_player_service.update_match_player(
+    match_player = await MatchPlayerUpdateService().update_match_player(
         session, match_public_id, user_public_id, match_player_in
     )
     return match_player

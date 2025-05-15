@@ -849,3 +849,96 @@ async def test_one_player_reserve_to_outside(
     assert content["user_public_id"] == user_public_id
     assert content["reserve"] == ReserveStatus.OUTSIDE
     assert content["pay_url"] is None
+
+
+# async def test_first_assigned_player_outside_then_match_is_re_created_without_him(
+#     async_client: AsyncClient,
+#     session: AsyncSession,
+#     x_api_key_header: dict[str, str],
+#     monkeypatch: Any,
+# ) -> None:
+#     match = await MatchService().create_match(
+#         session, MatchCreate(court_id="Cancha 1", time=8, date="2025-04-05")
+#     )
+#     # === PRE ===
+#     # Create one player ASSIGNED (future OUTSIDE)
+#     orig_assigned_uuid = uuid.uuid4()
+#     await MatchPlayerService().create_match_player(
+#         session,
+#         MatchPlayerCreate(
+#             match_public_id=match.public_id,
+#             user_public_id=orig_assigned_uuid,
+#             distance=0.0,
+#             reserve=ReserveStatus.ASSIGNED,
+#         ),
+#     )
+
+#     # Create some players SIMILAR
+#     orig_similar_uuids = [uuid.uuid4() for _ in range(6)]
+#     for distance, similar_uuid in enumerate(orig_similar_uuids):
+#         await MatchPlayerService().create_match_player(
+#             session,
+#             MatchPlayerCreate(
+#                 match_public_id=match.public_id,
+#                 user_public_id=similar_uuid,
+#                 distance=distance,
+#                 reserve=ReserveStatus.SIMILAR,
+#             ),
+#         )
+
+#     # Create future regenerated players SIMILAR
+#     regen_similar_uuids = [uuid.uuid4() for _ in range(6)]
+#     for distance, similar_uuid in enumerate(orig_similar_uuids):
+#         await MatchPlayerService().create_match_player(
+#             session,
+#             MatchPlayerCreate(
+#                 match_public_id=match.public_id,
+#                 user_public_id=similar_uuid,
+#                 distance=distance,
+#                 reserve=ReserveStatus.SIMILAR,
+#             ),
+#         )
+
+#     # === Action ===
+#     # Update player ASSIGNED -> OUTSIDE
+#     await async_client.patch(
+#         f"{test_settings.API_V1_STR}/matches/{match.public_id}/players/{orig_assigned_uuid}/",
+#         headers=x_api_key_header,
+#         json={"reserve": ReserveStatus.OUTSIDE},
+#     )
+
+#     # === POST ===
+#     # The re-generated match keeps same base data
+#     regen_match = await MatchService().get_match(session, match.public_id)
+#     assert regen_match.court_name == match.court_name
+#     assert regen_match.court_public_id == match.court_public_id
+#     assert regen_match.time == match.time
+#     assert regen_match.date == match.date
+
+#     regen_match_players = await MatchPlayerService().get_match_players(session,
+#                                                                        match_public_id=match.public_id)
+#     regen_outside_players_uuids = [player.user_public_id
+#                                    for player in regen_match_players
+#                                    if player.reserve == ReserveStatus.OUTSIDE]
+#     assert len(regen_outside_players_uuids) == 1
+#     assert orig_assigned_uuid == regen_outside_players_uuids[0]
+
+#     regen_assigned_players_uuids = [player.user_public_id
+#                                     for player in regen_match_players
+#                                     if player.reserve == ReserveStatus.ASSIGNED]
+#     assert len(regen_assigned_players_uuids) == 1
+#     assert new_assigned_uuid == regen_assigned_players_uuids[0]
+
+#     regen_similar_players_uuids = [player.user_public_id
+#                                    for player in regen_match_players
+#                                    if player.reserve == ReserveStatus.SIMILAR]
+#     assert len(regen_similar_players_uuids) == 1
+#     assert new_assigned_uuid == regen_assigned_players_uuids[0]
+
+#     # Verify that rejected player is still OUTSIDE
+#     # Verify new ASSIGNED
+#     # Verify new SIMILAR
+#     assert content["match_public_id"] == match_public_id
+#     assert content["user_public_id"] == user_public_id
+#     assert content["reserve"] == ReserveStatus.INSIDE
+#     assert content["pay_url"] == pay_url
