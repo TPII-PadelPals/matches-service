@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 from typing import Any
 
@@ -12,7 +11,12 @@ class MatchMorningPaseoColon:
     court_morning_name = "Cancha Mañana"
     time = 9
     date = datetime.strptime("1/5/2025", "%d/%m/%Y").date()
-    assigned_id = "db08d286-58cf-4542-8501-efa273e38be4"
+    assigned_uuid = "db08d286-58cf-4542-8501-efa273e38be4"
+    similar_uuids = [
+        "3cbccfa2-65d7-4d49-b801-b7f30daae857",
+        "96ff36d6-bd6e-49c3-a666-cda2d2865be0",
+        "a80a64fb-9672-450c-a98e-bcf366ea6ac8",
+    ]
 
     @classmethod
     def records(cls) -> list[Any]:
@@ -37,16 +41,16 @@ class MatchMorningPaseoColon:
         match_players.append(
             MatchPlayer(
                 match_public_id=cls.match_public_id,
-                user_public_id=cls.assigned_id,
+                user_public_id=cls.assigned_uuid,
                 distance=0,
                 reserve=ReserveStatus.ASSIGNED,
             )
         )
-        for _ in range(3):
+        for similar_uuid in cls.similar_uuids:
             match_players.append(
                 MatchPlayer(
                     match_public_id=cls.match_public_id,
-                    user_public_id=uuid.uuid4(),
+                    user_public_id=similar_uuid,
                     distance=0,
                     reserve=ReserveStatus.SIMILAR,
                 )
