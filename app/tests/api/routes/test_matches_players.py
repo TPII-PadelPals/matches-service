@@ -246,37 +246,6 @@ async def test_update_one_player_reserve_to_inside_creates_payment(
     assert content["pay_url"] == pay_url
 
 
-# async def test_update_one_player_reserve_to_reject(
-#     async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
-# ) -> None:
-#     # Create match
-#     match = await MatchService().create_match(
-#         session, MatchCreate(business_public_id=uuid.uuid4(), court_public_id=uuid.uuid4(
-#         ), court_name="0", date="2024-11-25", time=8)
-#     )
-#     # Add player to match
-#     data = {"user_public_id": str(uuid.uuid4()), "distance": 0.0}
-#     response = await async_client.post(
-#         f"{test_settings.API_V1_STR}/matches/{match.public_id}/players/",
-#         headers=x_api_key_header,
-#         json=data,
-#     )
-#     content = response.json()
-#     user_public_id = content["user_public_id"]
-#     # Update match player
-#     data = {"reserve": ReserveStatus.REJECTED}
-#     response = await async_client.patch(
-#         f"{test_settings.API_V1_STR}/matches/{match.public_id}/players/{user_public_id}/",
-#         headers=x_api_key_header,
-#         json=data,
-#     )
-#     assert response.status_code == 200
-#     content = response.json()
-#     assert content["match_public_id"] == str(match.public_id)
-#     assert content["user_public_id"] == user_public_id
-#     assert content["reserve"] == data["reserve"]
-
-
 async def test_update_one_player_raises_exception_when_match_player_not_exists(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
@@ -922,41 +891,60 @@ async def test_only_one_player_inside_more_than_three_players_similar_then_the_c
     assert max_closest_distance <= min_farthest_distance
 
 
-# async def test_one_player_reserve_to_outside(
-#     async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
-# ) -> None:
-#     # Create match
-#     match = await MatchService().create_match(
-#         session, MatchCreate(business_public_id=uuid.uuid4(), court_public_id=uuid.uuid4(
-#         ), court_name="0", date="2024-11-25", time=8)
-#     )
+async def test_one_player_inside_one_player_reserve_to_outside(
+    async_client: AsyncClient, session: AsyncSession, x_api_key_header: dict[str, str]
+) -> None:
+    # PRE
+    # Create match
+    match = await MatchService().create_match(
+        session,
+        MatchCreate(
+            business_public_id=uuid.uuid4(),
+            court_public_id=uuid.uuid4(),
+            court_name="0",
+            date="2024-11-25",
+            time=8,
+        ),
+    )
 
-#     # Add player to match
-#     data = {"user_public_id": str(uuid.uuid4()), "distance": 0.0}
-#     response = await async_client.post(
-#         f"{test_settings.API_V1_STR}/matches/{match.public_id}/players/",
-#         headers=x_api_key_header,
-#         json=data,
-#     )
-#     content = response.json()
-#     user_public_id = content["user_public_id"]
-#     _response = await async_client.patch(
-#         f"{test_settings.API_V1_STR}/matches/{match.public_id}/players/{user_public_id}/",
-#         headers=x_api_key_header,
-#         json={"reserve": ReserveStatus.ASSIGNED},
-#     )
-#     # Update match player
-#     response = await async_client.patch(
-#         f"{test_settings.API_V1_STR}/matches/{match.public_id}/players/{user_public_id}/",
-#         headers=x_api_key_header,
-#         json={"reserve": ReserveStatus.OUTSIDE},
-#     )
-#     assert response.status_code == 200
-#     content = response.json()
-#     assert content["match_public_id"] == str(match.public_id)
-#     assert content["user_public_id"] == user_public_id
-#     assert content["reserve"] == ReserveStatus.OUTSIDE
-#     assert content["pay_url"] is None
+    # Create player INSIDE
+    await MatchPlayerService().create_match_player(
+        session,
+        MatchPlayerCreate(
+            match_public_id=match.public_id,
+            user_public_id=uuid.uuid4(),
+            distance=0.0,
+            reserve=ReserveStatus.INSIDE,
+        ),
+    )
+
+    # Create player ASSIGNED
+    user_public_id = uuid.uuid4()
+    await MatchPlayerService().create_match_player(
+        session,
+        MatchPlayerCreate(
+            match_public_id=match.public_id,
+            user_public_id=user_public_id,
+            distance=0.0,
+            reserve=ReserveStatus.INSIDE,
+        ),
+    )
+
+    # === ACTION ===
+    # Update player ASSIGNED -> OUTSIDE
+    response = await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match.public_id}/players/{user_public_id}/",
+        headers=x_api_key_header,
+        json={"reserve": ReserveStatus.OUTSIDE},
+    )
+
+    # === POST ===
+    assert response.status_code == 200
+    content = response.json()
+    assert content["match_public_id"] == str(match.public_id)
+    assert content["user_public_id"] == str(user_public_id)
+    assert content["reserve"] == ReserveStatus.OUTSIDE
+    assert content["pay_url"] is None
 
 
 async def test_first_assigned_player_outside_then_match_is_re_created_without_it(
