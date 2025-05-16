@@ -99,7 +99,7 @@ class MatchPlayerUpdateService:
             match.time,  # type: ignore
         )
         if avail_time:
-            await MatchGeneratorService()._generate_match_players(
+            await MatchGeneratorService().generate_match_players(
                 session, match_public_id, avail_time, should_commit=True
             )
 

@@ -45,7 +45,7 @@ class MatchGeneratorService:
         similar_players = await PlayersService().get_players_by_filters(players_filters)
         return assigned_player, similar_players
 
-    async def _generate_match_players(
+    async def generate_match_players(
         self,
         session: SessionDep,
         match_public_id: UUID,
@@ -91,7 +91,7 @@ class MatchGeneratorService:
 
         return match_players
 
-    async def _generate_match(
+    async def generate_match(
         self, session: SessionDep, avail_time: AvailableTime
     ) -> MatchExtended | None:
         match_create = MatchCreate.from_available_time(avail_time)
@@ -100,7 +100,7 @@ class MatchGeneratorService:
             session, match_create, should_commit=False
         )
 
-        match_players = await self._generate_match_players(
+        match_players = await self.generate_match_players(
             session, match.public_id, avail_time, should_commit=False
         )
 
@@ -126,7 +126,7 @@ class MatchGeneratorService:
         )
         for avail_time in avail_times:
             try:
-                match_extended = await self._generate_match(session, avail_time)
+                match_extended = await self.generate_match(session, avail_time)
                 if not match_extended:
                     continue
                 await session.commit()
