@@ -25,6 +25,16 @@ class MatchGeneratorService:
     FACTOR_SIM_PLAYERS: ClassVar[int] = 4
     N_SIM_PLAYERS: ClassVar[int] = MIN_SIM_PLAYERS * FACTOR_SIM_PLAYERS
 
+    async def get_matches(
+        self, session: SessionDep, matches_public_ids: list[UUID]
+    ) -> list[MatchExtended]:
+        matches_extended = [
+            await MatchExtendedService().get_match(session, match_public_id)
+            for match_public_id in matches_public_ids
+        ]
+
+        return matches_extended
+
     def _choose_priority_player(self, players: list[Player]) -> Player:
         # TODO: Choose priority player base on last played match w.r.t. today.
         return players[0]
@@ -92,8 +102,8 @@ class MatchGeneratorService:
         return match_players
 
     async def generate_match(
-        self, session: SessionDep, avail_time: AvailableTime
-    ) -> MatchExtended | None:
+        self, session: SessionDep, avail_time: AvailableTime, should_commit: bool = True
+    ) -> MatchExtended:
         match_create = MatchCreate.from_available_time(avail_time)
 
         match = await MatchService().create_match(
@@ -104,17 +114,11 @@ class MatchGeneratorService:
             session, match.public_id, avail_time, should_commit=False
         )
 
+        await commit_refresh_or_flush(
+            session, should_commit, records=[match] + match_players
+        )
+
         return MatchExtended(match, match_players)
-
-    async def get_matches(
-        self, session: SessionDep, matches_public_ids: list[UUID]
-    ) -> list[MatchExtended]:
-        matches_extended = [
-            await MatchExtendedService().get_match(session, match_public_id)
-            for match_public_id in matches_public_ids
-        ]
-
-        return matches_extended
 
     async def generate_matches(
         self, session: SessionDep, match_gen_create: MatchGenerationCreateExtended
@@ -126,12 +130,10 @@ class MatchGeneratorService:
         )
         for avail_time in avail_times:
             try:
-                match_extended = await self.generate_match(session, avail_time)
-                if not match_extended:
-                    continue
-                await session.commit()
+                match_extended = await self.generate_match(
+                    session, avail_time, should_commit=True
+                )
             except NotUniqueException:
-                await session.rollback()
                 continue
             matches_public_ids.append(match_extended.match.public_id)
 
