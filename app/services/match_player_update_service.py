@@ -31,24 +31,40 @@ class MatchPlayerUpdateService:
             await self._validate_accept_match_player(
                 session, match_public_id, user_public_id
             )
-            # Move to another function
-            match_player_extended = (
-                await MatchPlayerService().get_match_player_extended(
-                    session, match_public_id, user_public_id
-                )
+            pay_url = await self._create_payment(
+                session, match_public_id, user_public_id
             )
-            payment = await PaymentsService().create_payment(match_player_extended)
-            pay_url = payment.pay_url
 
         match_player = await self._update_match_player(
             session, match_public_id, user_public_id, match_player_in
         )
 
-        await self._update_match_player_first(session, match_public_id)
+        await self._update_match_first(session, match_public_id)
 
         await self._update_match_similars(session, match_public_id)
 
         return MatchPlayerPay.from_match_player(match_player, pay_url)
+
+    async def _validate_accept_match_player(
+        self,
+        session: SessionDep,
+        match_public_id: UUID,
+        user_public_id: UUID,
+    ) -> None:
+        match_player = await MatchPlayerService().get_match_player(
+            session, match_public_id, user_public_id
+        )
+        if not match_player.is_assigned():
+            raise NotAuthorizedException()
+
+    async def _create_payment(
+        self, session: SessionDep, match_public_id: UUID, user_public_id: UUID
+    ) -> str | None:
+        match_player_extended = await MatchPlayerService().get_match_player_extended(
+            session, match_public_id, user_public_id
+        )
+        payment = await PaymentsService().create_payment(match_player_extended)
+        return payment.pay_url
 
     async def _update_match_player(
         self,
@@ -65,19 +81,7 @@ class MatchPlayerUpdateService:
         )
         return match_player
 
-    async def _validate_accept_match_player(
-        self,
-        session: SessionDep,
-        match_public_id: UUID,
-        user_public_id: UUID,
-    ) -> None:
-        match_player = await MatchPlayerService().get_match_player(
-            session, match_public_id, user_public_id
-        )
-        if not match_player.is_assigned():
-            raise NotAuthorizedException()
-
-    async def _update_match_player_first(
+    async def _update_match_first(
         self, session: SessionDep, match_public_id: UUID
     ) -> None:
         inside_players = await MatchPlayerService().get_match_players(
