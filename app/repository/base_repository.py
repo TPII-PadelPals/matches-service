@@ -1,6 +1,7 @@
+import warnings
 from typing import Any, TypeVar
 
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, delete, desc, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
 from sqlmodel import SQLModel
@@ -105,3 +106,19 @@ class BaseRepository:
         self.session.add(record)
         await self._commit_refresh_or_flush(should_commit, [record])
         return record
+
+    async def delete_records(
+        self, model: type[M], should_commit: bool = True, **filters: Any
+    ) -> None:
+        query = delete(model)
+
+        for key, values in filters.items():
+            attr = getattr(model, key)
+            or_conditions = [attr == value for value in values]
+            query = query.where(or_(False, *or_conditions))
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            await self.session.execute(query)
+
+        await self._commit_refresh_or_flush(should_commit, [])

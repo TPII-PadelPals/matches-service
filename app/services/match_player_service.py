@@ -75,3 +75,9 @@ class MatchPlayerService:
         return await repo_match_player.get_matches_players(
             user_public_id=user_public_id
         )
+
+    async def delete_match_players(
+        self, session: SessionDep, should_commit: bool = True, **filters: Any
+    ) -> None:
+        repo_match_player = MatchPlayerRepository(session)
+        await repo_match_player.delete_match_players(should_commit, **filters)

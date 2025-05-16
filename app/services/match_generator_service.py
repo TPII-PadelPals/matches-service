@@ -24,6 +24,20 @@ class MatchGeneratorService:
     FACTOR_SIM_PLAYERS: ClassVar[int] = 4
     N_SIM_PLAYERS: ClassVar[int] = MIN_SIM_PLAYERS * FACTOR_SIM_PLAYERS
 
+    async def _commit_refresh_or_flush(
+        self, session: SessionDep, should_commit: bool
+    ) -> None:
+        try:
+            if should_commit:
+                await session.commit()
+                # for record in records:
+                #     await self.session.refresh(record)
+            else:
+                await session.flush()
+        except Exception as e:
+            await session.rollback()
+            raise e
+
     def _choose_priority_player(self, players: list[Player]) -> Player:
         # TODO: Choose priority player base on last played match w.r.t. today.
         return players[0]
@@ -48,9 +62,26 @@ class MatchGeneratorService:
         self,
         session: SessionDep,
         match_public_id: UUID,
-        assigned_player: Player,
-        similar_players: list[Player],
+        avail_time: AvailableTime,
+        should_commit: bool = True,
     ) -> list[MatchPlayer]:
+        match_player_service = MatchPlayerService()
+
+        old_similar_players = await match_player_service.get_match_players(
+            session, match_public_id=match_public_id, reserve=ReserveStatus.SIMILAR
+        )
+        old_similar_uuids = [player.user_public_id for player in old_similar_players]
+        await match_player_service.delete_match_players(
+            session,
+            should_commit=False,
+            match_public_id=[match_public_id],
+            user_public_id=old_similar_uuids,
+        )
+
+        assigned_player, similar_players = await self._choose_match_players(avail_time)
+        if not assigned_player or len(similar_players) == 0:
+            return []
+
         avail_players = [assigned_player] + similar_players
         match_players = []
         for distance, player in enumerate(avail_players):
@@ -68,28 +99,22 @@ class MatchGeneratorService:
                 session, match_player_create, should_commit=False
             )
             match_players.append(match_player)
+
+        await self._commit_refresh_or_flush(session, should_commit)
+
         return match_players
 
     async def _generate_match(
         self, session: SessionDep, avail_time: AvailableTime
     ) -> MatchExtended | None:
         match_create = MatchCreate.from_available_time(avail_time)
-        match_service = MatchService()
 
-        assigned_player, similar_players = await self._choose_match_players(avail_time)
-        if not assigned_player or len(similar_players) == 0:
-            return None
-
-        match = await match_service.create_match(
+        match = await MatchService().create_match(
             session, match_create, should_commit=False
         )
-        match_public_id = match.public_id
 
         match_players = await self._generate_match_players(
-            session,
-            match_public_id,
-            assigned_player,
-            similar_players,
+            session, match.public_id, avail_time, should_commit=False
         )
 
         return MatchExtended(match, match_players)
