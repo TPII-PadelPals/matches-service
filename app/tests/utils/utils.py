@@ -42,8 +42,9 @@ def get_mock_get_players_by_filters(**match_data: Any) -> Any:
         }
 
     async def mock_get_players_by_filters(
-        self: Any,  # noqa: ARG001
-        player_filters: PlayerFilters,  # noqa: ARG001
+        _self: Any,
+        player_filters: PlayerFilters,
+        _exclude_uuids: list[uuid.UUID] | None,
     ) -> Any:
         time_avail = player_filters.time_availability
         if time_avail is None:

@@ -1,11 +1,13 @@
+import warnings
 from typing import Any, TypeVar
 
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, delete, desc, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.utilities.commit import commit_refresh_or_flush
 from app.utilities.exceptions import NotFoundException
 
 C = TypeVar("C", bound=SQLModel)
@@ -24,16 +26,9 @@ class BaseRepository:
     async def _commit_refresh_or_flush(
         self, should_commit: bool, records: list[M]
     ) -> None:
-        try:
-            if should_commit:
-                await self.session.commit()
-                for record in records:
-                    await self.session.refresh(record)
-            else:
-                await self.session.flush()
-        except IntegrityError as e:
-            await self.session.rollback()
-            self._handle_commit_exceptions(e)
+        await commit_refresh_or_flush(
+            self.session, should_commit, records, self._handle_commit_exceptions
+        )
 
     async def create_record(
         self, model: type[M], record_create: C, should_commit: bool = True
@@ -105,3 +100,19 @@ class BaseRepository:
         self.session.add(record)
         await self._commit_refresh_or_flush(should_commit, [record])
         return record
+
+    async def delete_records(
+        self, model: type[M], should_commit: bool = True, **filters: Any
+    ) -> None:
+        query = delete(model)
+
+        for key, values in filters.items():
+            attr = getattr(model, key)
+            or_conditions = [attr == value for value in values]
+            query = query.where(or_(False, *or_conditions))
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            await self.session.execute(query)
+
+        await self._commit_refresh_or_flush(should_commit, [])

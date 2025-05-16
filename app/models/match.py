@@ -16,8 +16,9 @@ class MatchStatus(str, Enum):
 
 
 class MatchBase(SQLModel):
-    court_name: str | None = Field(default=None)
+    business_public_id: uuid.UUID | None = Field(default=None)
     court_public_id: uuid.UUID | None = Field(default=None)
+    court_name: str | None = Field(default=None)
     time: int | None = Field(default=None)
     date: datetime.date | None = Field(default=None)
     status: str | None = Field(default=MatchStatus.provisional)

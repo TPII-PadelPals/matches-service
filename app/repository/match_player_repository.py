@@ -53,3 +53,8 @@ class MatchPlayerRepository(BaseRepository):
         return await self.update_record(
             MatchPlayer, match_player_in, should_commit, **filters
         )
+
+    async def delete_match_players(
+        self, should_commit: bool = True, **filters: Any
+    ) -> None:
+        await self.delete_records(MatchPlayer, should_commit, **filters)
