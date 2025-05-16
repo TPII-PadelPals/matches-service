@@ -40,10 +40,15 @@ class MatchGeneratorService:
         return players[0]
 
     async def _choose_match_players(
-        self, avail_time: AvailableTime
+        self, avail_time: AvailableTime, exclude_uuids: list[UUID] | None = None
     ) -> tuple[Player | None, list[Player]]:
+        if exclude_uuids is None:
+            exclude_uuids = []
+
         players_filters = PlayerFilters.from_available_time(avail_time)
-        avail_players = await PlayersService().get_players_by_filters(players_filters)
+        avail_players = await PlayersService().get_players_by_filters(
+            players_filters, exclude_uuids
+        )
 
         if not len(avail_players) > 0:
             return None, []
@@ -51,8 +56,10 @@ class MatchGeneratorService:
         assigned_player = self._choose_priority_player(avail_players)
 
         players_filters.user_public_id = assigned_player.user_public_id
-        players_filters.n_players = self.N_SIM_PLAYERS
-        similar_players = await PlayersService().get_players_by_filters(players_filters)
+        players_filters.n_players = self.N_SIM_PLAYERS + len(exclude_uuids)
+        similar_players = await PlayersService().get_players_by_filters(
+            players_filters, exclude_uuids
+        )
         return assigned_player, similar_players
 
     async def generate_match_players(
@@ -70,12 +77,19 @@ class MatchGeneratorService:
         old_similar_uuids = [player.user_public_id for player in old_similar_players]
         await match_player_service.delete_match_players(
             session,
-            should_commit=False,
+            should_commit=True,
             match_public_id=[match_public_id],
             user_public_id=old_similar_uuids,
         )
 
-        assigned_player, similar_players = await self._choose_match_players(avail_time)
+        outside_players = await match_player_service.get_match_players(
+            session, match_public_id=match_public_id, reserve=ReserveStatus.OUTSIDE
+        )
+        outside_uuids = [player.user_public_id for player in outside_players]
+
+        assigned_player, similar_players = await self._choose_match_players(
+            avail_time, exclude_uuids=outside_uuids
+        )
         if not assigned_player or len(similar_players) == 0:
             return []
 
@@ -92,6 +106,7 @@ class MatchGeneratorService:
                 distance=distance,
                 reserve=reserve_status,
             )
+
             match_player = await MatchPlayerService().create_match_player(
                 session, match_player_create, should_commit=False
             )

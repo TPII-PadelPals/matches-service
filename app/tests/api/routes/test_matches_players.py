@@ -990,20 +990,20 @@ async def test_first_assigned_player_outside_then_match_is_re_created_without_it
             ),
         )
 
-    # Prepare one new player ASSIGNED
+    # Prepare new player to be ASSIGNED
     new_assigned_player = Player(
-        user_public_id=str(uuid.uuid4()),
+        user_public_id=orig_similar_uuids[0],
         latitude=0.0,
         longitude=0.0,
         time_availability=1,
     )
 
-    # Prepare some new player SIMILAR
+    # Prepare some new player to be SIMILAR
     new_similar_players = []
-    for _ in range(6):
+    for orig_similar_uuid in orig_similar_uuids[1:]:
         new_similar_players.append(
             Player(
-                user_public_id=str(uuid.uuid4()),
+                user_public_id=orig_similar_uuid,
                 latitude=0.0,
                 longitude=0.0,
                 time_availability=1,
@@ -1011,7 +1011,9 @@ async def test_first_assigned_player_outside_then_match_is_re_created_without_it
         )
 
     async def mock_get_players_by_filters(
-        _self: Any, player_filters: PlayerFilters
+        _self: Any,
+        player_filters: PlayerFilters,
+        _exclude_uuids: list[uuid.UUID] | None,
     ) -> list[Player]:
         if player_filters.user_public_id:
             return new_similar_players

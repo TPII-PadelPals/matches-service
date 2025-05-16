@@ -1,4 +1,5 @@
 from typing import Any
+from uuid import UUID
 
 from app.core.config import settings
 from app.models.player import Player, PlayerFilters
@@ -19,9 +20,13 @@ class PlayersService(BaseService):
             self.set_base_headers({"x-api-key": settings.PLAYERS_SERVICE_API_KEY})
 
     async def get_players_by_filters(
-        self: Any, player_filters: PlayerFilters
+        self: Any,
+        player_filters: PlayerFilters,
+        exclude_uuids: list[UUID] | None = None,
     ) -> list[Player]:
         "Get players by filters from players service"
+        if exclude_uuids is None:
+            exclude_uuids = []
         content = await self.get(
             "/api/v1/players/", params=player_filters.model_dump(exclude_none=True)
         )
@@ -29,5 +34,7 @@ class PlayersService(BaseService):
         players = []
         for player_data in players_data:
             player = Player(**player_data)
+            if player.user_public_id in exclude_uuids:
+                continue
             players.append(player)
         return players
