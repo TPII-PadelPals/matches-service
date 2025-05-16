@@ -15,6 +15,7 @@ from app.services.match_extended_service import MatchExtendedService
 from app.services.match_player_service import MatchPlayerService
 from app.services.match_service import MatchService
 from app.services.players_service import PlayersService
+from app.utilities.commit import commit_refresh_or_flush
 from app.utilities.dependencies import SessionDep
 from app.utilities.exceptions import NotUniqueException
 
@@ -23,20 +24,6 @@ class MatchGeneratorService:
     MIN_SIM_PLAYERS: ClassVar[int] = 3
     FACTOR_SIM_PLAYERS: ClassVar[int] = 4
     N_SIM_PLAYERS: ClassVar[int] = MIN_SIM_PLAYERS * FACTOR_SIM_PLAYERS
-
-    async def _commit_refresh_or_flush(
-        self, session: SessionDep, should_commit: bool
-    ) -> None:
-        try:
-            if should_commit:
-                await session.commit()
-                # for record in records:
-                #     await self.session.refresh(record)
-            else:
-                await session.flush()
-        except Exception as e:
-            await session.rollback()
-            raise e
 
     def _choose_priority_player(self, players: list[Player]) -> Player:
         # TODO: Choose priority player base on last played match w.r.t. today.
@@ -100,7 +87,7 @@ class MatchGeneratorService:
             )
             match_players.append(match_player)
 
-        await self._commit_refresh_or_flush(session, should_commit)
+        await commit_refresh_or_flush(session, should_commit)
 
         return match_players
 
