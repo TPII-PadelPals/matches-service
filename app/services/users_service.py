@@ -18,5 +18,8 @@ class UserService(BaseService):
 
     async def get_telegram_id(self, user_public_id: uuid.UUID) -> int:
         response = await self.get(f"/api/v1/users/{user_public_id}")
-        content = response.json()
+        try:
+            content = response.json()
+        except AttributeError:
+            content = response
         return int(content["telegram_id"])
