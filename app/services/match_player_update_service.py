@@ -7,6 +7,7 @@ from app.models.match_player import (
     ReserveStatus,
 )
 from app.repository.match_player_repository import MatchPlayerRepository
+from app.services.bot_service import BotService
 from app.services.business_service import BusinessService
 from app.services.match_generator_service import MatchGeneratorService
 from app.services.match_player_service import MatchPlayerService
@@ -131,6 +132,7 @@ class MatchPlayerUpdateService:
                 reserve=ReserveStatus.SIMILAR,
             )
 
+        next_assign_uuids = []
         for player in next_assign_players:
             await self._update_match_player(
                 session,
@@ -138,3 +140,6 @@ class MatchPlayerUpdateService:
                 player.user_public_id,
                 MatchPlayerUpdate(reserve=ReserveStatus.ASSIGNED),
             )
+            next_assign_uuids.append(player.user_public_id)
+
+        await BotService().send_new_matches(next_assign_uuids)

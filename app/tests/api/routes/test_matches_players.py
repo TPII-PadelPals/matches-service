@@ -18,6 +18,7 @@ from app.services.match_player_service import MatchPlayerService
 from app.services.match_service import MatchService
 from app.services.payment_service import PaymentsService
 from app.services.players_service import PlayersService
+from app.tests.utils.utils import set_mock_send_messages
 
 
 async def test_add_one_player_to_match_reserve_is_provisional(
@@ -218,6 +219,8 @@ async def test_update_one_player_reserve_to_inside_creates_payment(
 
     monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
+    _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
+
     # Create player ASSIGNED
     await MatchPlayerService().create_match_player(
         session,
@@ -295,6 +298,8 @@ async def test_one_player_reserve_to_inside(
         )
 
     monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
+
+    _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
 
     # Add player to match
     await MatchPlayerService().create_match_player(
@@ -441,6 +446,8 @@ async def test_only_one_player_inside_then_only_one_similar_is_assigned(
 
     monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
+    mock_telegram_id, mock_messages = set_mock_send_messages(monkeypatch)
+
     # Create one player SIMILAR
     similar_uuid = uuid.uuid4()
     await MatchPlayerService().create_match_player(
@@ -467,6 +474,8 @@ async def test_only_one_player_inside_then_only_one_similar_is_assigned(
         session, match.public_id, similar_uuid
     )
     assert similar_player.reserve == ReserveStatus.ASSIGNED
+    mock_messages.assert_called_once()
+    mock_telegram_id.assert_called_once()
 
 
 async def test_only_one_player_inside_then_only_three_similar_are_assigned(
@@ -511,6 +520,8 @@ async def test_only_one_player_inside_then_only_three_similar_are_assigned(
 
     monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
+    mock_telegram_id, mock_messages = set_mock_send_messages(monkeypatch)
+
     # Create three players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(3)]
     for similar_uuid in similar_uuids:
@@ -539,6 +550,9 @@ async def test_only_one_player_inside_then_only_three_similar_are_assigned(
             session, match.public_id, similar_uuid
         )
         assert similar_player.reserve == ReserveStatus.ASSIGNED
+
+    mock_messages.assert_called_once()
+    assert mock_telegram_id.call_count == 3
 
 
 async def test_four_players_inside_then_no_more_assigned(
@@ -594,6 +608,8 @@ async def test_four_players_inside_then_no_more_assigned(
         )
 
     monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
+
+    _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
 
     # Create three players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(3)]
@@ -678,6 +694,8 @@ async def test_two_players_inside_two_players_assigned_then_no_more_assigned(
         )
 
     monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
+
+    _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
 
     # Create three players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(3)]
@@ -764,6 +782,8 @@ async def test_three_players_inside_two_players_similar_then_the_closest_one_is_
 
     monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
+    _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
+
     # Create two players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(2)]
     distances = list(range(2))
@@ -845,6 +865,8 @@ async def test_only_one_player_inside_more_than_three_players_similar_then_the_c
         )
 
     monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
+
+    _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
 
     # Create two players SIMILAR
     similar_uuids = [uuid.uuid4() for _ in range(6)]
