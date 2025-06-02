@@ -29,6 +29,7 @@ services:
       - ./htmlcov:/app/htmlcov
     labels:
       - "traefik.http.routers.matches.rule=PathPrefix(`/api/v1/matches`)"
+      - "traefik.http.routers.matches.middlewares=cors,x-api-key@file,my-easy-traefik-rate-limit-jwt@file"
     networks:
       - tpii-network
 
