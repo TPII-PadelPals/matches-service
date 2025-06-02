@@ -16,6 +16,7 @@ from app.models.match_generation import (
     MatchGenerationCreate,
     MatchGenerationCreateExtended,
 )
+from app.services.bot_service import BotService
 from app.services.match_generator_service import MatchGeneratorService
 from app.services.match_service import MatchService
 from app.utilities.dependencies import SessionDep
@@ -67,7 +68,10 @@ async def generate_matches(
         session, match_gen_create
     )
     matches = await match_gen_service.get_matches(session, matches_public_ids)
-    return MatchesExtendedListPublic.from_private(matches)
+    list_of_matches = MatchesExtendedListPublic.from_private(matches)
+    message_service = BotService()
+    await message_service.send_new_matches(list_of_matches.get_list_player_assigned())
+    return list_of_matches
 
 
 @router.post(
@@ -86,7 +90,10 @@ async def generate_matches_all(
         session, match_gen_create
     )
     matches = await match_gen_service.get_matches(session, matches_public_ids)
-    return MatchesExtendedListPublic.from_private(matches)
+    list_of_matches = MatchesExtendedListPublic.from_private(matches)
+    message_service = BotService()
+    await message_service.send_new_matches(list_of_matches.get_list_player_assigned())
+    return list_of_matches
 
 
 @router.get("/{public_id}", status_code=status.HTTP_200_OK)

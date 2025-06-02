@@ -1,11 +1,10 @@
-from uuid import UUID
+from typing import Any
 
 from sqlalchemy.exc import IntegrityError
 
 from app.models.match import (
     Match,
     MatchCreate,
-    MatchFilters,
     MatchUpdate,
 )
 from app.repository.base_repository import BaseRepository
@@ -29,15 +28,13 @@ class MatchRepository(BaseRepository):
     ) -> list[Match]:
         return await self.create_records(Match, matches_in, should_commit)
 
-    async def get_matches(self, filters: list[MatchFilters]) -> list[Match]:
-        return await self.get_records(Match, filters)
+    async def get_matches(self, **filters: Any) -> list[Match]:
+        return await self.get_records(Match, **filters)
 
-    async def get_match(self, public_id: UUID) -> Match:
-        return await self.get_record(Match, MatchFilters, {"public_id": public_id})
+    async def get_match(self, **filters: Any) -> Match:
+        return await self.get_record(Match, **filters)
 
     async def update_match(
-        self, public_id: UUID, match_in: MatchUpdate, should_commit: bool = True
+        self, match_in: MatchUpdate, should_commit: bool = True, **filters: Any
     ) -> Match:
-        return await self.update_record(
-            Match, MatchFilters, {"public_id": public_id}, match_in, should_commit
-        )
+        return await self.update_record(Match, match_in, should_commit, **filters)

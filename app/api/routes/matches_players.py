@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, status
@@ -6,10 +7,12 @@ from app.models.match_player import (
     MatchPlayerCreate,
     MatchPlayerCreatePublic,
     MatchPlayerListPublic,
+    MatchPlayerPayPublic,
     MatchPlayerPublic,
     MatchPlayerUpdate,
 )
 from app.services.match_player_service import MatchPlayerService
+from app.services.match_player_update_service import MatchPlayerUpdateService
 from app.utilities.dependencies import SessionDep
 from app.utilities.messages import PATCH_MATCHES_PLAYERS
 
@@ -81,7 +84,7 @@ async def get_match_players(
     Get match player.
     """
     match_players = await match_player_service.get_match_players(
-        session, match_public_id
+        session, match_public_id=match_public_id
     )
     match_players_public = MatchPlayerListPublic.from_private(match_players)
     return match_players_public
@@ -107,7 +110,7 @@ async def get_match_player(
 
 @router.patch(
     "/{user_public_id}/",
-    response_model=MatchPlayerPublic,
+    response_model=MatchPlayerPayPublic,
     responses={**PATCH_MATCHES_PLAYERS},  # type: ignore[dict-item]
     status_code=status.HTTP_200_OK,
 )
@@ -117,12 +120,11 @@ async def update_match_player(
     match_public_id: UUID,
     user_public_id: UUID,
     match_player_in: MatchPlayerUpdate,
-) -> MatchPlayerPublic:
+) -> Any:
     """
     Update match player.
     """
-    match_player = await match_player_service.update_match_player(
+    match_player = await MatchPlayerUpdateService().update_match_player(
         session, match_public_id, user_public_id, match_player_in
     )
-    match_player_public = MatchPlayerPublic.from_private(match_player)
-    return match_player_public
+    return match_player

@@ -11,6 +11,7 @@ from app.services.business_service import BusinessService
 from app.tests.utils.utils import (
     get_mock_get_available_times,
     initial_apply_mocks_for_generate_matches,
+    set_mock_send_messages,
 )
 
 
@@ -55,6 +56,7 @@ async def test_generate_matches_given_one_avail_time(
     match_extended = matches[0]
     for k in ["court_public_id", "court_name"]:
         assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+    assert match_extended["business_public_id"] == test_data["business_public_id"]
     assert match_extended["date"] == test_data["date"]
     assert match_extended["time"] == test_data["times"][0]  # type: ignore
     match_time = match_extended["time"]
@@ -129,6 +131,7 @@ async def test_generate_matches_given_three_avail_time(
     for match_extended in matches:
         for k in ["court_public_id", "court_name"]:
             assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["business_public_id"] == test_data["business_public_id"]
         assert match_extended["date"] == test_data["date"]
         time = match_extended["time"]
         time_avail = PlayerFilters.to_time_availability(time)
@@ -269,6 +272,7 @@ async def test_generate_matches_twice_for_the_same_day_and_new_times(
     for match_extended in new_matches:
         for k in ["court_public_id", "court_name"]:
             assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["business_public_id"] == test_data["business_public_id"]
         assert match_extended["date"] == test_data["date"]
         assert match_extended["time"] in diff_times
         time = match_extended["time"]
@@ -427,6 +431,7 @@ async def test_generate_matches_multiple_for_the_same_day(
         match_extended = new_matches[0]
         for k in ["court_public_id", "court_name"]:
             assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["business_public_id"] == test_data["business_public_id"]
         assert match_extended["date"] == test_data["date"]
         assert match_extended["time"] == new_hour
         time = match_extended["time"]
@@ -517,6 +522,7 @@ async def test_generate_matches_multiple_for_the_same_day_inverse_time(
         match_extended = new_matches[0]
         for k in ["court_public_id", "court_name"]:
             assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["business_public_id"] == test_data["business_public_id"]
         assert match_extended["date"] == test_data["date"]
         assert match_extended["time"] == new_hour
         time = match_extended["time"]
@@ -590,6 +596,7 @@ async def test_generate_matches_creates_match_players_with_distance_equal_to_arr
     match_extended = matches[0]
     for k in ["court_public_id", "court_name"]:
         assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+    assert match_extended["business_public_id"] == test_data["business_public_id"]
     assert match_extended["date"] == test_data["date"]
 
     assert match_extended["time"] == test_data["times"][0]  # type: ignore
@@ -622,3 +629,83 @@ async def test_generate_matches_creates_match_players_with_distance_equal_to_arr
         player["user_public_id"] for player in match_similar_players_sorted
     ]
     assert match_similar_players_uuids == similar_players_uuids
+
+
+async def test_generate_matches_and_send_message(
+    async_client: AsyncClient, x_api_key_header: dict[str, str], monkeypatch: Any
+) -> None:
+    times = [8, 9, 10]
+    test_data = {
+        "business_public_id": str(uuid.uuid4()),
+        "court_names": ["1"],
+        "court_public_ids": [str(uuid.uuid4())],
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "date": "2025-03-19",
+        "times": times,
+        "all_times": times,
+        "is_reserved": False,
+        "n_similar_players": 6,
+        "WITHOUT_MESSAGE": False,
+    }
+
+    assigned_players = initial_apply_mocks_for_generate_matches(
+        monkeypatch, **test_data
+    )
+
+    mock_id, mock_message = set_mock_send_messages(monkeypatch)
+
+    # Main request
+    data = {k: v for k, v in test_data.items() if k in ["business_public_id", "date"]}
+    data["court_name"] = test_data["court_names"][0]  # type: ignore
+
+    response = await async_client.post(
+        f"{test_settings.API_V1_STR}/matches/generation",
+        headers=x_api_key_header,
+        json=data,
+    )
+
+    # Assertions
+    assert response.status_code == 201
+
+    matches_list = response.json()
+    matches = matches_list["data"]
+    assert len(matches) == 3
+
+    for match_extended in matches:
+        for k in ["court_public_id", "court_name"]:
+            assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["business_public_id"] == test_data["business_public_id"]
+        assert match_extended["date"] == test_data["date"]
+        time = match_extended["time"]
+        time_avail = PlayerFilters.to_time_availability(time)
+        assigned_player = assigned_players[time_avail]["assigned"]
+        similar_players = assigned_players[time_avail]["similar"]
+        similar_players_user_public_ids = [
+            str(player.user_public_id) for player in similar_players
+        ]
+
+        match_players = match_extended["match_players"]
+        match_assigned_players = [
+            player
+            for player in match_players
+            if player["reserve"] == ReserveStatus.ASSIGNED
+        ]
+        assert len(match_assigned_players) == 1
+
+        match_assigned_player = match_assigned_players[0]
+        assert match_assigned_player["user_public_id"] == str(
+            assigned_player.user_public_id
+        )
+
+        match_similar_players_user_public_ids = [
+            player["user_public_id"]
+            for player in match_players
+            if player["reserve"] == ReserveStatus.SIMILAR
+        ]
+        assert set(match_similar_players_user_public_ids) == set(
+            similar_players_user_public_ids
+        )
+    mock_message.assert_called_once()
+    # se llama solo una vez en vez de 3 por que el test repite el mismo user public ID en el assigned
+    mock_id.assert_called_once()

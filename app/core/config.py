@@ -29,13 +29,24 @@ class Settings(BaseSettings):
     ITEMS_SERVICE_PORT: int | None = None
     ITEMS_SERVICE_API_KEY: str | None = None
 
-    BUSINESS_SERVICE_HOST: str
-    BUSINESS_SERVICE_PORT: int | None = None
-    BUSINESS_SERVICE_API_KEY: str | None = None
+    BOT_SERVICE_HOST: str
+    BOT_SERVICE_PORT: int | None = None
+
+    USER_SERVICE_HOST: str
+    USER_SERVICE_PORT: int | None = None
+    USER_SERVICE_API_KEY: str | None = None
 
     PLAYERS_SERVICE_HOST: str
     PLAYERS_SERVICE_PORT: int | None = None
     PLAYERS_SERVICE_API_KEY: str | None = None
+
+    BUSINESS_SERVICE_HOST: str
+    BUSINESS_SERVICE_PORT: int | None = None
+    BUSINESS_SERVICE_API_KEY: str | None = None
+
+    PAYMENTS_SERVICE_HOST: str
+    PAYMENTS_SERVICE_PORT: int | None = None
+    PAYMENTS_SERVICE_API_KEY: str | None = None
 
     # Testing
     POSTGRES_DB_TESTING: str

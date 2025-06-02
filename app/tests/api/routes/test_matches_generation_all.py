@@ -51,6 +51,7 @@ async def test_generate_matches_given_business_and_date_creates_for_each_court(
     for match_extended in matches:
         for k in ["court_public_id", "court_name"]:
             assert match_extended[k] in test_data[f"{k}s"]  # type: ignore
+        assert match_extended["business_public_id"] == test_data["business_public_id"]
         assert match_extended["date"] == test_data["date"]
         time = match_extended["time"]
         time_avail = PlayerFilters.to_time_availability(time)

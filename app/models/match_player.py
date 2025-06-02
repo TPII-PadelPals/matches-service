@@ -9,8 +9,9 @@ class ReserveStatus(str, Enum):
     ASSIGNED = "assigned"
     SIMILAR = "similar"
     PROVISIONAL = "Provisional"
-    INSIDE = "Inside"
+    INSIDE = "inside"
     REJECTED = "Rejected"
+    OUTSIDE = "outside"
 
 
 class MatchPlayerBase(SQLModel):
@@ -77,6 +78,11 @@ class MatchPlayerPublic(MatchPlayerBase, MatchPlayerInmmutableExtended):
         data = match_player.model_dump()
         return cls(**data)
 
+    def get_assigned_players_uuids(self) -> UUID | None:
+        if self.reserve == ReserveStatus.ASSIGNED:
+            return self.user_public_id
+        return None
+
 
 class MatchPlayerListPublic(SQLModel):
     data: list[MatchPlayerPublic]
@@ -91,6 +97,23 @@ class MatchPlayerListPublic(SQLModel):
             data.append(MatchPlayerPublic.from_private(match_player))
         count = len(match_player_list)
         return cls(data=data, count=count)
+
+
+class Pay(SQLModel):
+    pay_url: str | None = Field()
+
+
+class MatchPlayerPay(MatchPlayer, Pay):
+    @classmethod
+    def from_match_player(
+        cls, match_player: MatchPlayer, pay_url: str | None
+    ) -> "MatchPlayerPay":
+        data = match_player.model_dump()
+        return cls(pay_url=pay_url, **data)
+
+
+class MatchPlayerPayPublic(MatchPlayerBase, MatchPlayerInmmutableExtended, Pay):
+    pass
 
 
 class MatchPlayerFilter(SQLModel):

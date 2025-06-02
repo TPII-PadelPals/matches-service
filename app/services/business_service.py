@@ -34,7 +34,7 @@ class BusinessService(BaseService):
             avail_time = Court(
                 business_public_id=datum["business_public_id"],
                 court_public_id=datum["court_public_id"],
-                court_name=datum["court_name"],
+                court_name=datum["name"],
                 price_per_hour=datum["price_per_hour"],
             )
             courts.append(avail_time)
@@ -68,3 +68,14 @@ class BusinessService(BaseService):
             )
             avail_times.append(avail_time)
         return avail_times
+
+    async def get_available_time(
+        self, business_public_id: uuid.UUID, court_name: str, date: date, time: int
+    ) -> AvailableTime | None:
+        avail_times = await self.get_available_times(
+            business_public_id, court_name, date
+        )
+        for avail_time in avail_times:
+            if avail_time.time == time:
+                return avail_time
+        return None
