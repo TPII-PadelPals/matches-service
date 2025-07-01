@@ -21,7 +21,7 @@ from app.utilities.exceptions import NotUniqueException
 
 
 class MatchGeneratorService:
-    MIN_SIM_PLAYERS: ClassVar[int] = 3
+    MIN_SIM_PLAYERS: ClassVar[int] = 1
     FACTOR_SIM_PLAYERS: ClassVar[int] = 4
     N_SIM_PLAYERS: ClassVar[int] = MIN_SIM_PLAYERS * FACTOR_SIM_PLAYERS
 

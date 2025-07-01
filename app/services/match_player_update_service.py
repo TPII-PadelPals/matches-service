@@ -18,7 +18,7 @@ from app.utilities.exceptions import NotAuthorizedException
 
 
 class MatchPlayerUpdateService:
-    MAX_MATCH_PLAYERS = 4
+    MAX_MATCH_PLAYERS = 2
 
     async def update_match_player(
         self,
