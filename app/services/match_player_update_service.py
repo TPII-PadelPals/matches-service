@@ -2,7 +2,6 @@ from uuid import UUID
 
 from app.models.match_player import (
     MatchPlayer,
-    MatchPlayerPay,
     MatchPlayerUpdate,
     ReserveStatus,
 )
@@ -25,15 +24,11 @@ class MatchPlayerUpdateService:
         match_public_id: UUID,
         user_public_id: UUID,
         match_player_in: MatchPlayerUpdate,
-    ) -> MatchPlayerPay:
-        pay_url = None
+    ) -> MatchPlayer:
         if match_player_in.is_inside():
             await self._validate_accept_match_player(
                 session, match_public_id, user_public_id
             )
-            # pay_url = await self._create_payment(
-            #     session, match_public_id, user_public_id
-            # )
 
         match_player = await self._update_match_player(
             session, match_public_id, user_public_id, match_player_in
@@ -43,7 +38,7 @@ class MatchPlayerUpdateService:
 
         await self._update_match_similars(session, match_public_id)
 
-        return MatchPlayerPay.from_match_player(match_player, pay_url)
+        return match_player
 
     async def _validate_accept_match_player(
         self,

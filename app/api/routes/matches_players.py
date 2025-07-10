@@ -7,7 +7,6 @@ from app.models.match_player import (
     MatchPlayerCreate,
     MatchPlayerCreatePublic,
     MatchPlayerListPublic,
-    MatchPlayerPayPublic,
     MatchPlayerPublic,
     MatchPlayerUpdate,
 )
@@ -110,7 +109,7 @@ async def get_match_player(
 
 @router.patch(
     "/{user_public_id}/",
-    response_model=MatchPlayerPayPublic,
+    response_model=MatchPlayerPublic,
     responses={**PATCH_MATCHES_PLAYERS},  # type: ignore[dict-item]
     status_code=status.HTTP_200_OK,
 )
