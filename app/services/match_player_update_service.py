@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from app.models.match import MatchStatus, MatchUpdate
 from app.models.match_player import (
     MatchPlayer,
     MatchPlayerPay,
@@ -18,7 +19,7 @@ from app.utilities.exceptions import NotAuthorizedException
 
 
 class MatchPlayerUpdateService:
-    MAX_MATCH_PLAYERS = 4
+    MAX_MATCH_PLAYERS = 2
 
     async def update_match_player(
         self,
@@ -121,6 +122,11 @@ class MatchPlayerUpdateService:
         n_assigned = len(assigned_players)
 
         n_missing_players = self.MAX_MATCH_PLAYERS - n_assigned - n_inside
+
+        if n_inside == self.MAX_MATCH_PLAYERS:
+            await MatchService().update_match(
+                session, match_public_id, MatchUpdate(status=MatchStatus.reserved)
+            )
 
         next_assign_players = []
         if n_missing_players > 0:

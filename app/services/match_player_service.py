@@ -12,8 +12,6 @@ from app.utilities.dependencies import SessionDep
 
 
 class MatchPlayerService:
-    MAX_MATCH_PLAYERS = 4
-
     async def create_match_player(
         self,
         session: SessionDep,

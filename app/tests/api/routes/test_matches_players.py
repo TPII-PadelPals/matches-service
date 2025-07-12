@@ -522,8 +522,8 @@ async def test_only_one_player_inside_then_only_three_similar_are_assigned(
 
     mock_telegram_id, mock_messages = set_mock_send_messages(monkeypatch)
 
-    # Create three players SIMILAR
-    similar_uuids = [uuid.uuid4() for _ in range(3)]
+    # Create one player SIMILAR
+    similar_uuids = [uuid.uuid4() for _ in range(1)]
     for similar_uuid in similar_uuids:
         await MatchPlayerService().create_match_player(
             session,
@@ -544,7 +544,7 @@ async def test_only_one_player_inside_then_only_three_similar_are_assigned(
     )
 
     # === POST ===
-    # Verify three players SIMILAR -> ASSIGNED
+    # Verify one player SIMILAR -> ASSIGNED
     for similar_uuid in similar_uuids:
         similar_player = await MatchPlayerService().get_match_player(
             session, match.public_id, similar_uuid
@@ -552,7 +552,7 @@ async def test_only_one_player_inside_then_only_three_similar_are_assigned(
         assert similar_player.reserve == ReserveStatus.ASSIGNED
 
     mock_messages.assert_called_once()
-    assert mock_telegram_id.call_count == 3
+    assert mock_telegram_id.call_count == 1
 
 
 async def test_four_players_inside_then_no_more_assigned(
@@ -727,7 +727,7 @@ async def test_two_players_inside_two_players_assigned_then_no_more_assigned(
         assert similar_player.reserve == ReserveStatus.SIMILAR
 
 
-async def test_three_players_inside_two_players_similar_then_the_closest_one_is_assigned(
+async def test_one_player_inside_two_players_similar_then_the_closest_one_is_assigned(
     async_client: AsyncClient,
     session: AsyncSession,
     x_api_key_header: dict[str, str],
@@ -743,19 +743,6 @@ async def test_three_players_inside_two_players_similar_then_the_closest_one_is_
             time=8,
         ),
     )
-    # === PRE ===
-    # Create two players INSIDE
-    inside_uuids = [uuid.uuid4() for _ in range(2)]
-    for inside_uuid in inside_uuids:
-        await MatchPlayerService().create_match_player(
-            session,
-            MatchPlayerCreate(
-                match_public_id=match.public_id,
-                user_public_id=inside_uuid,
-                distance=0,
-                reserve=ReserveStatus.INSIDE,
-            ),
-        )
 
     # Create one player ASSIGNED (future INSIDE)
     assigned_uuid = uuid.uuid4()
@@ -892,7 +879,7 @@ async def test_only_one_player_inside_more_than_three_players_similar_then_the_c
     # === POST ===
     # Verify closest player SIMILAR -> ASSIGNED
     max_closest_distance = -1e6
-    for closest_uuid in similar_uuids[:3]:
+    for closest_uuid in similar_uuids[:1]:
         closest_player = await MatchPlayerService().get_match_player(
             session, match.public_id, closest_uuid
         )
@@ -902,7 +889,7 @@ async def test_only_one_player_inside_more_than_three_players_similar_then_the_c
 
     # Verify not-closest player SIMILAR -> SIMILAR
     min_farthest_distance = 1e6
-    for farthest_uuid in similar_uuids[3:]:
+    for farthest_uuid in similar_uuids[1:]:
         farthest_player = await MatchPlayerService().get_match_player(
             session, match.public_id, farthest_uuid
         )
