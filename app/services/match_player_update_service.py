@@ -3,7 +3,6 @@ from uuid import UUID
 from app.models.match import MatchStatus, MatchUpdate
 from app.models.match_player import (
     MatchPlayer,
-    MatchPlayerPay,
     MatchPlayerUpdate,
     ReserveStatus,
 )
@@ -13,7 +12,6 @@ from app.services.business_service import BusinessService
 from app.services.match_generator_service import MatchGeneratorService
 from app.services.match_player_service import MatchPlayerService
 from app.services.match_service import MatchService
-from app.services.payment_service import PaymentsService
 from app.utilities.dependencies import SessionDep
 from app.utilities.exceptions import NotAuthorizedException
 
@@ -27,13 +25,9 @@ class MatchPlayerUpdateService:
         match_public_id: UUID,
         user_public_id: UUID,
         match_player_in: MatchPlayerUpdate,
-    ) -> MatchPlayerPay:
-        pay_url = None
+    ) -> MatchPlayer:
         if match_player_in.is_inside():
             await self._validate_accept_match_player(
-                session, match_public_id, user_public_id
-            )
-            pay_url = await self._create_payment(
                 session, match_public_id, user_public_id
             )
 
@@ -45,7 +39,7 @@ class MatchPlayerUpdateService:
 
         await self._update_match_similars(session, match_public_id)
 
-        return MatchPlayerPay.from_match_player(match_player, pay_url)
+        return match_player
 
     async def _validate_accept_match_player(
         self,
@@ -58,15 +52,6 @@ class MatchPlayerUpdateService:
         )
         if not match_player.is_assigned():
             raise NotAuthorizedException()
-
-    async def _create_payment(
-        self, session: SessionDep, match_public_id: UUID, user_public_id: UUID
-    ) -> str | None:
-        match_player_extended = await MatchPlayerService().get_match_player_extended(
-            session, match_public_id, user_public_id
-        )
-        payment = await PaymentsService().create_payment(match_player_extended)
-        return payment.pay_url
 
     async def _update_match_player(
         self,
