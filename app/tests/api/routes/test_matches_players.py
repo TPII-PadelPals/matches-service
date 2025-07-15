@@ -9,11 +9,14 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.core.config import test_settings
 from app.models.available_time import AvailableTime
 from app.models.match import MatchCreate
+from app.models.match_extended import MatchExtended
 from app.models.match_player import MatchPlayerCreate, ReserveStatus
+from app.models.payment import Payment
 from app.models.player import Player, PlayerFilters
 from app.services.business_service import BusinessService
 from app.services.match_player_service import MatchPlayerService
 from app.services.match_service import MatchService
+from app.services.payment_service import PaymentsService
 from app.services.players_service import PlayersService
 from app.tests.utils.utils import set_mock_send_messages
 
@@ -182,6 +185,70 @@ async def test_get_match_players_returns_all_players_associated_to_match(
         assert match_player["reserve"] == ReserveStatus.PROVISIONAL
 
 
+async def test_update_one_player_reserve_to_inside_creates_payment(
+    async_client: AsyncClient,
+    session: AsyncSession,
+    x_api_key_header: dict[str, str],
+    monkeypatch: Any,
+) -> None:
+    # PRE
+    # Create match
+    match = await MatchService().create_match(
+        session,
+        MatchCreate(
+            business_public_id=uuid.uuid4(),
+            court_public_id=uuid.uuid4(),
+            court_name="0",
+            date="2024-11-25",
+            time=8,
+        ),
+    )
+    user_public_id = str(uuid.uuid4())
+    pay_url = "https://www.mercadopago.com/mla/checkout/start?pref_id=123456"
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=user_public_id,
+            pay_url=pay_url,
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
+
+    _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
+
+    # Create player ASSIGNED
+    await MatchPlayerService().create_match_player(
+        session,
+        MatchPlayerCreate(
+            match_public_id=match.public_id,
+            user_public_id=user_public_id,
+            distance=0.0,
+            reserve=ReserveStatus.ASSIGNED,
+        ),
+    )
+
+    # Action
+    # Update player ASSIGNED -> INSIDE
+    response = await async_client.patch(
+        f"{test_settings.API_V1_STR}/matches/{match.public_id}/players/{user_public_id}/",
+        headers=x_api_key_header,
+        json={"reserve": ReserveStatus.INSIDE},
+    )
+
+    # POST
+    assert response.status_code == 200
+    content = response.json()
+    assert content["match_public_id"] == str(match.public_id)
+    assert content["user_public_id"] == user_public_id
+    assert content["reserve"] == ReserveStatus.INSIDE
+    assert content["pay_url"] == pay_url
+
+
 async def test_update_one_player_raises_exception_when_match_player_not_exists(
     async_client: AsyncClient, x_api_key_header: dict[str, str]
 ) -> None:
@@ -218,6 +285,19 @@ async def test_one_player_reserve_to_inside(
         ),
     )
     user_public_id = str(uuid.uuid4())
+    pay_url = "https://www.mercadopago.com/mla/checkout/start?pref_id=123456"
+
+    async def mock_create_payment(
+        _self: Any, _match_extended: MatchExtended
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=user_public_id,
+            pay_url=pay_url,
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
     _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
 
@@ -246,6 +326,7 @@ async def test_one_player_reserve_to_inside(
     assert content["match_public_id"] == str(match.public_id)
     assert content["user_public_id"] == user_public_id
     assert content["reserve"] == ReserveStatus.INSIDE
+    assert content["pay_url"] == pay_url
 
 
 async def test_one_player_reserve_to_accept_not_assigned_is_rejected(
@@ -353,6 +434,18 @@ async def test_only_one_player_inside_then_only_one_similar_is_assigned(
         ),
     )
 
+    async def mock_create_payment(
+        _self: Any, _match_extended: MatchExtended
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
+
     mock_telegram_id, mock_messages = set_mock_send_messages(monkeypatch)
 
     # Create one player SIMILAR
@@ -413,6 +506,19 @@ async def test_only_one_player_inside_then_only_three_similar_are_assigned(
             reserve=ReserveStatus.ASSIGNED,
         ),
     )
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
     mock_telegram_id, mock_messages = set_mock_send_messages(monkeypatch)
 
@@ -490,6 +596,19 @@ async def test_four_players_inside_then_no_more_assigned(
         ),
     )
 
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
+
     _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
 
     # Create three players SIMILAR
@@ -563,6 +682,19 @@ async def test_two_players_inside_two_players_assigned_then_no_more_assigned(
             ),
         )
 
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
+
     _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
 
     # Create three players SIMILAR
@@ -623,6 +755,19 @@ async def test_one_player_inside_two_players_similar_then_the_closest_one_is_ass
             reserve=ReserveStatus.ASSIGNED,
         ),
     )
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
     _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
 
@@ -694,6 +839,19 @@ async def test_only_one_player_inside_more_than_three_players_similar_then_the_c
             reserve=ReserveStatus.ASSIGNED,
         ),
     )
+
+    async def mock_create_payment(
+        self: Any,  # noqa: ARG001
+        match_extended: MatchExtended,  # noqa: ARG001
+    ) -> Payment:
+        return Payment(
+            public_id=uuid.uuid4(),
+            match_public_id=uuid.uuid4(),
+            user_public_id=assigned_uuid,
+            pay_url="https://www.mercadopago.com/mla/checkout/start?pref_id=123456",
+        )
+
+    monkeypatch.setattr(PaymentsService, "create_payment", mock_create_payment)
 
     _mock_telegram_id, _mock_messages = set_mock_send_messages(monkeypatch)
 
@@ -795,6 +953,7 @@ async def test_one_player_inside_one_player_reserve_to_outside(
     assert content["match_public_id"] == str(match.public_id)
     assert content["user_public_id"] == str(user_public_id)
     assert content["reserve"] == ReserveStatus.OUTSIDE
+    assert content["pay_url"] is None
 
 
 async def test_first_assigned_player_outside_then_match_is_re_created_without_it(

@@ -7,7 +7,6 @@ from app.models.match_player import MatchPlayer, ReserveStatus
 
 class MatchMorningPaseoColon:
     match_public_id = "0f565d41-e596-48f2-bbe4-74035c44ce18"
-    business_uuid = "848f4e27-5795-419a-ab67-73d46ac813ea"
     court_morning_uuid = "32b5b0a8-3813-4dcc-aba9-34d1f046a93c"
     court_morning_name = "Cancha Mañana"
     time = 9
@@ -15,8 +14,8 @@ class MatchMorningPaseoColon:
     assigned_uuid = "db08d286-58cf-4542-8501-efa273e38be4"
     similar_uuids = [
         "3cbccfa2-65d7-4d49-b801-b7f30daae857",
-        # "96ff36d6-bd6e-49c3-a666-cda2d2865be0",
-        # "a80a64fb-9672-450c-a98e-bcf366ea6ac8",
+        "96ff36d6-bd6e-49c3-a666-cda2d2865be0",
+        "a80a64fb-9672-450c-a98e-bcf366ea6ac8",
     ]
 
     @classmethod
@@ -28,9 +27,8 @@ class MatchMorningPaseoColon:
         matches = [
             Match(
                 public_id=cls.match_public_id,
-                business_public_id=cls.business_uuid,
-                court_public_id=cls.court_morning_uuid,
                 court_name=cls.court_morning_name,
+                court_public_id=cls.court_morning_uuid,
                 time=cls.time,
                 date=cls.date,
             )
