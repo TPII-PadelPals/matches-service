@@ -99,6 +99,23 @@ class MatchPlayerListPublic(SQLModel):
         return cls(data=data, count=count)
 
 
+class Pay(SQLModel):
+    pay_url: str | None = Field()
+
+
+class MatchPlayerPay(MatchPlayer, Pay):
+    @classmethod
+    def from_match_player(
+        cls, match_player: MatchPlayer, pay_url: str | None
+    ) -> "MatchPlayerPay":
+        data = match_player.model_dump()
+        return cls(pay_url=pay_url, **data)
+
+
+class MatchPlayerPayPublic(MatchPlayerBase, MatchPlayerInmmutableExtended, Pay):
+    pass
+
+
 class MatchPlayerFilter(SQLModel):
     match_public_id: UUID | None = None
     user_public_id: UUID | None = None
